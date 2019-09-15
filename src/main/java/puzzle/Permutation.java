@@ -1,13 +1,17 @@
 package puzzle;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -18,60 +22,95 @@ public class Permutation {
     private Permutation() {
     }
 
+    static class Counter<T> {
+
+        final T key;
+        int count;
+
+        Counter(Entry<T, Integer> entry) {
+            this.key = entry.getKey();
+            this.count = entry.getValue();
+        }
+    }
+
     static <T> Map<T, Integer> histogram(List<T> list) {
-        Map<T, Integer> result = new HashMap<>(list.size());
+        Map<T, Integer> result = new LinkedHashMap<>(list.size());
         for (T e : list)
             result.compute(e, (k, v) -> v == null ? 1 : v + 1);
         return result;
     }
 
-//    static <T> List<T> cons(T e, List<T> list) {
-//        List<T> r = new LinkedList<>();
-//        r.add(e);
-//        r.addAll(list);
-//        return r;
-//    }
-//
-//    static <T> List<T> remove(List<T> list, T e) {
-//        List<T> r = new LinkedList<>(list);
-//        r.remove(e);
-//        return r;
-//    }
-//
-//    public static <T> Stream<List<T>> permutation(List<T> list) {
-//        return permutation(list, list.size());
-//    }
-//
-//    public static <T> Stream<List<T>> permutation(List<T> list, int n) {
-//        if (n <= 0)
-//            return Stream.of(Collections.emptyList());
-//        return list.stream()
-//            .flatMap(h -> permutation(remove(list, h), n - 1)
-//                .map(t -> cons(h, t)));
-//    }
+    @SuppressWarnings("unchecked")
+    static <T> Counter<T>[] histogramArray(Map<T, Integer> histogram) {
+        return histogram.entrySet().stream().map(Counter::new).toArray(Counter[]::new);
+    }
 
-    private static <T> void callback(Map<T, Integer> histogram, int n, T[] selected, Consumer<List<T>> consumer, int index) {
+    static <T> Counter<T>[] histogramArray(List<T> list) {
+        return histogramArray(histogram(list));
+    }
+
+    private static <T> void callback(Counter<T>[] histogram, int n, T[] selected, Consumer<List<T>> consumer, int index) {
         if (index >= n)
             consumer.accept(List.of(selected));
         else
-            for (T element : histogram.keySet()) {
-                int count = histogram.get(element);
-                if (count <= 0) continue;
-                selected[index] = element;
-                histogram.put(element, count - 1);
+            for (Counter<T> element : histogram) {
+                if (element.count <= 0) continue;
+                selected[index] = element.key;
+                --element.count;
                 callback(histogram, n, selected, consumer, index + 1);
-                histogram.put(element, count);
+                ++element.count;
             }
+    }
+
+    public static <T> void callback2(List<T> list, int n, Consumer<List<T>> callback) {
+        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+        int size = list.size();
+        if (n > size) return;
+        Counter<T>[] histogram = histogramArray(list);
+        @SuppressWarnings("unchecked")
+        T[] selected = (T[]) new Object[n];
+        callback(histogram, n, selected, callback, 0);
     }
 
     public static <T> void callback(List<T> list, int n, Consumer<List<T>> callback) {
         if (n < 0) throw new IllegalArgumentException("n must be >= 0");
         int size = list.size();
         if (n > size) return;
-        Map<T, Integer> histogram = histogram(list);
+        Counter<T>[] h = histogramArray(list);
+        int m = h.length;
         @SuppressWarnings("unchecked")
         T[] selected = (T[]) new Object[n];
-        callback(histogram, n, selected, callback, 0);
+        Deque<Integer> stack = new LinkedList<>();
+        new Object() {
+            void generate() {
+                int index = 0;
+                int i = 0;
+                boolean init = true;
+                L: while (true) {
+                    if (index >= n) {
+                        callback.accept(List.of(selected));
+                    } else {
+                        if (init)
+                            i = 0;
+                        while (i < m) {
+                            if (h[i].count > 0) {
+                                selected[index] = h[i].key;
+                                --h[i].count;
+                                stack.push(i); ++index;
+                                init = true;
+                                continue L;
+                            }
+                            ++i;
+                        }
+                    }
+                    if (stack.isEmpty()) break;
+                    i = stack.pop(); --index;
+                    ++h[i].count;
+                    ++i;
+                    init = false;
+                }
+            }
+        }.generate();
     }
 
     public static <T> void callback(List<T> list, Consumer<List<T>> callback) {
@@ -79,23 +118,26 @@ public class Permutation {
     }
 
     static class PermutationIterator<T> implements Iterator<List<T>> {
-        final int n;
+        final int m, n;
         final Map<T, Integer> histogram;
         final Set<T> elements;
+        final Iterator<T>[] iterators;
         final int[] backup;
         final T[] selected;
-        final Iterator<T>[] iterators;
+        final int[] indexes;
         boolean hasNext = true;
 
-        @SuppressWarnings("unchecked")
         PermutationIterator(List<T> list, int n) {
             if (n < 0) throw new IllegalArgumentException("n must be >= 0");
             this.n = n;
             this.histogram = histogram(list);
+            this.m = histogram.size();
             this.elements = new HashSet<>(histogram.keySet());
+            this.iterators = (Iterator<T>[]) new Iterator[n];
             this.backup = new int[n];
             this.selected = (T[])new Object[n];
-            this.iterators = (Iterator<T>[])new Iterator[n];
+            this.indexes = new int[n];
+            Arrays.fill(indexes, -1);
             forward(0);
         }
 

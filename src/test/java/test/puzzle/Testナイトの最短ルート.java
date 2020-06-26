@@ -1,6 +1,7 @@
 package test.puzzle;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
@@ -13,31 +14,70 @@ import org.junit.jupiter.api.Test;
  */
 class Testナイトの最短ルート {
 
-    static final int[][] DIRECTIONS = {
-        {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
-        {1, -2}, {1, 2}, {2, -1}, {2, 1}};
+    static class Point {
+        public final int x, y;
 
-    static int[][] shortestDistances(int height, int width, int startX, int startY) {
+        public Point(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public Point plus(Point o) {
+            return new Point(x + o.x, y + o.y);
+        }
+
+        public boolean lessThan(Point o) {
+            return x < o.x && y < o.y;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (getClass() != obj.getClass()) return false;
+            Point o = (Point)obj;
+            return x == o.x && y == o.y;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
+        }
+
+        @Override
+        public String toString() {
+            return  x + "@" + y;
+        }
+    }
+
+    static Point point(int x, int y) {
+        return new Point(x, y);
+    }
+
+    static final Point[] DIRECTIONS = {
+        point(-2, -1), point(-2, 1), point(-1, -2), point(-1, 2),
+        point(1, -2), point(1, 2), point(2, -1), point(2, 1) };
+
+    static int[][] shortestDistances(int height, int width, Point start) {
         int[][] board = new int[height][width];
         for (int[] row : board)
             Arrays.fill(row, Integer.MAX_VALUE);
         new Object() {
-            void set(int x, int y, int distance) {
-                if (x < 0 || x >= height || y < 0 || y >= width)
+            void set(Point p, int distance) {
+                if (p.x < 0 || p.x >= height || p.y < 0 || p.y >= width)
                     return;
-                if (board[x][y] < distance)
+                if (distance >= board[p.x][p.y])
                     return;
-                board[x][y] = distance;
-                for (int[] direction : DIRECTIONS)
-                    set(x + direction[0], y + direction[1], distance + 1);
+                board[p.x][p.y] = distance;
+                for (Point direction : DIRECTIONS)
+                    set(p.plus(direction), distance + 1);
             }
-        }.set(startX, startY, 0);
+        }.set(start, 0);
         return board;
     }
 
     @Test
     public void testShortestDistances() {
-        int[][] board = shortestDistances(4, 4, 3, 0);
+        int[][] board = shortestDistances(4, 4, point(3, 0));
         for (int[] row : board)
             System.out.println(Arrays.toString(row));
     }

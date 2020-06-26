@@ -112,12 +112,12 @@ class Test閉じた騎士巡歴問題 {
             System.out.println();
             throw new RuntimeException();
         };
-        int height = 7;
-        int width = 7;
+        int height = 6;
+        int width = 6;
         try {
             閉じた騎士巡歴(height, width, 0, 0, print);
         } catch (RuntimeException e) {
         }
     }
-
+    
 }

@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 
-class Te閉じた騎士巡歴問題 {
+class Test開いた騎士巡歴問題 {
     
     static final int[] moveRows = { -2, -1, 1, 2, 2, 1, -1, -2 };
     static final int[] moveCols = { 1, 2, 2, 1, -1, -2, -2, -1 };

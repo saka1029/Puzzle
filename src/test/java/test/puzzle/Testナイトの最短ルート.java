@@ -36,10 +36,10 @@ class Testナイトの最短ルート {
     }
 
     @Test
-    void test() {
-    int[][] distances = shortestDistances(4, 4, 3, 0);
-    for (int[] row : distances)
-        System.out.println(Arrays.toString(row));
-}
+    public void testShortestDistances() {
+        int[][] board = shortestDistances(4, 4, 3, 0);
+        for (int[] row : board)
+            System.out.println(Arrays.toString(row));
+    }
 
 }

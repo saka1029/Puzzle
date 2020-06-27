@@ -16,7 +16,7 @@ class Test閉じた騎士巡歴問題 {
 
     /**
      * 各セルごとに移動可能なセル位置を列挙します。
-     * 
+     *
      * @param height
      * @param width
      * @return int[height][width][moves][axis] moves
@@ -79,6 +79,22 @@ class Test閉じた騎士巡歴問題 {
         int height = 4;
         int width = 4;
         int[][][][] moves = allMoves(height, width);
+        for (int r = 0; r < height; ++r) {
+            for (int c = 0; c < width; ++c)
+                System.out.print(moves[r][c].length + " ");
+            System.out.println();
+        }
+        int[][] moveSize = Arrays.stream(moves)
+            .map(row -> Arrays.stream(row)
+                .mapToInt(move -> move.length)
+                .toArray())
+            .toArray(int[][]::new);
+        assertArrayEquals(new int[][] {
+            {2,3,3,2},
+            {3,4,4,3},
+            {3,4,4,3},
+            {2,3,3,2}
+        }, moveSize);
         assertEquals(2, moves[0][0].length);
         assertArrayEquals(new int[][] {{1, 2}, {2, 1}}, moves[0][0]);
         assertEquals(2, moves[0][width - 1].length);
@@ -90,7 +106,7 @@ class Test閉じた騎士巡歴問題 {
 
     /**
      * Wikipediaによれば5x5の場合、1728通りのパスがあります。 これは始点を5x5通りに変えて実行したときの総和です。
-     * 
+     *
      * <pre>
      * 最初の解
      * [1,  22, 27, 30,  3, 20]
@@ -100,7 +116,7 @@ class Test閉じた騎士巡歴問題 {
      * [35, 24, 11, 14,  5, 18]
      * [12, 33,  6, 17, 10, 15]
      * </pre>
-     * 
+     *
      * Knight's tour - Wikipedia
      * https://en.wikipedia.org/wiki/Knight%27s_tour#Number_of_tours
      */
@@ -112,8 +128,8 @@ class Test閉じた騎士巡歴問題 {
             System.out.println();
             throw new RuntimeException();
         };
-        int height = 7;
-        int width = 7;
+        int height = 6;
+        int width = 6;
         try {
             閉じた騎士巡歴(height, width, 0, 0, print);
         } catch (RuntimeException e) {

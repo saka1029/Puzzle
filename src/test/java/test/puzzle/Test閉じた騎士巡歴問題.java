@@ -135,5 +135,5 @@ class Test閉じた騎士巡歴問題 {
         } catch (RuntimeException e) {
         }
     }
-
+    
 }

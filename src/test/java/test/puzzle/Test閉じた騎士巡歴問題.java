@@ -32,7 +32,7 @@ class Test閉じた騎士巡歴問題 {
         for (int row = 0; row < height; ++row)
             for (int col = 0; col < width; ++col) {
                 list.clear();
-                for (int i = 0, j = 0; i < size; ++i) {
+                for (int i = 0; i < size; ++i) {
                     int nextRow = row + MOVES[i][0];
                     int nextCol = col + MOVES[i][1];
                     if (nextRow >= 0 && nextRow < height
@@ -105,10 +105,8 @@ class Test閉じた騎士巡歴問題 {
     }
 
     /**
-     * Wikipediaによれば5x5の場合、1728通りのパスがあります。 これは始点を5x5通りに変えて実行したときの総和です。
-     *
      * <pre>
-     * 最初の解
+     * 6x6の最初の解
      * [1,  22, 27, 30,  3, 20]
      * [26, 31,  2, 21,  8, 29]
      * [23, 36, 25, 28, 19,  4]
@@ -135,5 +133,5 @@ class Test閉じた騎士巡歴問題 {
         } catch (RuntimeException e) {
         }
     }
-    
+
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
@@ -62,7 +63,7 @@ class TestCollatz {
     /**
      * nを初項とするコラッツ数列を求めます。
      */
-    static List<Long> コラッツ数列(long n) {
+    static List<Long> collatzSequence(long n) {
         List<Long> result = new ArrayList<>((int) n);
         while (n > 1) {
             result.add(n);
@@ -74,11 +75,7 @@ class TestCollatz {
         return result;
     }
 
-    @Test
-    public void testコラッツ数列() {
-        List<Long> result = コラッツ数列(27);
-        assertEquals(111, result.size());
-        List<Long> expected = List.of(
+    static final List<Long> sequenceOf27 = List.of(
             27L, 82L, 41L, 124L, 62L, 31L, 94L, 47L, 142L, 71L, 214L, 107L, 322L, 161L, 484L, 242L, 121L, 364L, 182L,
             91L, 274L, 137L, 412L, 206L, 103L, 310L, 155L, 466L, 233L, 700L, 350L, 175L, 526L, 263L, 790L, 395L, 1186L,
             593L, 1780L, 890L, 445L, 1336L, 668L, 334L, 167L, 502L, 251L, 754L, 377L, 1132L, 566L, 283L, 850L, 425L,
@@ -86,7 +83,12 @@ class TestCollatz {
             911L, 2734L, 1367L, 4102L, 2051L, 6154L, 3077L, 9232L, 4616L, 2308L, 1154L, 577L, 1732L, 866L, 433L, 1300L,
             650L, 325L, 976L, 488L, 244L, 122L, 61L, 184L, 92L, 46L, 23L, 70L, 35L, 106L, 53L, 160L, 80L, 40L, 20L, 10L,
             5L, 16L, 8L, 4L, 2L);
-        assertEquals(expected, result);
+
+    @Test
+    public void testCollatzSequence() {
+        List<Long> result = collatzSequence(27);
+        assertEquals(111, result.size());
+        assertEquals(sequenceOf27, result);
     }
 
     /**
@@ -200,6 +202,163 @@ class TestCollatz {
         long N = 1000;
         long[] cache = makeCollatzCache(N);
         logger.info(Arrays.toString(cache));
+    }
+
+    /**
+     *
+     * [コラッツの問題 - Wikipedia]
+     * (https://ja.wikipedia.org/wiki/%E3%82%B3%E3%83%A9%E3%83%83%E3%83%84%E3%81%AE%E5%95%8F%E9%A1%8C#%E3%83%91%E3%83%AA%E3%83%86%E3%82%A3%E3%82%B7%E3%83%BC%E3%82%B1%E3%83%B3%E3%82%B9)
+     *
+     * パリティシーケンス
+     * 本節では、コラッツ関数を少し変形したものを考える：
+     *
+     * f(n) = n / 2             (nが偶数の時)
+     *        (n * 3 + 1) / 2   (nが奇数の時)
+     * nが奇数の場合には3n + 1が必ず偶数になるので上記のようにできる。
+     *
+     * P(…)をパリティ数とする。P(2n) = 0 で、P(2n + 1) = 1 である。
+     * 整数nのパリティシーケンス（もしくは、パリティベクトル）を、pi = P(ai),
+     * ただしa0 = n, and ai+1 = f(ai) と定義する。
+     * (3n + 1)/2 または n/2、どちらの操作が適用されるかは、パリティに依存する。
+     * パリティシーケンスは操作のシーケンスに等しい。
+     * f(n)に対してこの形式を適用すると、２つの整数m とnのパリティシーケンスは、
+     * m とnが2kを法として合同の場合のみ、最初のk項で一致するこが示される。
+     * これは、すべての整数がパリティシーケンスにより一意に識別されること意味し、
+     * さらに複数のコラッツ数列がある場合、対応するパリティシーケンスが
+     * 異なる必要があることを意味します[7][8]。
+     * n=a·2k + b に関数 f を k 回適用すると、a·3c + dとなる。
+     * ここでdはbに関数fをk回適用した結果で、cはその過程で3倍の演算を行った（増加した）回数である。
+     * （例えば、a·25 + 1 では、1が2,1,2,1と変化し最後に2になるので、3回の増加がある。
+     * よって結果はa·33+2 である。a·22 + 1 では、1が2に増加しその後1になるので、
+     * 結果はa·3 + 1 となる。） bが2k - 1の場合には、 k回の増加があり、結果は2·a·3k - 1となる。
+     * aに掛かる係数は、aには無関係で、bにのみ依存する。これにより、特定の形式の数値が特定の反復回数の後、
+     * 常により小さい数値になることを予測できます。例えば、4a + 1 は、2回のf操作により3a + 1となり、
+     * 16a + 3は4回のf操作により9·a + 2となる。これらの小さくなった数が1へとつながるかどうかは、aの値に依存する。
+     *
+     *
+     * 時間と空間のトレードオフ
+     * 上記の パリティシーケンス により、コラッツ数列の計算の高速化が可能である。
+     *
+     * （パリティシーケンス節のf関数を使ったとして）kステップ先にジャンプする方法ために、
+     * まず現在の数値を2つに分割します：b（2進数表記で下位kビット）と、
+     * a（残りの上位ビット）。kステップをジャンプした結果は以下になる：
+     *
+     * f^k(a 2^k + b) = a * 3^(c(b)) + d(b).
+     * c(もしくは3^c)とd配列は、kビットの数すべてについて事前計算しておく。
+     * d(b)はbにf関数をk回行った数で、c(b)はその間に登場した奇数の数である。
+     * 例えばk=5なら5ステップのジャンプが可能で、そのために下位5ビットを分割して、
+     * 下記配列を使う：
+     *
+     * c(0..31) = {0,3,2,2,2,2,2,4,1,4,1,3,2,2,3,4,1,2,3,3,1,1,3,3,2,3,2,4,3,3,4,5}
+     * d(0..31) = {0,2,1,1,2,2,2,20,1,26,1,10,4,4,13,40,2,5,17,17,2,2,20,20,8,22,8,71,26,26,80,242}
+     *
+     * これは、2^k個の事前計算とストレージが要求される。
+     * これにより計算速度がk倍高速化出来るが、時間と空間のトレードオフである。
+     *
+     */
+
+    // Wikipediaに記載の定数
+    static final int[] C = {0, 3, 2, 2, 2, 2, 2, 4, 1, 4, 1, 3, 2, 2, 3, 4, 1, 2, 3, 3, 1, 1, 3, 3, 2, 3, 2, 4, 3, 3, 4, 5};
+    static final int[] D = {0, 2, 1, 1, 2, 2, 2, 20, 1, 26, 1, 10, 4, 4, 13, 40, 2, 5, 17, 17, 2, 2, 20, 20, 8, 22, 8, 71, 26, 26, 80, 242};
+    static final int[] C3 = IntStream.of(C).map(n -> (int)Math.pow(3, n)).toArray();
+
+    /**
+     * パリティシーケンスにおけるコラッツ数列を求める。
+     */
+    static int pcollatz(int n) {
+        if (n % 2 == 0)
+            return n / 2;
+        else
+            return (n * 3 + 1) / 2;
+    }
+
+    /**
+     * パリティシーケンスにおけるk番目のコラッツ数列を求める。
+     */
+    static int pcollatz(int n, int k) {
+        for (int i = 0; i < k; ++i)
+            n = pcollatz(n);
+        return n;
+    }
+
+    @Test
+    public void testPcollatz() {
+        assertEquals(2, pcollatz(1));
+        assertEquals(1, pcollatz(2));
+        assertEquals(1, pcollatz(1, 2));
+        assertEquals(1, pcollatz(1, 4));
+        assertEquals(1, pcollatz(1, 6));
+    }
+
+    /**
+     * k番目のpcollatzの計算で使用する配列c3(3^c)およびdを求める。
+     * @param k
+     * @param length
+     * @param c3
+     * @param d
+     */
+    static void pcollatzConstants(int k, int length, int[] c3, int[]d) {
+        for (int i = 0; i < length; ++i) {
+            int di = i;
+            int ci = 1;
+            for (int j = 0; j < k; ++j) {
+                if (di % 2 != 0) ci *= 3;   // 次のpcollatzを求める前に計算するところがポイント。
+                di = pcollatz(di);
+            }
+            d[i] = di;
+            c3[i] = ci;
+        }
+    }
+
+    /**
+     * k番目のpcollatzの計算で使用する配列c3(3^c)およびdを求める。
+     *
+     * @param k
+     * @return new int[][] {c3, d}を返す。
+     */
+    static int[][] pcollatzConstants(int k) {
+        int length = 1 << k;
+        int[] c3 = new int[length];
+        int[] d = new int[length];
+        pcollatzConstants(k, length, c3, d);
+        return new int[][] {c3, d};
+    }
+
+    @Test
+    public void testPcollatzConstants() {
+        int k = 5;
+        int[][] constants = pcollatzConstants(k);
+        int[] c3 = constants[0];
+        int[] d = constants[1];
+        logger.info("c3 = " + Arrays.toString(c3));
+        logger.info("d  = " + Arrays.toString(d));
+        assertArrayEquals(C3, c3);
+        assertArrayEquals(D, d);
+    }
+
+    static int pcollatz(int n, int k, int[] c3, int[] d) {
+        int a = n >> k;
+        int b = n & ((1 << k) - 1);
+        return a * c3[b] + d[b];
+    }
+
+    /**
+     * 5, 10, 15, 20, ... 番目のpcollatzをパリティシーケンスによる方法で求め、
+     * 通常の計算と一致することを確認する。
+     */
+    @Test
+    public void testPcollatzSequence() {
+        int k = 10;
+        int[][] constants = pcollatzConstants(k);
+        int[] c3 = constants[0];
+        int[] d = constants[1];
+        int n = 27;     // 初項
+        int e = n;      // 期待値(標準の関数で求める)
+        // 最終的に1と2の循環に収束するので2以下になったら終了する。
+        for (int i = 0; e > 2; i += k, n = pcollatz(n, k, c3, d), e = pcollatz(e, k)) {
+            logger.info(i + " : e=" + e + " n=" + n);
+            assertEquals(e, n);
+        }
     }
 
 }

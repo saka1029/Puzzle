@@ -2,6 +2,11 @@ package test.puzzle;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,10 +17,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
+
+import puzzle.Memoizer;
 
 class TestCollatz {
 
@@ -164,12 +172,12 @@ class TestCollatz {
         for (long i = M - 1000; i < M; ++i)
             logger.info("collatz(" + i + ") = " + cache.get(i));
         // 1000以下で最も長いもの
-        Entry max1000 = cache.entrySet().stream()
+        Entry<Long, Long> max1000 = cache.entrySet().stream()
             .filter(e -> e.getKey() <= 100)
             .max(Comparator.comparing(Entry::getValue)).get();
         logger.info(max1000.toString());
         // M以下で最も長いもの
-        Entry max = cache.entrySet().stream()
+        Entry<Long, Long> max = cache.entrySet().stream()
             .max(Comparator.comparing(Entry::getValue)).get();
         logger.info(max.toString());
     }
@@ -359,6 +367,74 @@ class TestCollatz {
             logger.info(i + " : e=" + e + " n=" + n);
             assertEquals(e, n);
         }
+    }
+
+    static long collatzNext(long n) {
+        if (n % 2 == 0)
+            return n / 2;
+        else
+            return n * 3 + 1;
+    }
+
+    /**
+     * 0 <= n < maxの整数についてn -> f(n)のMapを作成します。
+     */
+    static Map<Long, Long> collatzMap(int max) {
+        Map<Long, Long> map = new TreeMap<>();
+        map.put(1L, -1L);
+        for (long i = 2; i < max; ++i)
+            for (long s = i, n = collatzNext(s); !map.containsKey(s); s = n, n = collatzNext(s))
+                map.put(s, n);
+        return map;
+    }
+
+    @Test
+    public void testCollatzMap() throws IOException {
+        int N = 1000;
+        Map<Long, Long> map = collatzMap(N);
+        Path file = Paths.get("data", "collatz.gml");
+        try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(file))) {
+            out.println("graph [");
+            for (long i : map.keySet()) {
+                out.println("  node [");
+                out.println("    id " + i);
+                out.println("    label \"" + i + "\"");
+                out.println("  ]");
+            }
+            for (Entry<Long, Long> e : map.entrySet())
+                if (e.getValue() != -1) {
+                    out.println("  edge [");
+                    out.println("    source " + e.getKey());
+                    out.println("    target " + e.getValue());
+                    out.println("  ]");
+                }
+            out.println("]");
+        }
+    }
+
+    static <T> Comparator<T> reversed(Comparator<T> comparator) {
+        return (a, b) -> comparator.compare(b, a);
+    }
+
+    @Test
+    public void testCacheFunctionMemoize() {
+        Memoizer<Long, Long> collatzSize = Memoizer.memoize(self -> n -> {
+            if (n == 1L)
+                return 0L;
+            else if ((n & 1L) == 0)
+                return self.apply(n / 2L) + 1L;
+            else
+                return self.apply(n * 3L + 1L) + 1L;
+        });
+        long max = 1000000;
+        for (long i = 2; i < max; ++i)
+            collatzSize.apply(i);
+        System.out.println("cache size=" + collatzSize.cache().size());
+        collatzSize.cache().entrySet().stream()
+            .filter(e -> e.getKey() <= max)
+            .sorted(reversed(Comparator.comparing(Entry::getValue)))
+            .limit(100)
+            .forEach(System.out::println);
     }
 
 }

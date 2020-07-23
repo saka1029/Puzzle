@@ -1,5 +1,11 @@
 package test.puzzle;
 
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -76,14 +82,14 @@ class TestLifeGame {
 
     /**
      * pentomino F
-     * 
+     *
      * <pre>
      *    0 1 2
      * 0  . * *
      * 1  * * .
      * 2  . * .
      * </pre>
-     * 
+     *
      */
     static final Point[] F = {new Point(0, 1), new Point(0, 2), new Point(1, 0),
         new Point(1, 1), new Point(2, 1)};
@@ -109,11 +115,59 @@ class TestLifeGame {
 
     }
 
-    public static void main(String args[]){
-        JFrame frame = new JFrame("sample swing frame");
-        frame.setBounds(100, 100, 600, 400);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-      }
+    public static void main(String[] args) {
+        JFrame f = new JFrame() {
+            final int CELL_SIZE = 4;
+            final LifeGame game;
+            {
+                setTitle("Life game");
+                game = LifeGame.of(F);
+                setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                getContentPane().setPreferredSize(new Dimension(800, 600));
+                pack();
+                addKeyListener(new KeyListener() {
+                    @Override public void keyTyped(KeyEvent e) {
+                        game.next();
+                        repaint();
+                    }
+                    @Override public void keyReleased(KeyEvent e) { }
+                    @Override public void keyPressed(KeyEvent e) { }
+                });
+//                addMouseListener(new MouseListener() {
+//                    @Override public void mouseReleased(MouseEvent e) { }
+//                    @Override public void mousePressed(MouseEvent e) { }
+//                    @Override public void mouseExited(MouseEvent e) { }
+//                    @Override public void mouseEntered(MouseEvent e) { }
+//                    @Override public void mouseClicked(MouseEvent e) {
+//                        game.next();
+//                        repaint();
+//                    }
+//                });
+                setVisible(true);
+            }
+
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                System.out.println("paint point count=" + game.lives.size());
+//                g.fillRect(x + left, y + top, 40, 40);
+                Rectangle rect = getBounds();
+                System.out.println("rect=" + rect);
+                Insets insets = getInsets();
+                System.out.println("insets=" + insets);
+                int left = insets.left;
+                int top = insets.top;
+                int maxX = rect.width / CELL_SIZE / 2;
+                int maxY = rect.height / CELL_SIZE / 2;
+                System.out.println("maxX=" + maxX + " maxY=" + maxY);
+                for (int x = -maxX; x < maxX; ++x)
+                    for (int y = -maxY; y < maxY; ++y)
+                        if (game.lives.contains(new Point(x, y)))
+                            g.fillRect((x + maxX) * CELL_SIZE + left, (y + maxY) * CELL_SIZE + top,
+                                CELL_SIZE, CELL_SIZE);
+            }
+
+        };
+    }
 
 }

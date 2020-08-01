@@ -2,6 +2,7 @@ package test.puzzle;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
@@ -149,6 +150,7 @@ class TestLifeGame {
             @Override
             public void paint(Graphics g) {
                 super.paint(g);
+                ((Graphics2D)g).scale(0.5, 0.5);
                 System.out.println("paint point count=" + game.lives.size());
 //                g.fillRect(x + left, y + top, 40, 40);
                 Rectangle rect = getBounds();

@@ -101,7 +101,6 @@ class TestPermutation {
         assertArrayEquals(expected, result);
     }
 
-
     static class PermIterator implements Iterator<int[]> {
 
         final int[] array;
@@ -129,7 +128,8 @@ class TestPermutation {
         }
 
         boolean forward() {
-            if (!hasNext) return false;
+            if (!hasNext)
+                return false;
             int length = array.length;
             if (length < 2)
                 return false;
@@ -157,6 +157,7 @@ class TestPermutation {
         }
 
     }
+
     @Test
     public void testNextSelect() {
         int[] a = {0, 1, 2, 3};
@@ -178,11 +179,14 @@ class TestPermutation {
         private boolean hasNext;
 
         PermutationIndexIterator(int n, int r) {
-            if (n < 0) throw new IllegalArgumentException("n must be >= 0");
-            if (r < 0) throw new IllegalArgumentException("r must be >= 0");
-            if (r > n) throw new IllegalArgumentException("r must be <= n");
+            if (n < 0)
+                throw new IllegalArgumentException("n must be >= 0");
+            if (r < 0)
+                throw new IllegalArgumentException("r must be >= 0");
+            if (r > n)
+                throw new IllegalArgumentException("r must be <= n");
             this.n = n;
-            this.max = (int)Math.pow(n, r);
+            this.max = (int) Math.pow(n, r);
             this.used = new boolean[n];
             this.next = new int[r];
             this.order = 0;
@@ -231,13 +235,14 @@ class TestPermutation {
             return StreamSupport.stream(iterable(n, r).spliterator(), false);
         }
 
-//        public static Stream<int[]> stream(int[] array, int r) {
-//            return stream(array.length, r).map(a -> IntStream.of(a).map(i -> array[i]).toArray());
-//        }
-//
-//        public static Iterable<int[]> iterable(int[] array, int r) {
-//            return () -> stream(array, r).iterator();
-//        }
+        // public static Stream<int[]> stream(int[] array, int r) {
+        // return stream(array.length, r).map(a -> IntStream.of(a).map(i ->
+        // array[i]).toArray());
+        // }
+        //
+        // public static Iterable<int[]> iterable(int[] array, int r) {
+        // return () -> stream(array, r).iterator();
+        // }
 
         public static <T> Stream<List<T>> stream(List<T> list, int r) {
             int size = list.size();
@@ -248,9 +253,9 @@ class TestPermutation {
                         perm.add(list.get(a[i]));
                     return perm;
                 });
-//                .map(a -> IntStream.of(a)
-//                    .mapToObj(i -> list.get(i))
-//                    .collect(Collectors.toList()));
+            // .map(a -> IntStream.of(a)
+            // .mapToObj(i -> list.get(i))
+            // .collect(Collectors.toList()));
         }
 
         public static <T> Iterable<List<T>> iterable(List<T> list, int r) {
@@ -274,14 +279,11 @@ class TestPermutation {
      * 10進数から可変進数への変換
      *
      * 可変進数は下第n桁がn進数であるような数である。
+     *
      * <pre>
-     * 桁      進数  取りうる値
-     * 第1桁  1進数  {0}
-     * 第2桁  2進数  {0, 1}
-     * 第3桁  3進数  {0, 1, 2}
-     * 第4桁  4進数  {0, 1, 2, 3}
-     * 第5桁  5進数  {0, 1, 2, 3, 4}
-     * .....
+     * 桁 進数 取りうる値 第1桁 1進数 {0} 第2桁 2進数 {0, 1} 第3桁 3進数 {0, 1, 2} 第4桁 4進数 {0, 1, 2,
+     * 3} 第5桁 5進数 {0, 1, 2, 3, 4} .....
+     *
      * <pre>
      */
     List<Integer> variableBaseNumber(int n) {
@@ -302,7 +304,8 @@ class TestPermutation {
         int size = 1;
         for (int i = 2; i <= n; ++i)
             size *= i;
-//        int size = IntStream.rangeClosed(1, n).reduce((a, b) -> a * b).getAsInt();
+        // int size = IntStream.rangeClosed(1, n).reduce((a, b) -> a *
+        // b).getAsInt();
         int[] digits = new int[n];
         for (int i = 0; i < size; ++i) {
             for (int b = 1, j = n - 1, k = i; k > 0; k /= b++, --j)
@@ -317,7 +320,66 @@ class TestPermutation {
         VBN(6);
     }
 
+    /**
+     * @param array
+     * @param from
+     * @param to
+     * @param min
+     * @return arrayのfrom番目(含む)からto番目(含まない)までの範囲で
+     *         minより大きい要素の内、最小の値を持つ位置を返します。
+     *         該当する要素が存在しない場合は-1を返します。
+     */
+    static int minIndex(int[] array, int from, int to, int min) {
+        int index = -1;
+        int minValue = Integer.MAX_VALUE;
+        for (int i = from; i < to; ++i) {
+            int value = array[i];
+            if (value > min && value < minValue) {
+                minValue = value;
+                index = i;
+            }
+        }
+        return index;
+    }
 
+    static void print(int[] array, int from, int to) {
+        for (int i = from; i < to; ++i)
+            System.out.print(array[i] + " ");
+        System.out.println();
+    }
+
+    static boolean next(int[] array, int r) {
+        int size = array.length;
+        if (r > size)
+            throw new IllegalArgumentException("r must be <= array.length");
+        for (int i = r - 1; i >= 0; --i) {
+            int ai = array[i];
+            int m = -1;
+            for (int j = i + 1, min = Integer.MAX_VALUE; j < size; ++j) {
+                int aj = array[j];
+                if (aj > ai && aj < min) {
+                    m = j;
+                    min = aj;
+                }
+            }
+            if (m >= 0) {
+                swap(array, i, m);
+                System.out.println("sorting: " + Arrays.toString(Arrays.copyOfRange(array, i + 1, size)));
+                Arrays.sort(array, i + 1, size);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Test
+    public void testNextWithR() {
+        int r = 3;
+        boolean hasNext = true;
+        for (int[] a = {0, 1, 2, 3, 4, 5}; hasNext; hasNext = next(a, r))
+            System.out.println(Arrays.toString(a));
+        assertFalse(next(new int[] {0}, 1));
+    }
 
 
 }

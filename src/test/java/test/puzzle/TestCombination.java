@@ -1,12 +1,16 @@
 package test.puzzle;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 
@@ -128,6 +132,64 @@ public class TestCombination {
     @Test(expected = IllegalArgumentException.class)
     public void testIterableError() {
         iterable(input1, -1);
+    }
+    
+    static class CombinationIterator implements Iterator<int[]> {
+        
+        final int n, r;
+        final int[] selection;
+        boolean hasNext;
+        
+        public CombinationIterator(int n, int r) {
+            if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+            if (r < 0) throw new IllegalArgumentException("r must be >= 0");
+            if (r > n) throw new IllegalArgumentException("r must be <= n");
+            this.n = n;
+            this.r = r;
+            this.selection = IntStream.range(0, r).toArray();
+            this.hasNext = true;
+        }
+        
+        boolean advance() {
+            for (int i = r - 1; i >= 0; )
+                if (++selection[i] >= n)
+                    --i;
+                else if (i + 1 < r)
+                    selection[i + 1] = selection[i++];
+                else
+                    return true;
+            return false;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return hasNext;
+        }
+
+        @Override
+        public int[] next() {
+            int[] result = selection.clone();
+            hasNext = advance();
+            return result;
+        }
+
+    }
+    
+    static Iterable<int[]> iterable(int n, int r) {
+        return () -> new CombinationIterator(n, r);
+    }
+
+    static Stream<int[]> stream(int n, int r) {
+        return StreamSupport.stream(iterable(n, r).spliterator(), false);
+    }
+
+    
+    @Test
+    public void testCombinationIterator() {
+//        for (int[] a : iterable(5, 3))
+//            System.out.println(Arrays.toString(a));
+        stream(5, 3)
+            .forEach(a -> System.out.println(Arrays.toString(a)));
     }
 
 }

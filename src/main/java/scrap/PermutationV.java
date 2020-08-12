@@ -1,4 +1,4 @@
-package puzzle;
+package scrap;
 
 import java.util.ArrayList;
 import java.util.Arrays;

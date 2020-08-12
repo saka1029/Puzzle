@@ -1,47 +1,41 @@
 package puzzle;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class Permutation {
 
+    private Permutation() {
+    }
+
+    static void swap(int[] array, int i, int j) {
+        int temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    /**
+     * 辞書的順序生成アルゴリズムを改善した順列生成Iteratorです。
+     * n個のなかからr個選ぶ順列の生成ができます。
+     */
     static class IndexIterator implements Iterator<int[]> {
 
-        private final int[] array;
-        private boolean hasNext;
+        final int n, r;
+        final int[] array;
+        boolean hasNext = true;
 
-        IndexIterator(int size) {
-            this.array = IntStream.range(0, size).toArray();
-            this.hasNext = true;
-        }
-
-        static void swap(int[] array, int i, int j) {
-            int temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-        }
-
-        private boolean forward() {
-            if (!hasNext)
-                return false;
-            int length = array.length;
-            if (length < 2)
-                return false;
-            for (int i = length - 2; i >= 0; --i)
-                if (array[i] < array[i + 1])
-                    for (int j = length - 1; true; --j)
-                        if (array[i] < array[j]) {
-                            swap(array, i, j);
-                            for (int k = i + 1, l = length - 1; k < l; ++k, --l)
-                                swap(array, k, l);
-                            return true;
-                        }
-            return false;
+        IndexIterator(int n, int r) {
+            if (r > n)
+                throw new IllegalArgumentException("r must be <= n");
+            this.n = n;
+            this.r = r;
+            this.array = new int[n];
+            for (int i = 0; i < n; ++i)
+                array[i] = i;
         }
 
         @Override
@@ -49,86 +43,79 @@ public class Permutation {
             return hasNext;
         }
 
+        boolean advance() {
+            for (int i = r - 1; i >= 0; --i) {
+                int ai = array[i];
+                int m = -1;
+                for (int j = i + 1, min = Integer.MAX_VALUE; j < n; ++j) {
+                    int aj = array[j];
+                    if (aj > ai && aj < min) {
+                        m = j;
+                        min = aj;
+                    }
+                }
+                if (m >= 0) {
+                    swap(array, i, m);
+                    Arrays.sort(array, i + 1, n);
+                    return true;
+                }
+            }
+            return false;
+
+        }
+
         @Override
         public int[] next() {
-            if (!hasNext)
-                throw new NoSuchElementException();
-            int[] result = array.clone();
-            hasNext = forward();
+            int[] result = Arrays.copyOf(array, r);
+            hasNext = advance();
             return result;
         }
     }
 
-    public static Iterable<int[]> iterable(int size) {
-        return () -> new IndexIterator(size);
+    public static Iterable<int[]> iterable(int n, int r) {
+        return () -> new IndexIterator(n, r);
     }
 
-    public static Stream<int[]> stream(int size) {
-        return StreamSupport.stream(iterable(size).spliterator(), false);
+    public static Stream<int[]> stream(int n, int r) {
+        return StreamSupport.stream(iterable(n, r).spliterator(), false);
     }
 
-    static class ArrayIterator<T> implements Iterator<T[]> {
-
-        private final T[] array;
-        private final IndexIterator indexes;
-
-        ArrayIterator(T[] array) {
-            this.array = array.clone();
-            this.indexes = new IndexIterator(array.length);
-        }
-
-        @Override
-        public boolean hasNext() {
-            return indexes.hasNext();
-        }
-
-        @Override
-        public T[] next() {
-            T[] result = array.clone();
-            int i = 0;
-            for (int j : indexes.next())
-                result[i++] = array[j];
-            return result;
-        }
+    public static Iterable<int[]> iterable(int[] array, int r) {
+        return () -> stream(array.length, r)
+            .map(a -> {
+                int[] sub = new int[r];
+                for (int i = 0; i < r; ++i)
+                    sub[i] = array[a[i]];
+                return sub;
+            }).iterator();
     }
 
-    public static <T> Iterable<T[]> iterable(T[] array) {
-        return () -> new ArrayIterator<>(array);
+    public static <T> Stream<T[]> stream(T[] array, int r) {
+        return stream(array.length, r)
+            .map(a -> {
+                T[] sub = Arrays.copyOf(array, r);
+                for (int i = 0; i < r; ++i)
+                    sub[i] = array[a[i]];
+                return sub;
+            });
     }
 
-    public static <T> Stream<T[]> stream(T[] array) {
-        return StreamSupport.stream(iterable(array).spliterator(), false);
+    public static <T> Iterable<T[]> iterable(T[] array, int r) {
+        return () -> stream(array, r).iterator();
     }
 
-    static class ListIterator<T> implements Iterator<List<T>> {
-
-        private final List<T> list;
-        private final IndexIterator indexes;
-
-        ListIterator(List<T> list) {
-            this.list = new ArrayList<>(list);
-            this.indexes = new IndexIterator(list.size());
-        }
-
-        @Override
-        public boolean hasNext() {
-            return indexes.hasNext();
-        }
-
-        @Override
-        public List<T> next() {
-            List<T> result = new ArrayList<>(list.size());
-            for (int i : indexes.next())
-                result.add(list.get(i));
-            return result;
-        }
+    public static <T> Stream<List<T>> stream(List<T> list, int r) {
+        return stream(list.size(), r)
+            .map(a -> {
+                List<T> sub = new ArrayList<>();
+                for (int i : a)
+                    sub.add(list.get(i));
+                return sub;
+            });
     }
 
-    public static <T> Iterable<List<T>> iterable(List<T> list) {
-        return () -> new ListIterator<>(list);
+    public static <T> Iterable<List<T>> iterable(List<T> list, int r) {
+        return () -> stream(list, r).iterator();
     }
 
-    public static <T> Stream<List<T>> stream(List<T> list) {
-        return StreamSupport.stream(iterable(list).spliterator(), false);
-    }
 }

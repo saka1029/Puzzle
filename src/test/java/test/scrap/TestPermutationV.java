@@ -1,4 +1,4 @@
-package test.puzzle;
+package test.scrap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
-import puzzle.PermutationV;
+import scrap.PermutationV;
 
 class TestPermutationV {
 

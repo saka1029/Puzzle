@@ -1,18 +1,13 @@
 package test.puzzle;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,364 +17,146 @@ class TestPermutation {
 
     static Logger logger = Logger.getLogger(TestPermutation.class.getName());
 
+    @Test
+    void testIterable4() {
+        for (int[] a : Permutation.iterable(4, 2))
+            logger.info(Arrays.toString(a));
+    }
+
+    @Test
+    void testIterable3_3() {
+        List<int[]> all = new ArrayList<>();
+        for (int[] a : Permutation.iterable(3, 3))
+            all.add(a);
+        int[][] expected = {{0, 1, 2}, {0, 2, 1}, {1, 0, 2}, {1, 2, 0},
+            {2, 0, 1}, {2, 1, 0}};
+        assertArrayEquals(expected, all.toArray(int[][]::new));
+    }
+
+    @Test
+    void testIterable3_2() {
+        List<int[]> all = new ArrayList<>();
+        for (int[] a : Permutation.iterable(3, 2))
+            all.add(a);
+        int[][] expected = {{0, 1}, {0, 2}, {1, 0}, {1, 2}, {2, 0}, {2, 1}};
+        assertArrayEquals(expected, all.toArray(int[][]::new));
+    }
+
+    @Test
+    void testIterable3_1() {
+        List<int[]> all = new ArrayList<>();
+        for (int[] a : Permutation.iterable(3, 1))
+            all.add(a);
+        int[][] expected = {{0}, {1}, {2}};
+        assertArrayEquals(expected, all.toArray(int[][]::new));
+    }
+
     static int factorial(int n) {
         return n <= 1 ? 1 : n * factorial(n - 1);
     }
 
     @Test
-    public void testIndexIterator() {
-        for (int[] a : Permutation.iterable(5))
-            logger.info(Arrays.toString(a));
-        for (int i = 0; i < 10; ++i)
-            assertEquals(factorial(i), Permutation.stream(i).count());
-    }
-
-    @Test
     public void testArrayIterator() {
         String[] a = {"a", "b", "c"};
-        for (String[] e : Permutation.iterable(a))
+        for (String[] e : Permutation.iterable(a, 3))
             logger.info(Arrays.toString(e));
         for (int i = 0; i < 10; ++i) {
             String[] str = IntStream.range(0, i)
                 .mapToObj(j -> Character.toString(j + 'a'))
                 .toArray(String[]::new);
-            assertEquals(factorial(i), Permutation.stream(str).count());
+            assertEquals(factorial(i), Permutation.stream(str, i).count());
         }
     }
 
     @Test
     public void testListIterator() {
         List<String> a = List.of("a", "b", "c", "d");
-        for (List<String> e : Permutation.iterable(a))
+        for (List<String> e : Permutation.iterable(a, 4))
             logger.info(e.toString());
         for (int i = 0; i < 10; ++i) {
             List<String> str = IntStream.range(0, i)
                 .mapToObj(j -> Character.toString(j + 'a'))
                 .collect(Collectors.toList());
-            assertEquals(factorial(i), Permutation.stream(str).count());
+            assertEquals(factorial(i), Permutation.stream(str, i).count());
         }
     }
 
-    static void swap(int[] array, int i, int j) {
-        int temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-    }
-
-    static boolean next(int[] array) {
-        int length = array.length;
-        if (length < 2)
-            return false;
-        for (int i = length - 2; i >= 0; --i)
-            if (array[i] < array[i + 1])
-                for (int j = length - 1; true; --j)
-                    if (array[i] < array[j]) {
-                        swap(array, i, j);
-                        for (int k = i + 1, l = length - 1; k < l; ++k, --l)
-                            swap(array, k, l);
-                        return true;
-                    }
-        return false;
+    static int number(int... digits) {
+        return IntStream.of(digits).reduce(0, (a, b) -> a * 10 + b);
     }
 
     @Test
-    public void testNext() {
-        int[] a = {2, 2, 1, 3};
-        List<int[]> list = new ArrayList<>();
-        for (boolean f = true; f; f = next(a))
-            list.add(a.clone());
-        int[][] result = list.toArray(int[][]::new);
-        int[][] expected = {
-            {2, 2, 1, 3},
-            {2, 2, 3, 1},
-            {2, 3, 1, 2},
-            {2, 3, 2, 1},
-            {3, 1, 2, 2},
-            {3, 2, 1, 2},
-            {3, 2, 2, 1},
-        };
-        assertArrayEquals(expected, result);
-    }
+    public void testSendMoreMoney() {
+        new Object() {
 
-    static class PermIterator implements Iterator<int[]> {
-
-        final int[] array;
-        final int[] sub;
-        final int sel;
-        boolean hasNext = true;
-
-        PermIterator(int[] array, int sel) {
-            this.array = array;
-            this.sub = new int[sel];
-            this.sel = sel;
-        }
-
-        boolean forward(int length) {
-            for (int i = length - 2; i >= 0; --i)
-                if (array[i] < array[i + 1])
-                    for (int j = length - 1; true; --j)
-                        if (array[i] < array[j]) {
-                            swap(array, i, j);
-                            for (int k = i + 1, l = length - 1; k < l; ++k, --l)
-                                swap(array, k, l);
-                            return true;
-                        }
-            return false;
-        }
-
-        boolean forward() {
-            if (!hasNext)
-                return false;
-            int length = array.length;
-            if (length < 2)
-                return false;
-            System.arraycopy(array, 0, sub, 0, sel);
-            while (Arrays.compare(array, 0, sel, sub, 0, sel) == 0)
-                if (!forward(length))
-                    return false;
-            return true;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return hasNext;
-        }
-
-        @Override
-        public int[] next() {
-            int[] r = Arrays.copyOf(array, sel);
-            hasNext = forward();
-            return r;
-        }
-
-        static Iterable<int[]> iterable(int[] array, int sel) {
-            return () -> new PermIterator(array, sel);
-        }
-
-    }
-
-    @Test
-    public void testNextSelect() {
-        int[] a = {0, 1, 2, 3};
-        List<List<Integer>> list = new ArrayList<>();
-        for (int[] e : PermIterator.iterable(a, 3))
-            list.add(IntStream.of(e).boxed().collect(Collectors.toList()));
-        for (List<Integer> e : list)
-            System.out.println(e);
-    }
-
-    static class PermutationIndexIterator implements Iterator<int[]> {
-
-        private final int n;
-        private final int max;
-        private final boolean[] used;
-        private final int[] next;
-
-        private int order;
-        private boolean hasNext;
-
-        PermutationIndexIterator(int n, int r) {
-            if (n < 0)
-                throw new IllegalArgumentException("n must be >= 0");
-            if (r < 0)
-                throw new IllegalArgumentException("r must be >= 0");
-            if (r > n)
-                throw new IllegalArgumentException("r must be <= n");
-            this.n = n;
-            this.max = (int) Math.pow(n, r);
-            this.used = new boolean[n];
-            this.next = new int[r];
-            this.order = 0;
-            this.hasNext = advance();
-        }
-
-        boolean uniq() {
-            Arrays.fill(used, false);
-            for (int i : next)
-                if (used[i])
-                    return false;
-                else
-                    used[i] = true;
-            return true;
-        }
-
-        boolean advance() {
-            for (; order < max; ++order) {
-                for (int k = order, i = next.length - 1; k > 0; k /= n, --i)
-                    next[i] = k % n;
-                if (uniq()) {
-                    ++order;
-                    return true;
-                }
+            void check(int s, int e, int n, int d, int m, int o, int r, int y) {
+                if (s == 0 || m == 0)
+                    return;
+                int send = number(s, e, n, d);
+                int more = number(m, o, r, e);
+                int money = number(m, o, n, e, y);
+                if (send + more != money)
+                    return;
+                logger.info(send + "+" + more + "=" + money);
+                assertEquals(9567, send);
+                assertEquals(1085, more);
+                assertEquals(10652, money);
             }
-            return false;
-        }
 
-        @Override
-        public boolean hasNext() {
-            return hasNext;
-        }
+            void run() {
+                logger.info("start SEND MORE MONEY");
+                for (int[] a : Permutation.iterable(10, 8))
+                    check(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+            }
 
-        @Override
-        public int[] next() {
-            int[] result = next.clone();
-            hasNext = advance();
-            return result;
-        }
-
-        public static Iterable<int[]> iterable(int n, int r) {
-            return () -> new PermutationIndexIterator(n, r);
-        }
-
-        public static Stream<int[]> stream(int n, int r) {
-            return StreamSupport.stream(iterable(n, r).spliterator(), false);
-        }
-
-        // public static Stream<int[]> stream(int[] array, int r) {
-        // return stream(array.length, r).map(a -> IntStream.of(a).map(i ->
-        // array[i]).toArray());
-        // }
-        //
-        // public static Iterable<int[]> iterable(int[] array, int r) {
-        // return () -> stream(array, r).iterator();
-        // }
-
-        public static <T> Stream<List<T>> stream(List<T> list, int r) {
-            int size = list.size();
-            return stream(size, r)
-                .map(a -> {
-                    List<T> perm = new ArrayList<>(r);
-                    for (int i = 0; i < r; ++i)
-                        perm.add(list.get(a[i]));
-                    return perm;
-                });
-            // .map(a -> IntStream.of(a)
-            // .mapToObj(i -> list.get(i))
-            // .collect(Collectors.toList()));
-        }
-
-        public static <T> Iterable<List<T>> iterable(List<T> list, int r) {
-            return () -> stream(list, r).iterator();
-        }
+        }.run();
     }
 
     @Test
-    public void testPermutationIndexIterator() {
-        for (int[] e : PermutationIndexIterator.iterable(4, 2))
-            System.out.println(Arrays.toString(e));
-        PermutationIndexIterator.stream(4, 2)
-            .forEach(a -> System.out.println(Arrays.toString(a)));
-        for (List<String> e : PermutationIndexIterator.iterable(List.of("a", "b", "c", "d"), 2))
-            System.out.println(e);
-        PermutationIndexIterator.stream(List.of("a", "b", "c", "d"), 2)
-            .forEach(list -> System.out.println(list));
+    public void testSaveMoreMoney() {
+        new Object() {
+
+            List<List<Integer>> expected = List.of(
+                List.of(9376, 1086, 10462),
+                List.of(9386, 1076, 10462),
+                List.of(9476, 1086, 10562),
+                List.of(9486, 1076, 10562)
+            );
+
+            void check(int s, int a, int v, int e, int m, int o, int r, int n,
+                int y) {
+                if (s == 0 || m == 0)
+                    return;
+                int save = number(s, a, v, e);
+                int more = number(m, o, r, e);
+                int money = number(m, o, n, e, y);
+                if (save + more != money)
+                    return;
+                logger.info(save + "+" + more + "=" + money);
+                assertTrue(expected.contains(List.of(save, more, money)));
+            }
+
+            void run() {
+                logger.info("start SAVE MORE MONEY");
+                for (int[] a : Permutation.iterable(10, 9))
+                    check(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
+            }
+        }.run();
     }
 
     /**
-     * 10進数から可変進数への変換
-     *
-     * 可変進数は下第n桁がn進数であるような数である。
-     *
-     * <pre>
-     * 桁 進数 取りうる値 第1桁 1進数 {0} 第2桁 2進数 {0, 1} 第3桁 3進数 {0, 1, 2} 第4桁 4進数 {0, 1, 2,
-     * 3} 第5桁 5進数 {0, 1, 2, 3, 4} .....
-     *
-     * <pre>
+     * 2020-08-12T14:49:51.631 情報 count = 479001600 22107msec.
+     * 2020-08-12T14:50:40.056 情報 count = 479001600 22854msec.
+     * 2020-08-12T14:55:38.434 情報 count = 479001600 23904msec.
+     * 2020-08-12T15:15:04.279 情報 count = 479001600 23153msec.
      */
-    List<Integer> variableBaseNumber(int n) {
-        LinkedList<Integer> result = new LinkedList<>();
-        for (int b = 1; n > 0; n /= b++)
-            result.add(n % b);
-        Collections.reverse(result);
-        return result;
-    }
-
     @Test
-    public void testVariableBaseNumber() {
-        for (int i = 0; i <= 24; ++i)
-            System.out.println(variableBaseNumber(i));
+    public void test12() {
+        int count = 0;
+        long start = System.currentTimeMillis();
+        for (int[] a : Permutation.iterable(12, 12))
+            ++count;
+        logger.info("count = " + count + " " + (System.currentTimeMillis() - start) + "msec.");
     }
-
-    static int VBN(final int n) {
-        int size = 1;
-        for (int i = 2; i <= n; ++i)
-            size *= i;
-        // int size = IntStream.rangeClosed(1, n).reduce((a, b) -> a *
-        // b).getAsInt();
-        int[] digits = new int[n];
-        for (int i = 0; i < size; ++i) {
-            for (int b = 1, j = n - 1, k = i; k > 0; k /= b++, --j)
-                digits[j] = k % b;
-            System.out.println(Arrays.toString(digits));
-        }
-        return size;
-    }
-
-    @Test
-    public void testVBN() {
-        VBN(6);
-    }
-
-    /**
-     * @param array
-     * @param from
-     * @param to
-     * @param min
-     * @return arrayのfrom番目(含む)からto番目(含まない)までの範囲で
-     *         minより大きい要素の内、最小の値を持つ位置を返します。
-     *         該当する要素が存在しない場合は-1を返します。
-     */
-    static int minIndex(int[] array, int from, int to, int min) {
-        int index = -1;
-        int minValue = Integer.MAX_VALUE;
-        for (int i = from; i < to; ++i) {
-            int value = array[i];
-            if (value > min && value < minValue) {
-                minValue = value;
-                index = i;
-            }
-        }
-        return index;
-    }
-
-    static void print(int[] array, int from, int to) {
-        for (int i = from; i < to; ++i)
-            System.out.print(array[i] + " ");
-        System.out.println();
-    }
-
-    static boolean next(int[] array, int r) {
-        int size = array.length;
-        if (r > size)
-            throw new IllegalArgumentException("r must be <= array.length");
-        for (int i = r - 1; i >= 0; --i) {
-            int ai = array[i];
-            int m = -1;
-            for (int j = i + 1, min = Integer.MAX_VALUE; j < size; ++j) {
-                int aj = array[j];
-                if (aj > ai && aj < min) {
-                    m = j;
-                    min = aj;
-                }
-            }
-            if (m >= 0) {
-                swap(array, i, m);
-                System.out.println("sorting: " + Arrays.toString(Arrays.copyOfRange(array, i + 1, size)));
-                Arrays.sort(array, i + 1, size);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Test
-    public void testNextWithR() {
-        int r = 3;
-        boolean hasNext = true;
-        for (int[] a = {0, 1, 2, 3, 4, 5}; hasNext; hasNext = next(a, r))
-            System.out.println(Arrays.toString(a));
-        assertFalse(next(new int[] {0}, 1));
-    }
-
 
 }

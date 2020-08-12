@@ -1,4 +1,4 @@
-package test.puzzle;
+package test.scrap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
-import puzzle.PermutationS;
+import puzzle.Permutation;
 
 class TestPermutaionS {
 
@@ -19,14 +19,14 @@ class TestPermutaionS {
 
     @Test
     void testIterable4() {
-        for (int[] a : PermutationS.iterable(4, 2))
+        for (int[] a : Permutation.iterable(4, 2))
             System.out.println(Arrays.toString(a));
     }
 
     @Test
     void testIterable3_3() {
         List<int[]> all = new ArrayList<>();
-        for (int[] a : PermutationS.iterable(3, 3))
+        for (int[] a : Permutation.iterable(3, 3))
             all.add(a);
         int[][] expected = {
             {0, 1, 2},
@@ -42,7 +42,7 @@ class TestPermutaionS {
     @Test
     void testIterable3_2() {
         List<int[]> all = new ArrayList<>();
-        for (int[] a : PermutationS.iterable(3, 2))
+        for (int[] a : Permutation.iterable(3, 2))
             all.add(a);
         int[][] expected = {
             {0, 1},
@@ -58,7 +58,7 @@ class TestPermutaionS {
     @Test
     void testIterable3_1() {
         List<int[]> all = new ArrayList<>();
-        for (int[] a : PermutationS.iterable(3, 1))
+        for (int[] a : Permutation.iterable(3, 1))
             all.add(a);
         int[][] expected = {
             {0},
@@ -75,26 +75,26 @@ class TestPermutaionS {
     @Test
     public void testArrayIterator() {
         String[] a = {"a", "b", "c"};
-        for (String[] e : PermutationS.iterable(a, 3))
+        for (String[] e : Permutation.iterable(a, 3))
             logger.info(Arrays.toString(e));
         for (int i = 0; i < 10; ++i) {
             String[] str = IntStream.range(0, i)
                 .mapToObj(j -> Character.toString(j + 'a'))
                 .toArray(String[]::new);
-            assertEquals(factorial(i), PermutationS.stream(str, i).count());
+            assertEquals(factorial(i), Permutation.stream(str, i).count());
         }
     }
 
     @Test
     public void testListIterator() {
         List<String> a = List.of("a", "b", "c", "d");
-        for (List<String> e : PermutationS.iterable(a, 4))
+        for (List<String> e : Permutation.iterable(a, 4))
             logger.info(e.toString());
         for (int i = 0; i < 10; ++i) {
             List<String> str = IntStream.range(0, i)
                 .mapToObj(j -> Character.toString(j + 'a'))
                 .collect(Collectors.toList());
-            assertEquals(factorial(i), PermutationS.stream(str, i).count());
+            assertEquals(factorial(i), Permutation.stream(str, i).count());
         }
     }
 
@@ -114,7 +114,7 @@ class TestPermutaionS {
             }
 
             void run() {
-                for (int[] a : PermutationS.iterable(10, 8))
+                for (int[] a : Permutation.iterable(10, 8))
                     check(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
             }
         }.run();

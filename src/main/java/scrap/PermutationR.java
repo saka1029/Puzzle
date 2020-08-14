@@ -72,11 +72,12 @@ public class PermutationR {
             for (int i = r - 1; i >= 0;) {
                 if (i >= r)
                     return true;
-                int j = selection[i] + 1;
+                int si = selection[i];
+                int j = si + 1;
                 while (j < n && used[j])
                     ++j;
-                if (selection[i] >= 0)
-                    used[selection[i]] = false;
+                if (si >= 0)
+                    used[si] = false;
                 if (j >= n)
                     --i;
                 else {

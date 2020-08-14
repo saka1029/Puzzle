@@ -1,8 +1,6 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +51,20 @@ class TestPermutation {
             all.add(a);
         int[][] expected = {{0}, {1}, {2}};
         assertArrayEquals(expected, all.toArray(int[][]::new));
+    }
+
+    /**
+     * 2020-08-14T19:32:11.959 情報 count=479001600 23966msec.
+     * 2020-08-14T19:32:59.735 情報 count=479001600 23720msec.
+     */
+//    @Test
+    void testIterable12() {
+        long start = System.currentTimeMillis();
+        int count = 0;
+        for (int[] a : Permutation.iterable(12, 12))
+            ++count;
+        logger.info("count=" + count + " " + (System.currentTimeMillis() - start) + "msec.");
+        assertEquals(479001600, count);
     }
 
     static int factorial(int n) {

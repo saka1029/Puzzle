@@ -1,6 +1,9 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -19,7 +22,7 @@ class TestPermutationB {
         if (n < 0) throw new IllegalArgumentException("n must be >= 0");
         if (r < 0) throw new IllegalArgumentException("r must be >= 0");
         if (r > n) throw new IllegalArgumentException("r must be <= n");
-        if (n >= 32) throw new IllegalArgumentException("n must be < 32");
+        if (n > Integer.SIZE) throw new IllegalArgumentException("n must be <= " + Integer.SIZE);
         int[] selected = new int[r];
         int mask = (1 << n) - 1;
         return new Object() {
@@ -50,8 +53,9 @@ class TestPermutationB {
             }
         }.run();
     }
-    @Test
-    void test() {
+
+//    @Test
+    void test12() {
         assertEquals(479001600, permutationWithBitMap(12, 12));
     }
 
@@ -69,27 +73,29 @@ class TestPermutationB {
 
         public static boolean contains(int intSet, int element) {
             return (intSet & (1 << element)) != 0;
-
+        }
+        
+        public static int of(int... elements) {
+            int result = 0;
+            for (int i : elements)
+                result = add(result, i);
+            return result;
         }
 
         public static int add(int intSet, int element) {
             return intSet | (1 << element);
         }
 
-        public static int add(int intSet, int... elements) {
-            for (int i : elements)
-                intSet = add(intSet, i);
-            return intSet;
+        public static int addAll(int intSet, int anotherIntSet) {
+            return intSet | anotherIntSet;
         }
 
         public static int remove(int intSet, int element) {
             return intSet & ~(1 << element);
         }
 
-        public static int remove(int intSet, int... elements) {
-            for (int i : elements)
-                intSet = remove(intSet, i);
-            return intSet;
+        public static int removeAll(int intSet, int anotherIntSet) {
+            return intSet & ~anotherIntSet;
         }
 
         public static String toString(int intSet) {
@@ -105,14 +111,29 @@ class TestPermutationB {
 
                 @Override
                 public boolean hasNext() {
-                    return !isEmpty(set);
+                    return set != 0;
                 }
 
+                /**
+                 * "Hacker's Delight" second edition Henry S. Warren, Jr.
+                 * 2–1 Manipulating Rightmost Bits
+                 * Some of the formulas in this section find application in later chapters.
+                 * Use the following formula to turn off the rightmost 1-bit in a word,
+                 * producing 0 if none (e.g., 01011000 ⇒ 01010000):
+                 * 
+                 * x & (x – 1)
+                 * 
+                 * Use the following formula to isolate the rightmost 1-bit,
+                 * producing 0 if none (e.g., 01011000 ⇒ 00001000):
+                 * 
+                 * x & (−x)
+                 * 
+                 */
                 @Override
                 public int nextInt() {
                     if (!hasNext()) throw new NoSuchElementException();
                     int result = Integer.numberOfTrailingZeros(set);
-                    set ^= Integer.lowestOneBit(set);
+                    set &= set - 1; // 右端の1ビットをクリアする。
                     return result;
                 }
             };
@@ -142,12 +163,13 @@ class TestPermutationB {
         intSet = IntSet.remove(intSet, 0);
         assertEquals(1, IntSet.size(intSet));
         assertFalse(IntSet.contains(intSet, 0));
+        assertEquals("[3]", IntSet.toString(intSet));
     }
 
     @Test
     public void testIntSetIterable() {
         int intSet = 0;
-        intSet = IntSet.add(0, 0, 1, 3, 5, 9, 10, 12);
+        intSet = IntSet.of(0, 1, 3, 5, 9, 10, 12);
         assertEquals(7, IntSet.size(intSet));
         for (int i : IntSet.iterable(intSet))
             System.out.println(i);
@@ -156,7 +178,7 @@ class TestPermutationB {
     @Test
     public void testIntSetStream() {
         int[] elements = {0, 1, 3, 5, 9, 10, 12};
-        int set = IntSet.add(0, elements);
+        int set = IntSet.of(elements);
         int[] result = IntSet.stream(set).toArray();
         System.out.println(Arrays.toString(result));
         assertArrayEquals(elements, result);

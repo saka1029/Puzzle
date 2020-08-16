@@ -1,15 +1,13 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -18,11 +16,17 @@ import org.junit.jupiter.api.Test;
 
 class TestPermutationB {
 
+    static final Logger logger = Logger.getLogger(TestPermutationB.class.getName());
+
     static int permutationWithBitMap(int n, int r) {
-        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
-        if (r < 0) throw new IllegalArgumentException("r must be >= 0");
-        if (r > n) throw new IllegalArgumentException("r must be <= n");
-        if (n > Integer.SIZE) throw new IllegalArgumentException("n must be <= " + Integer.SIZE);
+        if (n < 0)
+            throw new IllegalArgumentException("n must be >= 0");
+        if (r < 0)
+            throw new IllegalArgumentException("r must be >= 0");
+        if (r > n)
+            throw new IllegalArgumentException("r must be <= n");
+        if (n > Integer.SIZE)
+            throw new IllegalArgumentException("n must be <= " + Integer.SIZE);
         int[] selected = new int[r];
         int mask = (1 << n) - 1;
         return new Object() {
@@ -30,7 +34,7 @@ class TestPermutationB {
 
             void found() {
                 ++count;
-//                System.out.println(Arrays.toString(selected));
+                // System.out.println(Arrays.toString(selected));
             }
 
             void permutation(int index, int used) {
@@ -54,14 +58,15 @@ class TestPermutationB {
         }.run();
     }
 
-//    @Test
+    // @Test
     void test12() {
         assertEquals(479001600, permutationWithBitMap(12, 12));
     }
 
     static class IntSet {
 
-        private IntSet() {}
+        private IntSet() {
+        }
 
         public static int size(int intSet) {
             return Integer.bitCount(intSet);
@@ -74,7 +79,7 @@ class TestPermutationB {
         public static boolean contains(int intSet, int element) {
             return (intSet & (1 << element)) != 0;
         }
-        
+
         public static int of(int... elements) {
             int result = 0;
             for (int i : elements)
@@ -115,23 +120,24 @@ class TestPermutationB {
                 }
 
                 /**
-                 * "Hacker's Delight" second edition Henry S. Warren, Jr.
-                 * 2–1 Manipulating Rightmost Bits
-                 * Some of the formulas in this section find application in later chapters.
-                 * Use the following formula to turn off the rightmost 1-bit in a word,
-                 * producing 0 if none (e.g., 01011000 ⇒ 01010000):
-                 * 
+                 * "Hacker's Delight" second edition Henry S. Warren, Jr. 2–1
+                 * Manipulating Rightmost Bits Some of the formulas in this
+                 * section find application in later chapters. Use the following
+                 * formula to turn off the rightmost 1-bit in a word, producing
+                 * 0 if none (e.g., 01011000 ⇒ 01010000):
+                 *
                  * x & (x – 1)
-                 * 
+                 *
                  * Use the following formula to isolate the rightmost 1-bit,
                  * producing 0 if none (e.g., 01011000 ⇒ 00001000):
-                 * 
+                 *
                  * x & (−x)
-                 * 
+                 *
                  */
                 @Override
                 public int nextInt() {
-                    if (!hasNext()) throw new NoSuchElementException();
+                    if (!hasNext())
+                        throw new NoSuchElementException();
                     int result = Integer.numberOfTrailingZeros(set);
                     set &= set - 1; // 右端の1ビットをクリアする。
                     return result;
@@ -184,22 +190,32 @@ class TestPermutationB {
         assertArrayEquals(elements, result);
     }
 
+    /**
+     * 2020-08-15T17:58:57.699 情報 count=479001600 7528msec.
+     */
     @Test
     public void testLoop() {
-        int max = 4;
+        long start = System.currentTimeMillis();
+        int max = 12;
+        int count = 0;
         int intSet = 0;
         for (int i = 0; i < max; ++i)
             intSet = IntSet.add(intSet, i);
-        int ia, ib, ic, id;
-        for (int a : IntSet.iterable(ia = intSet))
-            for (int b : IntSet.iterable(ib = IntSet.remove(ia, a)))
-                for (int c : IntSet.iterable(ic = IntSet.remove(ib, b)))
-                    for (int d : IntSet.iterable(id = IntSet.remove(ic, c)))
-                        System.out.println(Arrays.toString(new int[] {a, b, c, d})
-                            + " ia=" + IntSet.toString(ia)
-                            + " ib=" + IntSet.toString(ib)
-                            + " ic=" + IntSet.toString(ic)
-                            + " id=" + IntSet.toString(id));
+        int za, zb, zc, zd, ze, zf, zg, zh, zi, zj, zk, zl;
+        for (int a : IntSet.iterable(za = intSet))
+            for (int b : IntSet.iterable(zb = IntSet.remove(za, a)))
+                for (int c : IntSet.iterable(zc = IntSet.remove(zb, b)))
+                    for (int d : IntSet.iterable(zd = IntSet.remove(zc, c)))
+                        for (int e : IntSet.iterable(ze = IntSet.remove(zd, d)))
+                            for (int f : IntSet.iterable(zf = IntSet.remove(ze, e)))
+                                for (int g : IntSet.iterable(zg = IntSet.remove(zf, f)))
+                                    for (int h : IntSet.iterable(zh = IntSet.remove(zg, g)))
+                                        for (int i : IntSet.iterable(zi = IntSet.remove(zh, h)))
+                                            for (int j : IntSet.iterable(zj = IntSet.remove(zi, i)))
+                                                for (int k : IntSet.iterable(zk = IntSet.remove(zj, j)))
+                                                    for (int l : IntSet.iterable(zl = IntSet.remove(zk, k)))
+                                                        ++count;
+        logger.info("count=" + count + " " + (System.currentTimeMillis() - start) + "msec.");
     }
 
 }

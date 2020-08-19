@@ -3,6 +3,7 @@ package test.puzzle;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
@@ -19,16 +20,12 @@ class TestPermutationB {
     static final Logger logger = Logger.getLogger(TestPermutationB.class.getName());
 
     static int permutationWithBitMap(int n, int r) {
-        if (n < 0)
-            throw new IllegalArgumentException("n must be >= 0");
-        if (r < 0)
-            throw new IllegalArgumentException("r must be >= 0");
-        if (r > n)
-            throw new IllegalArgumentException("r must be <= n");
-        if (n > Integer.SIZE)
-            throw new IllegalArgumentException("n must be <= " + Integer.SIZE);
+        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+        if (r < 0) throw new IllegalArgumentException("r must be >= 0");
+        if (r > n) throw new IllegalArgumentException("r must be <= n");
+        if (n > Integer.SIZE) throw new IllegalArgumentException("n must be <= " + Integer.SIZE);
         int[] selected = new int[r];
-        int mask = (1 << n) - 1;
+        int mask = n == Integer.SIZE ? -1 : (1 << n) - 1;
         return new Object() {
             int count = 0;
 
@@ -41,12 +38,10 @@ class TestPermutationB {
                 if (index >= r)
                     found();
                 else {
-                    int available = mask & ~used;
-                    while (available != 0) {
-                        int bit = Integer.lowestOneBit(available);
+                    for (int available = mask & ~used, bit; available != 0; available ^= bit) {
+                        bit = Integer.lowestOneBit(available);
                         selected[index] = Integer.numberOfTrailingZeros(bit);
                         permutation(index + 1, used | bit);
-                        available ^= bit;
                     }
                 }
             }
@@ -57,10 +52,51 @@ class TestPermutationB {
             }
         }.run();
     }
+    static int permutationWithBitMap2(int n, int r) {
+        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+        if (r < 0) throw new IllegalArgumentException("r must be >= 0");
+        if (r > n) throw new IllegalArgumentException("r must be <= n");
+        if (n > Integer.SIZE) throw new IllegalArgumentException("n must be <= " + Integer.SIZE);
+        int[] selected = new int[r];
+        return new Object() {
+            int count = 0;
 
-    // @Test
+            void found() {
+                ++count;
+//                 System.out.println(Arrays.toString(selected));
+            }
+
+            void permutation(int index, int available) {
+                if (index >= r)
+                    found();
+                else {
+                    for (int rest = available, bit; rest != 0; rest ^= bit) {
+                        bit = rest & -rest; // = Integer.lowestOneBit(rest);
+                        selected[index] = Integer.numberOfTrailingZeros(bit);
+                        permutation(index + 1, available ^ bit);
+                    }
+                }
+            }
+
+            int run() {
+                permutation(0, n == Integer.SIZE ? -1 : (1 << n) - 1);
+                return count;
+            }
+        }.run();
+    }
+
+    /**
+     * 2020-08-16T20:08:10.330 情報 3884msec.
+     * 2020-08-16T20:08:30.335 情報 3843msec.
+     * 2020-08-16T21:26:21.109 情報 3656msec.
+     *
+     */
+    @Test
     void test12() {
-        assertEquals(479001600, permutationWithBitMap(12, 12));
+        int n = 12;
+        long start = System.currentTimeMillis();
+        assertEquals(479001600, permutationWithBitMap2(n, n));
+        logger.info((System.currentTimeMillis() - start) + "msec.");
     }
 
     static class IntSet {
@@ -218,4 +254,59 @@ class TestPermutationB {
         logger.info("count=" + count + " " + (System.currentTimeMillis() - start) + "msec.");
     }
 
+    static int permutationWithBiSet(int n, int r) {
+        int[] selected = new int[r];
+        BitSet available = new BitSet(n);
+        available.set(0, n);
+        return new Object() {
+
+            int count = 0;
+
+            void permute(int index) {
+                if (index >= r) {
+                    ++count;
+//                    System.out.println(Arrays.toString(selected));
+                    return;
+                }
+                for (int i = available.nextSetBit(0); i >= 0; i = available.nextSetBit(i + 1)) {
+                    selected[index] = i;
+                    available.clear(i);
+                    permute(index + 1);
+                    available.set(i);
+                }
+            }
+
+            int run() {
+                permute(0);
+                return count;
+            }
+        }.run();
+    }
+
+    @Test
+    public void testBitSet() {
+        int max = 4;
+        BitSet b = new BitSet(max);
+        System.out.println(b + " length=" + b.length() + " size=" + b.size());
+        for (int i = max - 1; i >= 0; --i) {
+            b.set(i);
+            System.out.println(b + " length=" + b.length() + " size=" + b.size() + " cardinality=" + b.cardinality());
+        }
+    }
+
+    /**
+     * 2020-08-16T20:09:44.912 情報 11960msec.
+     * 2020-08-16T20:10:14.683 情報 12527msec.
+     */
+//    @Test
+    public void testPermutationWithBitSet() {
+        assertEquals(24, permutationWithBiSet(4, 4));
+        assertEquals(24, permutationWithBiSet(4, 3));
+        assertEquals(12, permutationWithBiSet(4, 2));
+        assertEquals(4, permutationWithBiSet(4, 1));
+        assertEquals(1, permutationWithBiSet(4, 0));
+        long start = System.currentTimeMillis();
+        assertEquals(479001600, permutationWithBiSet(12, 12));
+        logger.info(System.currentTimeMillis() - start + "msec.");
+    }
 }

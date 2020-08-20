@@ -1,6 +1,11 @@
 package puzzle;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class Permutation64 {
 
@@ -36,7 +41,7 @@ public class Permutation64 {
                 if (resti == 0)
                     --i;
                 else {
-                    long bit = resti & -resti;
+                    long bit = resti & -resti;   // bit = Long.lowestOneBit(resti);
                     rest[i] ^= bit;
                     selected[i] = Long.numberOfTrailingZeros(bit);
                     if (++i >= r) return true;
@@ -66,4 +71,29 @@ public class Permutation64 {
     public static Iterable<int[]> iterable(int n, int r) {
         return () -> iterator(n, r);
     }
+    
+    public static Stream<int[]> stream(int n, int r) {
+        return StreamSupport.stream(iterable(n, r).spliterator(), false);
+    }
+    
+    public static Iterable<int[]> iterable(int[] array) {
+        return () -> stream(array).iterator();
+    }
+    
+    public static Stream<int[]> stream(int[] array) {
+        int n = array.length;
+        return stream(n, n)
+            .map(indexes -> IntStream.of(indexes)
+                .map(i -> array[i])
+                .toArray());
+    }
+    
+    public static <T> Stream<List<T>> stream(List<T> list) {
+        int n = list.size();
+        return stream(n, n)
+            .map(indexes -> IntStream.of(indexes)
+                .mapToObj(i -> list.get(i))
+                .collect(Collectors.toList()));
+    }
+    
 }

@@ -2,12 +2,12 @@ package puzzle;
 
 import java.util.Iterator;
 
-public class Permutation32 {
+public class Permutation64 {
 
     static class IndexIterator implements Iterator<int[]> {
 
         final int n, r;
-        final int[] available, rest;
+        final long[] available, rest;
         final int[] selected;
         boolean hasNext;
 
@@ -15,13 +15,13 @@ public class Permutation32 {
             if (n < 0) throw new IllegalArgumentException("n must be >= 0");
             if (r < 0) throw new IllegalArgumentException("r must be >= 0");
             if (r > n) throw new IllegalArgumentException("r must be <= n");
-            if (n > Integer.SIZE) throw new IllegalArgumentException("n must be <= " + Integer.SIZE);
+            if (n > Long.SIZE) throw new IllegalArgumentException("n must be <= " + Long.SIZE);
             this.n = n;
             this.r = r;
-            this.available = new int[r];
-            this.rest = new int[r];
+            this.available = new long[r];
+            this.rest = new long[r];
             this.selected = new int[r];
-            int allOne = n == Integer.SIZE ? -1 : (1 << n) - 1;
+            long allOne = n == Long.SIZE ? -1L : (1L << n) - 1L;
             if (r == 0)
                 hasNext = true;
             else {
@@ -32,13 +32,13 @@ public class Permutation32 {
 
         boolean advance(int i) {
             while (i >= 0) {
-                int resti = rest[i];
+                long resti = rest[i];
                 if (resti == 0)
                     --i;
                 else {
-                    int bit = resti & -resti;
+                    long bit = resti & -resti;
                     rest[i] ^= bit;
-                    selected[i] = Integer.numberOfTrailingZeros(bit);
+                    selected[i] = Long.numberOfTrailingZeros(bit);
                     if (++i >= r) return true;
                     available[i] = rest[i] = available[i - 1] ^ bit;
                 }

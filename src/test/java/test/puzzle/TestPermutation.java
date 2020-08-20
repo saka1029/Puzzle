@@ -20,6 +20,12 @@ class TestPermutation {
     static Logger logger = Logger.getLogger(TestPermutation.class.getName());
 
     @Test
+    void testIterable4_0() {
+        for (int[] a : Permutation.iterable(4, 0))
+            logger.info(Arrays.toString(a));
+    }
+
+    @Test
     void testIterable4() {
         for (int[] a : Permutation.iterable(4, 2))
             logger.info(Arrays.toString(a));

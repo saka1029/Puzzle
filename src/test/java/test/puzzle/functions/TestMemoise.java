@@ -1,4 +1,4 @@
-package test.puzzle;
+package test.puzzle.functions;
 
 import static java.math.BigInteger.*;
 import static org.junit.jupiter.api.Assertions.*;

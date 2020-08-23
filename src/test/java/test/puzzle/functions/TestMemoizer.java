@@ -1,8 +1,8 @@
-package test.puzzle;
+package test.puzzle.functions;
 
 import static java.math.BigInteger.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static puzzle.Memoizer.*;
+import static puzzle.functions.Memoizer.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import puzzle.Memoizer;
+import puzzle.functions.Memoizer;
 
 class TestMemoizer {
 

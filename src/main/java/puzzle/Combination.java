@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -137,23 +139,75 @@ public class Combination {
         }
     }
 
-    public static <T> Iterator<List<T>> iterator(List<T> list, int n) {
-        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
-        return new CombinationIterator<>(list, n);
+    static class IndexIterator implements Iterator<int[]> {
+
+        final int n, r;
+        final int[] selection;
+        boolean hasNext;
+
+        IndexIterator(int n, int r) {
+            if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+            if (r < 0) throw new IllegalArgumentException("r must be >= 0");
+            if (r > n) throw new IllegalArgumentException("r must be <= n");
+            this.n = n;
+            this.r = r;
+            this.selection = IntStream.range(0, r).toArray();
+            this.hasNext = true;
+        }
+
+        boolean advance() {
+            for (int i = r - 1; i >= 0; )
+                if (++selection[i] >= n)
+                    --i;
+                else if (i + 1 >= r)
+                    return true;
+                else
+                    selection[i + 1] = selection[i++];
+            return false;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return hasNext;
+        }
+
+        @Override
+        public int[] next() {
+            int[] result = selection.clone();
+            hasNext = advance();
+            return result;
+        }
+
     }
 
-    public static <T> Iterable<List<T>> iterable(List<T> list, int n) {
-        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
-        return () -> iterator(list, n);
+    public static Iterable<int[]> iterable(int n, int r) {
+        return () -> new IndexIterator(n, r);
     }
 
-    public static <T> Stream<List<T>> stream(List<T> list, int n, boolean parallel) {
-        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
-        return StreamSupport.stream(iterable(list, n).spliterator(), parallel);
+    public static Stream<int[]> stream(int n, int r) {
+        return StreamSupport.stream(iterable(n, r).spliterator(), false);
     }
 
-    public static <T> Stream<List<T>> stream(List<T> list, int n) {
-        return stream(list, n, false);
+    public static Stream<int[]> stream(int[] array, int r) {
+        return stream(array.length, r)
+            .map(indexes -> IntStream.of(indexes)
+                .map(i -> array[i])
+                .toArray());
+    }
+
+    public static Iterable<int[]> iterable(int[] array, int r) {
+        return () -> stream(array, r).iterator();
+    }
+
+    public static <T> Stream<List<T>> stream(List<T> list, int r) {
+        return stream(list.size(), r)
+            .map(indexes -> IntStream.of(indexes)
+                .mapToObj(i -> list.get(i))
+                .collect(Collectors.toList()));
+    }
+
+    public static <T> Iterable<List<T>> iterable(List<T> list, int r) {
+        return () -> stream(list, r).iterator();
     }
 
 }

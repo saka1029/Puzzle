@@ -1,4 +1,4 @@
-package puzzle;
+package puzzle.functions;
 
 import java.util.Collections;
 import java.util.HashMap;

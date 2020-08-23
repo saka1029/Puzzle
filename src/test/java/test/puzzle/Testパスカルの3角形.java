@@ -9,7 +9,7 @@ import java.util.stream.LongStream;
 
 import org.junit.jupiter.api.Test;
 
-import puzzle.Memoizer;
+import puzzle.functions.Memoizer;
 
 class Testパスカルの3角形 {
 

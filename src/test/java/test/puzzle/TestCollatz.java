@@ -23,7 +23,7 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
-import puzzle.Memoizer;
+import puzzle.functions.Memoizer;
 
 class TestCollatz {
 

@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
 
+import puzzle.functions.ObjectArray;
 import puzzle.functions.VisualCache;
 
 class TestVisualCache {
@@ -15,7 +16,7 @@ class TestVisualCache {
         int result = new Object() {
             VisualCache<Integer> combination = new VisualCache<>("combination",
                 a -> combination((int) a[0], (int) a[1]))
-                .out(logger::info);
+                    .out(logger::info);
 
             int combination(int n, int r) {
                 combination.enter(n, r);
@@ -24,7 +25,7 @@ class TestVisualCache {
                 else
                     return combination.exit(
                         combination(n - 1, r - 1)
-                        + combination(n - 1, r));
+                            + combination(n - 1, r));
             }
         }.combination(6, 3);
         logger.info("result=" + result);
@@ -35,7 +36,7 @@ class TestVisualCache {
         int result = new Object() {
             VisualCache<Integer> combination = new VisualCache<>("combination",
                 a -> combination((int) a[0], (int) a[1]))
-                .out(logger::info);
+                    .out(logger::info);
 
             int combination(int n, int r) {
                 combination.enter(n, r);
@@ -46,7 +47,15 @@ class TestVisualCache {
                         combination.call(n - 1, r - 1)
                         + combination.call(n - 1, r));
             }
-        }.combination(20, 10);
+
+            int main() {
+                int result = combination.call(8, 4);
+                logger.info(combination.toString());
+                logger.info(combination.cach().get(ObjectArray.of(4, 2)).toString());
+                return result;
+            }
+
+        }.main();
         logger.info("result=" + result);
     }
 

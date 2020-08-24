@@ -76,7 +76,7 @@ public class VisualCache<R> {
     public R call(Object... arguments) {
         if (!caching)
             return function.apply(arguments);
-        ObjectArray a = new ObjectArray(arguments);
+        ObjectArray a = ObjectArray.of(arguments);
         R cached = cacheInternal.get(a);
         if (cached != null) {
             out.accept(indentString() + functionName + "(" + toString(arguments) + ") -> " + cached + " (from cache)");

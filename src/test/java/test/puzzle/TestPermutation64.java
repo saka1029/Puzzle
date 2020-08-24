@@ -1,8 +1,9 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 
@@ -60,5 +61,37 @@ public class TestPermutation64 {
         assertEquals(479001600, countIterable(12, 12));
         logger.info(System.currentTimeMillis() - start + "msec.");
     }
+
+    static int number(int... digits) {
+        return IntStream.of(digits).reduce(0, (a, b) -> a * 10 + b);
+    }
+
+    @Test
+    public void testSendMoreMoney() {
+        new Object() {
+
+            void check(int s, int e, int n, int d, int m, int o, int r, int y) {
+                if (s == 0 || m == 0)
+                    return;
+                int send = number(s, e, n, d);
+                int more = number(m, o, r, e);
+                int money = number(m, o, n, e, y);
+                if (send + more != money)
+                    return;
+                logger.info(send + "+" + more + "=" + money);
+                assertEquals(9567, send);
+                assertEquals(1085, more);
+                assertEquals(10652, money);
+            }
+
+            void run() {
+                logger.info("start SEND MORE MONEY");
+                for (int[] a : Permutation64.iterable(10, 8))
+                    check(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+            }
+
+        }.run();
+    }
+
 
 }

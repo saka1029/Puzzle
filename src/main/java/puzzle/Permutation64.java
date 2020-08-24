@@ -76,24 +76,28 @@ public class Permutation64 {
         return StreamSupport.stream(iterable(n, r).spliterator(), false);
     }
     
-    public static Iterable<int[]> iterable(int[] array) {
-        return () -> stream(array).iterator();
+    public static Iterable<int[]> iterable(int[] array, int r) {
+        return () -> stream(array, r).iterator();
     }
     
-    public static Stream<int[]> stream(int[] array) {
+    public static Stream<int[]> stream(int[] array, int r) {
         int n = array.length;
-        return stream(n, n)
+        return stream(n, r)
             .map(indexes -> IntStream.of(indexes)
                 .map(i -> array[i])
                 .toArray());
     }
     
-    public static <T> Stream<List<T>> stream(List<T> list) {
+    public static <T> Stream<List<T>> stream(List<T> list, int r) {
         int n = list.size();
-        return stream(n, n)
+        return stream(n, r)
             .map(indexes -> IntStream.of(indexes)
                 .mapToObj(i -> list.get(i))
                 .collect(Collectors.toList()));
+    }
+    
+    public static <T> Iterable<List<T>> iterable(List<T> list, int r) {
+        return () -> stream(list, r).iterator();
     }
     
 }

@@ -36,7 +36,8 @@ class TestVisualCache {
         int result = new Object() {
             VisualCache<Integer> combination = new VisualCache<>("combination",
                 a -> combination((int) a[0], (int) a[1]))
-                    .out(logger::info);
+//                .caching(false)
+                .out(logger::info);
 
             int combination(int n, int r) {
                 combination.enter(n, r);

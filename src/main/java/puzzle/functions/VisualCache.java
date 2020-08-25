@@ -4,19 +4,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class VisualCache<R> {
 
-    final String functionName;
-    public String functionName() { return functionName; }
+    final String name;
+    public String name() { return name; }
 
     final CacheFunction<R> function;
+    public CacheFunction<R> function() { return function; }
 
-    private final Map<ObjectArray, R> cacheInternal = new HashMap<>();
-
-    final Map<ObjectArray, R> cache = Collections.unmodifiableMap(cacheInternal);
-    public Map<ObjectArray, R> cach() { return cache; }
+    private final Map<ObjectArray, R> cache = new HashMap<>();
+    final Map<ObjectArray, R> unmodifiableCache = Collections.unmodifiableMap(cache);
+    public Map<ObjectArray, R> cache() { return unmodifiableCache; }
 
     int indent = 2;
     public int indent() { return indent; }
@@ -26,25 +27,40 @@ public class VisualCache<R> {
     public int nest() { return nest; }
     public VisualCache<R> nest(int nest) { this.nest = nest; return this; }
 
-    boolean visual = true;
-    public boolean visual() { return visual; }
-    public VisualCache<R> visual(boolean visual) { this.visual = visual; return this; }
-
-    Consumer<String> out = s -> System.out.println(s);
-    public VisualCache<R> out(Consumer<String> out) { this.out = out; return this; }
+    static Consumer<String> NO_OUTPUT = s -> {};
+    Consumer<String> output = s -> System.out.println(s);
+    public VisualCache<R> output(Consumer<String> output) {
+        Objects.requireNonNull(output, "output");
+        this.output = output; return this;
+    }
+    public VisualCache<R> noOutput() { this.output = NO_OUTPUT; return this; }
 
     boolean caching = true;
     public boolean caching() { return caching; }
     public VisualCache<R> caching(boolean caching) { this.caching = caching; return this; }
 
-    public VisualCache(String functionName, CacheFunction<R> function) {
-        this.functionName = functionName;
+    private VisualCache(String name, CacheFunction<R> function) {
+        Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(function, "function");
+        this.name = name;
         this.function = function;
     }
 
-    public void clear() {
+    public static <R> VisualCache<R> forFunction(String name, CacheFunction<R> function) {
+        return new VisualCache<>(name, function);
+    }
+
+    static CacheFunction<Void> NO_FUNCTION = a -> null;
+    public static VisualCache<Void> forProcedure(String name) {
+        VisualCache<Void> result = new VisualCache<>(name, NO_FUNCTION);
+        result.caching = false;
+        return result;
+    }
+
+    public VisualCache<R> clear() {
         nest = 0;
-        cacheInternal.clear();
+        cache.clear();
+        return this;
     }
 
     static String toString(Object... arguments) {
@@ -57,38 +73,38 @@ public class VisualCache<R> {
     }
 
     public void enter(Object... arguments) {
-        if (visual)
-            out.accept(indentString() + functionName + "(" + toString(arguments) + ")");
+        output.accept(indentString() + name + "(" + toString(arguments) + ")");
         ++nest;
     }
 
     public R exit(R r) {
         --nest;
-        if (visual)
-            out.accept(indentString() + "-> " + r);
+        output.accept(indentString() + "-> " + r);
         return r;
     }
 
     public void exit() {
         --nest;
+        output.accept(indentString() + "->");
     }
 
     public R call(Object... arguments) {
         if (!caching)
             return function.apply(arguments);
         ObjectArray a = ObjectArray.of(arguments);
-        R cached = cacheInternal.get(a);
+        R cached = cache.get(a);
         if (cached != null) {
-            out.accept(indentString() + functionName + "(" + toString(arguments) + ") -> " + cached + " (from cache)");
+            output.accept(indentString() + name + "(" + toString(arguments) + ") -> " + cached + " (from cache)");
             return cached;
         }
         R result = function.apply(arguments);
-        cacheInternal.put(a, result);
+        cache.put(a, result);
         return result;
     }
 
     @Override
     public String toString() {
-        return cacheInternal.toString();
+        return cache.toString();
     }
+
 }

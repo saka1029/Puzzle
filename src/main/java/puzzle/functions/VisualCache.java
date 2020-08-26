@@ -73,19 +73,22 @@ public class VisualCache<R> {
     }
 
     public void enter(Object... arguments) {
-        output.accept(indentString() + name + "(" + toString(arguments) + ")");
+        if (output != NO_OUTPUT)
+            output.accept(indentString() + name + "(" + toString(arguments) + ")");
         ++nest;
     }
 
     public R exit(R r) {
         --nest;
-        output.accept(indentString() + "-> " + r);
+        if (output != NO_OUTPUT)
+            output.accept(indentString() + "-> " + r);
         return r;
     }
 
     public void exit() {
         --nest;
-        output.accept(indentString() + "->");
+        if (output != NO_OUTPUT)
+            output.accept(indentString() + "->");
     }
 
     public R call(Object... arguments) {
@@ -94,7 +97,8 @@ public class VisualCache<R> {
         ObjectArray a = ObjectArray.of(arguments);
         R cached = cache.get(a);
         if (cached != null) {
-            output.accept(indentString() + name + "(" + toString(arguments) + ") -> " + cached + " (from cache)");
+            if (output != NO_OUTPUT)
+                output.accept(indentString() + name + "(" + toString(arguments) + ") -> " + cached + " (from cache)");
             return cached;
         }
         R result = function.apply(arguments);

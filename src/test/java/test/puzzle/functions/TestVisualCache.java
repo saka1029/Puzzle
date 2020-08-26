@@ -2,6 +2,7 @@ package test.puzzle.functions;
 
 import static org.junit.Assert.*;
 
+import java.math.BigInteger;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
@@ -272,6 +273,50 @@ class TestVisualCache {
         assertFalse(Node.contains.call(root, 8));
         logger.info(root.toString());
         logger.info(Node.contains.toString());
+    }
+
+    /**
+     * Find all solutions in positive integers a, b, c to the equation
+     *
+     * <pre>
+     *  a! * b! = a! + b! + c!
+     * </pre>
+     * Incredible Factorial Problem! - YouTube - MindYourDecisions
+     * https://www.youtube.com/watch?v=9dyK_op-Ocw
+     */
+    @Test
+    public void testFactorial() {
+        BigInteger ZERO = BigInteger.ZERO;
+        BigInteger ONE = BigInteger.ONE;
+        new Object() {
+            VisualCache<BigInteger> fact = VisualCache.forFunction(
+                "fact", a -> fact((BigInteger)a[0])).noOutput();
+            BigInteger fact(BigInteger n) {
+                fact.enter(n);
+                if (n.compareTo(ONE) <= 0)
+                    return fact.exit(ONE);
+                else
+                    return fact.exit(n.multiply(fact.call(n.subtract(ONE))));
+            }
+
+            void main() {
+                BigInteger max = BigInteger.valueOf(100);
+                for (BigInteger a = ZERO; a.compareTo(max) < 0; a = a.add(ONE)) {
+                    BigInteger fa = fact.call(a);
+                    for (BigInteger b = a; b.compareTo(max) < 0; b = b.add(ONE)) { // aとbは交換可なのでa<=bとする。
+                        BigInteger fb = fact.call(b);
+                        BigInteger faMultiplyfb = fa.multiply(fb);
+                        BigInteger faPlusfb = fa.add(fb);
+                        for (BigInteger c = ZERO; c.compareTo(max) < 0; c = c.add(ONE)) {
+                            BigInteger fc = fact.call(c);
+                            if (faMultiplyfb.equals(faPlusfb.add(fc)))
+                                logger.info("a=" + a + " b=" + b + " c=" + c);
+                        }
+                    }
+                }
+                logger.info(fact.toString());
+            }
+        }.main();
     }
 
 }

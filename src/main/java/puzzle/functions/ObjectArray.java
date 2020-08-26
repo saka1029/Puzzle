@@ -6,6 +6,8 @@ import java.util.Arrays;
  * equals()で比較可能なObject[]のラッパークラス。
  * 基本的には不変なクラスですが、厳密にはそうではありません。
  * ただし極力、不変となるように努力しています。
+ * 自己参照があるようなObject配列は正しく処理できません。
+ * ex) <code>Object[] a = {null}; a[0] = a;</code>
  */
 public class ObjectArray {
 
@@ -13,7 +15,7 @@ public class ObjectArray {
 
     /**
      * 自己参照があるようなObject配列は正しく処理できません。
-     * ex) Object[] a = {0}; a[0] = a;
+     * ex) Object[] a = {null}; a[0] = a;
      */
     private ObjectArray(Object... objects) {
         // シャローコピーです。

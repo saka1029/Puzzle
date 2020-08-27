@@ -1,100 +1,99 @@
 package puzzle;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
- * 型Kの列を格納するTrie木の実装です。
- * 登録、検索する列はIterable<K>で指定します。
- * 文字列を格納する場合はTrie.characters(string)または
- * Trie.codePoints(string)を指定します。
- * 型Kは前者の場合Characterで、後者の場合はInteger(コードポイント)となります。
- * 
- * @param <K> 列の要素の型を指定します。
- * @param <V> 列に対応して格納する値の型を指定します。
+ * メモリを節約するためにトライ木ごとに一つのマップしか持たない
+ * (ノードごとにマップを持たない)トライ木の実装です。
+ *
+ * @param <V>
  */
-public class Trie<K, V> {
+public class Trie<V> {
 
-    private final Node<K, V> root = new Node<>();
+    static final long INC = 1L << 32;
+    static final long MASK = INC - 1L;
 
-    private int size = 0;
-    public int size() { return size; }
+    long nextNodeNo = 0;
+    Node root = new Node();
+    private final Map<Long, Node> nodes = new HashMap<>();
 
-    private static class Node<K, V> {
-        V data;
-        final Map<K, Node<K, V>> children = new HashMap<>();
-
-        @Override
-        public String toString() {
-            String c = children.toString();
-            return "(" + data + " : " + c.substring(1, c.length() - 1) + ")";
-        }
+    public int size() {
+        return nodes.size();
     }
 
-    public V get(Iterable<K> key) {
-        Node<K, V> node = root;
-        for (K k : key)
-            if ((node = node.children.get(k)) == null)
+    public void put(String s, V data) {
+        Node node = root;
+        for (int i = 0, len = s.length(); i < len; ++i)
+            node = node.put(s.charAt(i));
+        node.data = data;
+    }
+
+    public V get(String s) {
+        Node node = root;
+        for (int i = 0, len = s.length(); i < len; ++i)
+            if ((node = node.get(s.charAt(i))) == null)
                 return null;
         return node.data;
     }
-    
-    public List<V> search(Iterable<K> sequence) {
+
+    public List<V> search(String s) {
         List<V> result = new ArrayList<>();
-        Node<K, V> node = root;
-        for (K k : sequence) {
+        Node node = root;
+        for (int i = 0, len = s.length(); i < len; ++i) {
             V v = node.data;
             if (v != null)
                 result.add(v);
-            if ((node = node.children.get(k)) == null)
+            if ((node = node.get(s.charAt(i))) == null)
                 break;
         }
         return result;
     }
 
-    public void put(Iterable<K> key, V data) {
-        Node<K, V> node = root;
-        for (K k : key)
-            node = node.children.computeIfAbsent(k, dummy -> new Node<>());
-        node.data = data;
-        ++size;
-    }
- 
     @Override
     public String toString() {
-        return "Trie" + root;
-    }
-    
-    // support methods
-    public static Iterable<Integer> iterable(int[] array) {
-        return () -> Arrays.stream(array).iterator();
-    }
-  
-    public static Iterable<Long> iterable(long[] array) {
-        return () -> Arrays.stream(array).iterator();
-    }
-  
-    public static Iterable<Character> characters(String s) {
-        return () -> s.chars().mapToObj(i -> (char)i).iterator();
+        return root.toString();
     }
 
-    public static Iterable<Character> characters(String s, int start, int end) {
-        return () -> IntStream.range(start, end).mapToObj(i -> s.charAt(i)).iterator();
+    class Node {
+        final long no;
+        V data;
+
+        Node() {
+            this.no = nextNodeNo;
+            nextNodeNo += INC;
+        }
+
+        long makeKey(int key) {
+            return no | key;
+        }
+
+        Node get(int key) {
+            return nodes.get(no | key);
+        }
+
+        Node put(int key) {
+            return nodes.computeIfAbsent(no | key, k -> new Node());
+        }
+
+        /**
+         * このメソッドはtoString()で利用するためだけに実装されています。
+         */
+        Map<String, Node> children() {
+            return nodes.entrySet().stream()
+                .filter(e -> (e.getKey() & ~MASK) == no)
+                .map(e -> Map.entry(Character.toString((int) (e.getKey() & MASK)), e.getValue()))
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+        }
+
+        @Override
+        public String toString() {
+            return "" + data + children();
+        }
     }
 
-    public static Iterable<Character> characters(String s, int start) {
-        return characters(s, start, s.length());
-    }
-    
-    public static Iterable<Integer> iterable(String s) {
-        return () -> s.codePoints().iterator();
-    }
-    
-    public static int[] ints(String s) {
-        return s.codePoints().toArray();
-    }
 }

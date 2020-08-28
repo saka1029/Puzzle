@@ -21,5 +21,9 @@ public class CodePoints {
     public static String substring(String s, int start) {
         return substring(s, start, length(s));
     }
+    
+    public static Iterable<Integer> iterable(String s) {
+        return () -> s.codePoints().iterator();
+    }
 
 }

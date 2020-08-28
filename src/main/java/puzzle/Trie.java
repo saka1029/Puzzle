@@ -8,18 +8,20 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /**
- * メモリを節約するためにトライ木ごとに一つのマップしか持たない
- * (ノードごとにマップを持たない)トライ木の実装です。
+ * メモリを節約するためにノードごとにマップを持たないトライ木の実装です。
+ * マップ(Map<Long, Node>)のキーは上位32ビットがノードの一連番号で、
+ * 下位32ビットが子ノードの先頭文字(Character)です。
  *
  * @param <V>
  */
 public class Trie<V> {
 
-    static final long INC = 1L << 32;
-    static final long MASK = INC - 1L;
+    static final long INC_NODE_NO = 1L << Integer.SIZE;
+    static final long CHAR_MASK = INC_NODE_NO - 1L;
+    static final long NODE_NO_MASK = ~CHAR_MASK;
 
-    long nextNodeNo = 0;
-    Node root = new Node();
+    private long nextNodeNo = 0;
+    private Node root = new Node();
     private final Map<Long, Node> nodes = new HashMap<>();
 
     public int size() {
@@ -41,15 +43,20 @@ public class Trie<V> {
         return node.data;
     }
 
+    /**
+     * 文字列sの先頭に一致する単語をすべて見つけます。
+     * @param s
+     * @return
+     */
     public List<V> search(String s) {
         List<V> result = new ArrayList<>();
         Node node = root;
         for (int i = 0, len = s.length(); i < len; ++i) {
+            if ((node = node.get(s.charAt(i))) == null)
+                break;
             V v = node.data;
             if (v != null)
                 result.add(v);
-            if ((node = node.get(s.charAt(i))) == null)
-                break;
         }
         return result;
     }
@@ -65,11 +72,7 @@ public class Trie<V> {
 
         Node() {
             this.no = nextNodeNo;
-            nextNodeNo += INC;
-        }
-
-        long makeKey(int key) {
-            return no | key;
+            nextNodeNo += INC_NODE_NO;
         }
 
         Node get(int key) {
@@ -82,17 +85,18 @@ public class Trie<V> {
 
         /**
          * このメソッドはtoString()で利用するためだけに実装されています。
+         * 子の先頭文字をキーとして子を値とするようなマップを返します。
          */
         Map<String, Node> children() {
             return nodes.entrySet().stream()
-                .filter(e -> (e.getKey() & ~MASK) == no)
-                .map(e -> Map.entry(Character.toString((int) (e.getKey() & MASK)), e.getValue()))
+                .filter(e -> (e.getKey() & NODE_NO_MASK) == no)
+                .map(e -> Map.entry(Character.toString((int) (e.getKey() & CHAR_MASK)), e.getValue()))
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
         }
 
         @Override
         public String toString() {
-            return "" + data + children();
+            return "" + (data == null ? "" : data) + children();
         }
     }
 

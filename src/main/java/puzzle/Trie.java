@@ -44,20 +44,35 @@ public class Trie<V> {
     }
 
     /**
-     * 文字列sの先頭に一致する単語をすべて見つけます。
-     * @param s
+     * 文字列textの先頭に一致する単語をすべて見つけます。
+     * @param text
      * @return
      */
-    public List<V> search(String s) {
+    public List<V> findPrefix(String text) {
         List<V> result = new ArrayList<>();
         Node node = root;
-        for (int i = 0, len = s.length(); i < len; ++i) {
-            if ((node = node.get(s.charAt(i))) == null)
+        for (int i = 0, len = text.length(); i < len; ++i) {
+            if ((node = node.get(text.charAt(i))) == null)
                 break;
             V v = node.data;
             if (v != null)
                 result.add(v);
         }
+        return result;
+    }
+
+    /**
+     * 文字列textに含まれるすべての単語を見つけます。
+     * @param text
+     * @return
+     */
+    public Map<Integer, List<V>> findAll(String text) {
+        int length = text.length();
+        Map<Integer, List<V>> result = new HashMap<>();
+        for (int i = 0; i < length; ++i)
+            for (V v : findPrefix(text.substring(i)))
+                result.computeIfAbsent(i,
+                    k -> new ArrayList<>()).add(v);
         return result;
     }
 

@@ -1,13 +1,16 @@
 package test.puzzle;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,7 +53,7 @@ public class TestTrie {
         for (String s : words)
             assertEquals(s, trie.get(s));
         assertEquals(null, trie.get("NO DATA"));
-        assertEquals(List.of("i", "in", "inn"), trie.search("inn"));
+        assertEquals(List.of("i", "in", "inn"), trie.findPrefix("inn"));
         assertEquals(10, trie.size());
     }
 
@@ -86,35 +89,32 @@ public class TestTrie {
         }
     }
 
-    static class Found {
-        final int start;
-        final 傷病名 傷病名;
+    static class 傷病名コード化 extends Trie<傷病名> {
 
-        Found(int start, 傷病名 傷病名) {
-            this.start = start;
-            this.傷病名 = 傷病名;
-        }
-
-        @Override
-        public String toString() {
-            return "Found(" + start + ", " + 傷病名 + ")";
-        }
-    }
-
-    static class コード化 {
-        final Trie<傷病名> trie;
-
-        コード化(Trie<傷病名> trie) {
-            this.trie = trie;
-        }
-        
-        List<Found> encode(String s) {
+        List<List<傷病名>> encode(String s) {
             int length = s.length();
-            List<Found> result = new ArrayList<>();
-            for (int i = 0; i < length; ++i)
-                for (傷病名 b : trie.search(s.substring(i)))
-                    result.add(new Found(i, b));
-            return result;
+            Map<Integer, List<傷病名>> map = findAll(s);
+            Deque<傷病名> 選択 = new LinkedList<>();
+            List<List<傷病名>> 結果 = new ArrayList<>();
+            new Object() {
+                void find(int index, int 傷病名数) {
+                    if (index >= length) {
+                        if (傷病名数 == 1)
+                            結果.add(new ArrayList<>(選択));
+                        return;
+                    }
+                    List<傷病名> list = map.get(index);
+                    if (list == null) return;
+                    for (傷病名 b : list) {
+                        int 合計傷病名数 = 傷病名数 + (b.型.equals("B") ? 1 : 0);
+                        if (合計傷病名数 > 1) continue;
+                        選択.addLast(b);
+                        find(index + b.名称.length(), 合計傷病名数);
+                        選択.removeLast();
+                    }
+                }
+            }.find(0, 0);
+            return 結果;
         }
     }
 
@@ -132,18 +132,20 @@ public class TestTrie {
         List<傷病名> 傷病名マスタ = read("data/レセ電/b_20200601.txt", 1, 2, 5);
         logger.info("修飾語マスタ 件数=" + 修飾語マスタ.size());
         logger.info("傷病名マスタ 件数=" + 傷病名マスタ.size());
-        Trie<傷病名> trie = new Trie<>();
+        傷病名コード化 encoder = new 傷病名コード化();
         for (傷病名 b : 傷病名マスタ)
-            trie.put(b.名称, b);
+            encoder.put(b.名称, b);
         for (傷病名 b : 修飾語マスタ)
-            trie.put(b.名称, b);
-        logger.info("trie size=" + trie.size());
-        コード化 encoder = new コード化(trie);
-        logger.info(encoder.encode("ニューモシスチス肺炎の発症抑制").toString());
+            encoder.put(b.名称, b);
+        logger.info("trie size=" + encoder.size());
+        for (List<傷病名> b : encoder.encode("急性潰瘍性大腸炎"))
+            logger.info("\t" + b);
+        logger.info(encoder.encode("急性潰瘍性大腸炎").toString());
         List<String> 未コード化傷病名 = read("data/レセ電/micode.txt", 1);
-        for (String s : 未コード化傷病名)
-            logger.info(s + " -> " + encoder.encode(s));
-
+        for (String s : 未コード化傷病名) {
+            List<List<傷病名>> r = encoder.encode(s);
+            logger.info(s + " -> " + r.size() + ":" + r);
+        }
     }
 
 }

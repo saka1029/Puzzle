@@ -17,16 +17,11 @@ import java.util.stream.Collectors;
 public class Trie<V> {
 
     static final long INC_NODE_NO = 1L << Integer.SIZE;
-    static final long CHAR_MASK = INC_NODE_NO - 1L;
-    static final long NODE_NO_MASK = ~CHAR_MASK;
 
     private long nextNodeNo = 0;
     private Node root = new Node();
     private final Map<Long, Node> nodes = new HashMap<>();
 
-    /**
-     * ルートを除くノード数を返します。
-     */
     public int size() {
         return nodes.size();
     }
@@ -47,15 +42,12 @@ public class Trie<V> {
     }
 
     /**
-     * 文字列textの先頭に一致する単語をすべて見つけます。
-     * @param text
-     * @return
+     * 文字列textのstart位置から一致する単語をすべて見つけます。
      */
-    public List<V> findPrefix(String text) {
-        int length = text.length();
+    public List<V> findPrefix(String text, int start) {
         List<V> result = new ArrayList<>();
         Node node = root;
-        for (int i = 0; i < length; ++i) {
+        for (int i = start, len = text.length(); i < len; ++i) {
             if ((node = node.get(text.charAt(i))) == null)
                 break;
             V v = node.data;
@@ -64,22 +56,28 @@ public class Trie<V> {
         }
         return result;
     }
+    /**
+     * 文字列textの先頭から一致する単語をすべて見つけます。
+     */
+    public List<V> findPrefix(String text) {
+        return findPrefix(text, 0);
+    }
 
     /**
      * 文字列textに含まれるすべての単語を見つけます。
-     * @param text
-     * @return
      */
     public Map<Integer, List<V>> findAll(String text) {
         int length = text.length();
         Map<Integer, List<V>> result = new HashMap<>();
         for (int i = 0; i < length; ++i)
-            for (V v : findPrefix(text.substring(i)))
-                result.computeIfAbsent(i,
-                    k -> new ArrayList<>()).add(v);
+            for (V v : findPrefix(text, i))
+                result.computeIfAbsent(i, k -> new ArrayList<>()).add(v);
         return result;
     }
 
+    /**
+     * 効率が悪いのでNode数が多いときは使わないようにしてください。
+     */
     @Override
     public String toString() {
         return root.toString();
@@ -102,9 +100,13 @@ public class Trie<V> {
             return nodes.computeIfAbsent(no | key, k -> new Node());
         }
 
+        static final long CHAR_MASK = INC_NODE_NO - 1L;
+        static final long NODE_NO_MASK = ~CHAR_MASK;
+
         /**
          * このメソッドはtoString()で利用するためだけに実装されています。
          * 子の先頭文字をキーとして子を値とするようなマップを返します。
+         * 効率が悪いのでNode数が多いときは使わないようにしてください。
          */
         Map<String, Node> children() {
             return nodes.entrySet().stream()
@@ -113,6 +115,9 @@ public class Trie<V> {
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
         }
 
+        /**
+         * 効率が悪いのでNode数が多いときは使わないようにしてください。
+         */
         @Override
         public String toString() {
             return "" + (data == null ? "" : data) + children();

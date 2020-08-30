@@ -24,6 +24,9 @@ public class Trie<V> {
     private Node root = new Node();
     private final Map<Long, Node> nodes = new HashMap<>();
 
+    /**
+     * ルートを除くノード数を返します。
+     */
     public int size() {
         return nodes.size();
     }
@@ -49,9 +52,10 @@ public class Trie<V> {
      * @return
      */
     public List<V> findPrefix(String text) {
+        int length = text.length();
         List<V> result = new ArrayList<>();
         Node node = root;
-        for (int i = 0, len = text.length(); i < len; ++i) {
+        for (int i = 0; i < length; ++i) {
             if ((node = node.get(text.charAt(i))) == null)
                 break;
             V v = node.data;

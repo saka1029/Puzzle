@@ -81,6 +81,18 @@ public interface Seq<T> extends List<T> {
         return new SubstSeq<>(this, index, element);
     }
 
+    default Seq<T> drop(int index) {
+        int size = size();
+        if (index < 0 || index >= size)
+            throw new IndexOutOfBoundsException("index");
+        if (index == 0)
+            return subSeq(1);
+        else if (index == size - 1)
+            return subSeq(0, size - 1);
+        else
+            return concat(subSeq(0, index), subSeq(index + 1));
+    }
+
     default Seq<T> subSeq(int fromIndex, int toIndex) {
         return new SubSeq<>(this, fromIndex, toIndex);
     }
@@ -308,6 +320,8 @@ class SubstSeq<T> extends AbstractList<T> implements Seq<T> {
     private final T value;
 
     SubstSeq(Seq<T> base, int index, T value) {
+        if (index < 0 || index >= base.size())
+            throw new IndexOutOfBoundsException("index");
         this.base = base;
         this.index = index;
         this.value = value;

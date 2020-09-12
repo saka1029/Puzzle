@@ -1,15 +1,18 @@
 package puzzle;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -78,6 +81,10 @@ public class Iterables {
         int next, to, step;
 
         IntRangeIterator(int from, int to, int step) {
+            if (step == 0)
+                throw new IllegalArgumentException("step");
+            if (Math.signum(to - from) != Math.signum(step))
+                throw new IllegalArgumentException();
             this.next = from;
             this.to = to;
             this.step = step;
@@ -102,6 +109,81 @@ public class Iterables {
         }
     }
 
+    static class PermutationIndexIterator implements Iterator<int[]> {
+
+        final int n, r;
+        final long[] available, rest;
+        final int[] selected;
+        boolean hasNext;
+
+        PermutationIndexIterator(int n, int r) {
+            if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+            if (r < 0) throw new IllegalArgumentException("r must be >= 0");
+            if (r > n) throw new IllegalArgumentException("r must be <= n");
+            if (n > Long.SIZE) throw new IllegalArgumentException("n must be <= " + Long.SIZE);
+            this.n = n;
+            this.r = r;
+            this.available = new long[r];
+            this.rest = new long[r];
+            this.selected = new int[r];
+            long allOne = n == Long.SIZE ? -1L : (1L << n) - 1L;
+            if (r == 0)
+                hasNext = true;
+            else {
+                available[0] = rest[0] = allOne;
+                hasNext = advance(0);
+            }
+        }
+
+        boolean advance(int i) {
+            while (i >= 0) {
+                long resti = rest[i];
+                if (resti == 0)
+                    --i;
+                else {
+                    long bit = resti & -resti;   // bit = Long.lowestOneBit(resti);
+                    rest[i] ^= bit;
+                    selected[i] = Long.numberOfTrailingZeros(bit);
+                    if (++i >= r) return true;
+                    available[i] = rest[i] = available[i - 1] ^ bit;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return hasNext;
+        }
+
+        @Override
+        public int[] next() {
+            int[] result = selected.clone();
+            hasNext = advance(r - 1);
+            return result;
+        }
+    }
+
+    static class IntegerIterator implements Iterator<Integer> {
+
+        final int[] elements;
+        int index = 0;
+
+        IntegerIterator(int... elements) {
+            this.elements = elements.clone();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index < elements.length;
+        }
+
+        @Override
+        public Integer next() {
+            return elements[index++];
+        }
+    }
+
     /*
      * start operations
      */
@@ -113,47 +195,62 @@ public class Iterables {
         return () -> new IntRangeIterator(from, to, step);
     }
 
+    public static Iterable<int[]> permutation(int n, int r) {
+        return () -> new PermutationIndexIterator(n, r);
+    }
+
+    @SafeVarargs
+    public static <T> Iterable<T> iterable(T... values) {
+        return List.of(values);
+    }
+
+    public static Iterable<Integer> iterable(int... values) {
+        return () -> new IntegerIterator(values);
+    }
+
     /*
      * intermediate operations
      */
-    public static <T> Iterable<T> filter(Iterable<T> source,
-        Predicate<T> predicate) {
+    public static <T> Iterable<T> filter(Predicate<T> predicate,
+        Iterable<T> source) {
         return () -> new FilterIterator<>(source.iterator(), predicate);
     }
 
-    public static <T, U> Iterable<U> map(Iterable<T> source,
-        Function<T, U> mapper) {
+    public static <T, U> Iterable<U> map(Function<T, U> mapper,
+        Iterable<T> source) {
         return () -> new MapIterator<T, U>(source.iterator(), mapper);
     }
 
     public static <T extends Comparable<T>> Iterable<T> sorted(
         Iterable<T> source) {
-        List<T> result = list(source);
+        List<T> result = arrayList(source);
         Collections.sort(result);
         return result;
     }
 
-    public static <T> Iterable<T> sorted(Iterable<T> source,
-        Comparator<T> comparator) {
-        List<T> result = list(source);
+    public static <T> Iterable<T> sorted(
+        Comparator<T> comparator, Iterable<T> source) {
+        List<T> result = arrayList(source);
         Collections.sort(result, comparator);
         return result;
     }
 
     public static <T> Iterable<T> reverse(Iterable<T> source) {
-        List<T> result = list(source);
+        List<T> result = arrayList(source);
         Collections.reverse(result);
         return result;
     }
 
-    public static <T> Iterable<T> skip(Iterable<T> source, int skip) {
-        Iterator<T> iterator = source.iterator();
-        for (int i = 0; i < skip && iterator.hasNext(); ++i)
-            iterator.next();
-        return () -> iterator;
+    public static <T> Iterable<T> skip(int skip, Iterable<T> source) {
+        return () -> {
+            Iterator<T> iterator = source.iterator();
+            for (int i = 0; i < skip && iterator.hasNext(); ++i)
+                iterator.next();
+            return iterator;
+        };
     }
 
-    public static <T> Iterable<T> limit(Iterable<T> source, int limit) {
+    public static <T> Iterable<T> limit(int limit, Iterable<T> source) {
         return () -> new Iterator<T>() {
 
             int i = 0;
@@ -171,6 +268,37 @@ public class Iterables {
                 ++i;
                 return iterator.next();
             }
+        };
+    }
+
+    public static <T> Iterable<List<T>> permutation(int r, Iterable<T> source) {
+        List<T> list = arrayList(source);
+        int size = list.size();
+        return map(indexes -> {
+            List<T> result = new ArrayList<>(size);
+            for (int i : indexes)
+                result.add(list.get(i));
+            return result;
+        }, permutation(list.size(), r));
+    }
+
+    public static <T, U, R> Iterable<R> zip(BiFunction<T, U, R> zipper, Iterable<T> a, Iterable<U> b) {
+        return () -> new Iterator<R>() {
+
+            final Iterator<T> aa = a.iterator();
+            final Iterator<U> bb = b.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return aa.hasNext() && bb.hasNext();
+            }
+
+            @Override
+            public R next() {
+                if (!hasNext())
+                    throw new NoSuchElementException();
+                return zipper.apply(aa.next(), bb.next());
+            }
 
         };
     }
@@ -178,21 +306,58 @@ public class Iterables {
     /*
      * terminal operations
      */
-    public static <T> List<T> list(Iterable<T> source) {
-        List<T> result = new ArrayList<>();
+    public static <T> List<T> list(Supplier<List<T>> supplier, Iterable<T> source) {
+        List<T> result = supplier.get();
         for (T e : source)
             result.add(e);
         return result;
     }
 
-    public static <T> T[] array(Iterable<T> source,
-        IntFunction<T[]> supplier) {
-        return list(source).toArray(supplier);
+    public static <T> List<T> arrayList(Iterable<T> source) {
+        return list(() -> new ArrayList<>(), source);
+    }
+
+    public static <T> List<T> list(Iterable<T> source) {
+        return arrayList(source);
+    }
+
+    public static <T> List<T> list() {
+        return Collections.emptyList();
+    }
+
+    @SafeVarargs
+    public static <T> List<T> list(T... elements) {
+        return List.of(elements);
+    }
+
+    public static List<Integer> list(int... elements) {
+        int[] copy = elements.clone();
+        return new AbstractList<Integer>() {
+
+            @Override
+            public Integer get(int index) {
+                return copy[index];
+            }
+
+            @Override
+            public int size() {
+                return copy.length;
+            }
+        };
+
+    }
+
+    public static <T> List<T> linkedList(Iterable<T> source) {
+        return list(() -> new LinkedList<>(), source);
+    }
+
+    public static <T> T[] array(IntFunction<T[]> supplier, Iterable<T> source) {
+        return arrayList(source).toArray(supplier);
     }
 
     public static <T> int[] array(Iterable<Integer> source) {
         // サイズがわからないので一度リストにしてから配列にする必要があります。
-        List<Integer> list = list(source);
+        List<Integer> list = arrayList(source);
         int size = list.size();
         int[] result = new int[size];
         for (int i = 0; i < size; ++i)
@@ -200,33 +365,33 @@ public class Iterables {
         return result;
     }
 
-    static <T, K, V> Map<K, V> map(Iterable<T> source,
-        Supplier<Map<K, V>> supplier, Function<T, K> keyExtractor,
-        Function<T, V> valueExtractor) {
+    static <T, K, V> Map<K, V> map(Supplier<Map<K, V>> supplier,
+        Function<T, K> keyExtractor,
+        Function<T, V> valueExtractor, Iterable<T> source) {
         Map<K, V> result = supplier.get();
         for (T t : source)
             result.put(keyExtractor.apply(t), valueExtractor.apply(t));
         return result;
     }
 
-    public static <T, K, V> HashMap<K, V> hashMap(Iterable<T> source,
-        Function<T, K> keyExtractor, Function<T, V> valueExtractor) {
-        return (HashMap<K, V>) map(source, () -> new HashMap<>(), keyExtractor,
-            valueExtractor);
+    public static <T, K, V> HashMap<K, V> hashMap(Function<T, K> keyExtractor,
+        Function<T, V> valueExtractor, Iterable<T> source) {
+        return (HashMap<K, V>) map(() -> new HashMap<>(), keyExtractor,
+            valueExtractor, source);
     }
 
     public static <T, K, V> LinkedHashMap<K, V> linkedHashMap(
-        Iterable<T> source,
-        Function<T, K> keyExtractor, Function<T, V> valueExtractor) {
-        return (LinkedHashMap<K, V>) map(source, () -> new LinkedHashMap<>(),
-            keyExtractor, valueExtractor);
+        Function<T, K> keyExtractor, Function<T, V> valueExtractor,
+        Iterable<T> source) {
+        return (LinkedHashMap<K, V>) map(() -> new LinkedHashMap<>(),
+            keyExtractor, valueExtractor, source);
     }
 
     public static <T, K extends Comparable<K>, V> TreeMap<K, V> treeMap(
-        Iterable<T> source,
-        Function<T, K> keyExtractor, Function<T, V> valueExtractor) {
-        return (TreeMap<K, V>) map(source, () -> new TreeMap<>(), keyExtractor,
-            valueExtractor);
+        Function<T, K> keyExtractor, Function<T, V> valueExtractor,
+        Iterable<T> source) {
+        return (TreeMap<K, V>) map(() -> new TreeMap<>(), keyExtractor,
+            valueExtractor, source);
     }
 
     // public static <K, V> Map<K, V> toMap(Iterable<Entry<K, V>> source,
@@ -241,8 +406,8 @@ public class Iterables {
     // return toMap(source, () -> new HashMap<>());
     // }
 
-    public static <T> T reduce(Iterable<T> source, T start,
-        BinaryOperator<T> reducer) {
+    public static <T> T reduce(T start, BinaryOperator<T> reducer,
+        Iterable<T> source) {
         for (T e : source)
             start = reducer.apply(start, e);
         return start;
@@ -250,7 +415,7 @@ public class Iterables {
 
     public static int count(Iterable<Integer> source) {
         int result = 0;
-        for (int i : source)
+        for (@SuppressWarnings("unused") int i : source)
             ++result;
         return result;
     }
@@ -262,7 +427,7 @@ public class Iterables {
         return result;
     }
 
-    public static String join(Iterable<Integer> source, String separator) {
+    public static String join(String separator, Iterable<Integer> source) {
         String sep = "";
         StringBuilder sb = new StringBuilder();
         for (int e : source) {

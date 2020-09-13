@@ -212,7 +212,8 @@ public class Iterables {
     /*
      * intermediate operations
      */
-    public static <T> Iterable<T> filter(Predicate<T> predicate, Iterable<T> source) {
+    public static <T> Iterable<T> filter(Predicate<T> predicate,
+        Iterable<T> source) {
         return () -> new FilterIterator<>(source.iterator(), predicate);
     }
 

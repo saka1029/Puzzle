@@ -49,36 +49,16 @@ public class Iterables {
 
         @Override
         public T next() {
+            if (!hasNext())
+                throw new NoSuchElementException();
             T result = next;
             hasNext = advance();
             return result;
         }
     }
 
-    static class MapIterator<T, U> implements Iterator<U> {
-
-        final Iterator<T> source;
-        final Function<T, U> mapper;
-
-        MapIterator(Iterator<T> source, Function<T, U> mapper) {
-            this.source = source;
-            this.mapper = mapper;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return source.hasNext();
-        }
-
-        @Override
-        public U next() {
-            if (!hasNext())
-                throw new NoSuchElementException();
-            return mapper.apply(source.next());
-        }
-    }
-
     static class IntRangeIterator implements Iterator<Integer> {
+
         int next, to, step;
 
         IntRangeIterator(int from, int to, int step) {
@@ -118,10 +98,14 @@ public class Iterables {
         boolean hasNext;
 
         PermutationIndexIterator(int n, int r) {
-            if (n < 0) throw new IllegalArgumentException("n must be >= 0");
-            if (r < 0) throw new IllegalArgumentException("r must be >= 0");
-            if (r > n) throw new IllegalArgumentException("r must be <= n");
-            if (n > Long.SIZE) throw new IllegalArgumentException("n must be <= " + Long.SIZE);
+            if (n < 0)
+                throw new IllegalArgumentException("n must be >= 0");
+            if (r < 0)
+                throw new IllegalArgumentException("r must be >= 0");
+            if (r > n)
+                throw new IllegalArgumentException("r must be <= n");
+            if (n > Long.SIZE)
+                throw new IllegalArgumentException("n must be <= " + Long.SIZE);
             this.n = n;
             this.r = r;
             this.available = new long[r];
@@ -142,10 +126,12 @@ public class Iterables {
                 if (resti == 0)
                     --i;
                 else {
-                    long bit = resti & -resti;   // bit = Long.lowestOneBit(resti);
+                    // bit = Long.lowestOneBit(resti);
+                    long bit = resti & -resti;
                     rest[i] ^= bit;
                     selected[i] = Long.numberOfTrailingZeros(bit);
-                    if (++i >= r) return true;
+                    if (++i >= r)
+                        return true;
                     available[i] = rest[i] = available[i - 1] ^ bit;
                 }
             }
@@ -165,24 +151,27 @@ public class Iterables {
         }
     }
 
-    static class IntegerIterator implements Iterator<Integer> {
+    static <T, X> Iterator<T> iterator(X x, Predicate<X> hasNext, Function<X, T> next) {
+        return new Iterator<T>() {
 
-        final int[] elements;
-        int index = 0;
+            @Override
+            public boolean hasNext() {
+                return hasNext.test(x);
+            }
 
-        IntegerIterator(int... elements) {
-            this.elements = elements.clone();
-        }
+            @Override
+            public T next() {
+                return next.apply(x);
+            }
 
-        @Override
-        public boolean hasNext() {
-            return index < elements.length;
-        }
+        };
+    }
 
-        @Override
-        public Integer next() {
-            return elements[index++];
-        }
+    @SafeVarargs
+    static <T> T consume(T t, Consumer<T>... consumers) {
+        for (Consumer<T> c : consumers)
+            c.accept(t);
+        return t;
     }
 
     /*
@@ -206,7 +195,10 @@ public class Iterables {
     }
 
     public static Iterable<Integer> iterable(int... values) {
-        return () -> new IntegerIterator(values);
+        return () -> iterator(new Object() {
+            int[] elements = values.clone();
+            int index = 0;
+        }, c -> c.index < c.elements.length, c -> c.elements[c.index++]);
     }
 
     /*
@@ -217,19 +209,16 @@ public class Iterables {
         return () -> new FilterIterator<>(source.iterator(), predicate);
     }
 
-    public static <T, U> Iterable<U> map(Function<T, U> mapper,
-        Iterable<T> source) {
-        return () -> new MapIterator<T, U>(source.iterator(), mapper);
-    }
-    
-    public static <T> Iterable<T> peek(Consumer<T> consumer, Iterable<T> source) {
-        for (T t : source)
-            consumer.accept(t);
-        return source;
+    public static <T, U> Iterable<U> map(Function<T, U> mapper, Iterable<T> source) {
+        return () -> iterator(source.iterator(), s -> s.hasNext(), s -> mapper.apply(s.next()));
     }
 
-    public static <T extends Comparable<T>> Iterable<T> sorted(
-        Iterable<T> source) {
+    public static <T> Iterable<T> peek(Consumer<T> consumer, Iterable<T> source) {
+        return () -> iterator(source.iterator(), x -> x.hasNext(),
+            x -> consume(x.next(), consumer));
+    }
+
+    public static <T extends Comparable<T>> Iterable<T> sorted(Iterable<T> source) {
         List<T> result = arrayList(source);
         Collections.sort(result);
         return result;
@@ -258,24 +247,14 @@ public class Iterables {
     }
 
     public static <T> Iterable<T> limit(int limit, Iterable<T> source) {
-        return () -> new Iterator<T>() {
-
-            int i = 0;
-            final Iterator<T> iterator = source.iterator();
-
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext() && i < limit;
-            }
-
-            @Override
-            public T next() {
-                if (!hasNext())
-                    throw new NoSuchElementException();
-                ++i;
-                return iterator.next();
-            }
-        };
+        return () -> iterator(new Object() {
+            int index = 0;
+            Iterator<T> iterator = source.iterator();
+        }, c -> c.iterator.hasNext() && c.index < limit,
+            c -> {
+                c.index++;
+                return c.iterator.next();
+            });
     }
 
     public static <T> Iterable<List<T>> permutation(int r, Iterable<T> source) {
@@ -289,25 +268,12 @@ public class Iterables {
         }, permutation(list.size(), r));
     }
 
-    public static <T, U, R> Iterable<R> zip(BiFunction<T, U, R> zipper, Iterable<T> a, Iterable<U> b) {
-        return () -> new Iterator<R>() {
-
-            final Iterator<T> aa = a.iterator();
-            final Iterator<U> bb = b.iterator();
-
-            @Override
-            public boolean hasNext() {
-                return aa.hasNext() && bb.hasNext();
-            }
-
-            @Override
-            public R next() {
-                if (!hasNext())
-                    throw new NoSuchElementException();
-                return zipper.apply(aa.next(), bb.next());
-            }
-
-        };
+    public static <T, U, R> Iterable<R> zip(BiFunction<T, U, R> zipper, Iterable<T> a,
+        Iterable<U> b) {
+        return () -> iterator(new Object() {
+            Iterator<T> aa = a.iterator();
+            Iterator<U> bb = b.iterator();
+        }, c -> c.aa.hasNext() && c.bb.hasNext(), c -> zipper.apply(c.aa.next(), c.bb.next()));
     }
 
     /*
@@ -327,7 +293,8 @@ public class Iterables {
         return true;
     }
 
-    public static <T> List<T> list(Supplier<List<T>> supplier, Iterable<T> source) {
+    public static <T> List<T> list(Supplier<List<T>> supplier,
+        Iterable<T> source) {
         List<T> result = supplier.get();
         for (T e : source)
             result.add(e);
@@ -436,7 +403,8 @@ public class Iterables {
 
     public static int count(Iterable<Integer> source) {
         int result = 0;
-        for (@SuppressWarnings("unused") int i : source)
+        for (@SuppressWarnings("unused")
+        int i : source)
             ++result;
         return result;
     }
@@ -469,20 +437,18 @@ public class Iterables {
         return f2.apply(f1.apply(a));
     }
 
-    public static <A, B, C, D> D apply(A a, Function<A, B> f1,
-        Function<B, C> f2, Function<C, D> f3) {
+    public static <A, B, C, D> D apply(A a, Function<A, B> f1, Function<B, C> f2,
+        Function<C, D> f3) {
         return f3.apply(f2.apply(f1.apply(a)));
     }
 
-    public static <A, B, C, D, E> E apply(A a, Function<A, B> f1,
-        Function<B, C> f2, Function<C, D> f3,
-        Function<D, E> f4) {
+    public static <A, B, C, D, E> E apply(A a, Function<A, B> f1, Function<B, C> f2,
+        Function<C, D> f3, Function<D, E> f4) {
         return f4.apply(f3.apply(f2.apply(f1.apply(a))));
     }
 
-    public static <A, B, C, D, E, F> F apply(A a, Function<A, B> f1,
-        Function<B, C> f2, Function<C, D> f3,
-        Function<D, E> f4, Function<E, F> f5) {
+    public static <A, B, C, D, E, F> F apply(A a, Function<A, B> f1, Function<B, C> f2,
+        Function<C, D> f3, Function<D, E> f4, Function<E, F> f5) {
         return f5.apply(f4.apply(f3.apply(f2.apply(f1.apply(a)))));
     }
 }

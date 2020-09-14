@@ -1,22 +1,7 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static puzzle.Iterables.apply;
-import static puzzle.Iterables.array;
-import static puzzle.Iterables.arrayList;
-import static puzzle.Iterables.filter;
-import static puzzle.Iterables.hashMap;
-import static puzzle.Iterables.join;
-import static puzzle.Iterables.limit;
-import static puzzle.Iterables.list;
-import static puzzle.Iterables.map;
-import static puzzle.Iterables.peek;
-import static puzzle.Iterables.permutation;
-import static puzzle.Iterables.range;
-import static puzzle.Iterables.reduce;
-import static puzzle.Iterables.skip;
-import static puzzle.Iterables.sum;
+import static org.junit.jupiter.api.Assertions.*;
+import static puzzle.Iterables.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -154,12 +139,19 @@ class TestIterables {
     void testPeek() {
         List<String> list = new ArrayList<>();
         List<String> result =
-            list(
-                peek(e -> list.add(e),
+            list(peek(e -> list.add(e),
                     filter(e -> !e.equals("b"),
                         list("a", "b", "c"))));
         assertEquals(list("a", "c"), list);
         assertEquals(list("a", "c"), result);
+        List<String> doubleList = new ArrayList<>();
+        list(peek(e -> doubleList.add(e),
+            peek(e -> doubleList.add(e),
+                list("p", "q", "r"))));
+        assertEquals(list("p", "p", "q", "q", "r", "r"), doubleList);
+        Iterable<String> inter;
+        list(inter = peek(x -> {}, list("p", "q", "r")));
+        assertEquals(list("p", "q", "r"), list(inter));
     }
 
     @Test

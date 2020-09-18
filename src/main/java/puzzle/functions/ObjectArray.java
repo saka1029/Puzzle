@@ -33,12 +33,9 @@ public class ObjectArray {
         return array.length;
     }
 
-    /*
-     * Immutable性を阻害する要因になるので削除
-     */
-//    public Object get(int index) {
-//        return array[index];
-//    }
+    public Object get(int index) {
+        return array[index];
+    }
 
     /**
      * Arrays.deepHashCodeは自己参照する配列を与えるとStackOverflowとなります。

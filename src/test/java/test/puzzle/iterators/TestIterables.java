@@ -3,6 +3,7 @@ package test.puzzle.iterators;
 import static org.junit.jupiter.api.Assertions.*;
 import static puzzle.Iterables.*;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -152,12 +153,9 @@ class TestIterables {
         assertEquals(10, reduce(0, (a, b) -> a + b, range(0, 5)));
         assertEquals(10, reduce(0, Integer::sum, range(0, 5)));
         assertEquals(120, reduce(1, (a, b) -> a * b, range(1, 6)));
-        assertEquals(0, reduce(0, (a, b) -> a + b, list()));
-        assertEquals(10, reduce((a, b) -> a + b, range(0, 5)));
-        assertEquals(10, reduce(Integer::sum, range(0, 5)));
-        assertEquals(120, reduce((a, b) -> a * b, range(1, 6)));
-        assertNull(reduce((a, b) -> a + b, range(0, 0)));
-        assertEquals(0, reduce((a, b) -> a + b, range(0, 1)));
+        assertEquals(0, reduce(0, (a, b) -> a + b, range(0, 0)));
+        assertEquals(10, reduce(0, Integer::sum, range(0, 5)));
+        assertEquals(BigInteger.TEN, reduce(BigInteger.ZERO, (a, b) -> a.add(BigInteger.valueOf((long)b)), range(0, 5)));
     }
 
     @Test
@@ -168,27 +166,28 @@ class TestIterables {
 
     @Test
     void testMin() {
-        assertEquals(-2, min(list(3, 2, -1, -2, 0)));
-        assertEquals(3, min(list(3)));
-        assertNull(min(range(0, 0)));
-        assertEquals(-2, min((a, b) -> Integer.compare(a, b), list(3, 2, -1, -2, 0)));
-        assertEquals(3, min((a, b) -> Integer.compare(a, b), list(3)));
-        assertNull(min((a, b) -> Integer.compare(a, b), range(0, 0)));
+        assertEquals(-2, min(null, list(3, 2, -1, -2, 0)));
+        assertEquals(3, min(null, list(3)));
+        assertNull(min(null, range(0, 0)));
+        assertEquals(-2, min(null, (a, b) -> Integer.compare(a, b), list(3, 2, -1, -2, 0)));
+        assertEquals(3, min(null, (a, b) -> Integer.compare(a, b), list(3)));
+        assertNull(min(null, (a, b) -> Integer.compare(a, b), range(0, 0)));
     }
 
     @Test
     void testMax() {
-        assertEquals(3, max(list(3, 2, -1, -2, 0)));
-        assertEquals(3, max(list(3)));
-        assertNull(max(range(0, 0)));
-        assertEquals(3, max((a, b) -> Integer.compare(a, b), list(3, 2, -1, -2, 0)));
-        assertEquals(3, max((a, b) -> Integer.compare(a, b), list(3)));
-        assertNull(max((a, b) -> Integer.compare(a, b), range(0, 0)));
+        assertEquals(3, max(null, list(3, 2, -1, -2, 0)));
+        assertEquals(3, max(null, list(3)));
+        assertNull(max(null, range(0, 0)));
+        assertEquals(3, max(null, (a, b) -> Integer.compare(a, b), list(3, 2, -1, -2, 0)));
+        assertEquals(3, max(null, (a, b) -> Integer.compare(a, b), list(3)));
+        assertNull(max(null, (a, b) -> Integer.compare(a, b), range(0, 0)));
     }
 
     @Test
     void testJoin() {
         assertEquals("0, 1, 2, 3, 4", join(", ", range(0, 5)));
+        assertEquals("[0, 1, 2, 3, 4]", join(", ", "[", "]", range(0, 5)));
         assertEquals("", join(", ", list()));
     }
 
@@ -341,9 +340,36 @@ class TestIterables {
         // output : 2+45+456+80 = 583
         // int sum = sum(map(Integer::valueOf, filter(not(String::isEmpty),
         // iterable(input.split("\\D+")))));
-        int sum = sum(
-            map(Integer::valueOf, exclude(String::isEmpty, iterable(input.split("\\D+")))));
-        System.out.println(sum);
+        assertEquals(583,
+            sum(map(Integer::valueOf, exclude(String::isEmpty, iterable(input.split("\\D+"))))));
+    }
+
+    @Test
+    void testCumulative() {
+        assertEquals(List.of(0, 1, 3, 6, 10, 15, 21, 28, 36, 45),
+            list(cumulative(0, (a, b) -> a + b, range(0, 10))));
+        assertEquals(list(map(i -> BigInteger.valueOf((long)i), iterable(1, 2, 6, 24, 120, 720, 5040, 40320, 362880))),
+            list(cumulative(BigInteger.ONE, (a, b) -> a.multiply(BigInteger.valueOf((long)b)), range(1, 10))));
+    }
+
+    @Test
+    void testDropWhile() {
+        assertEquals(List.of(3, 4, 5), List.of(0, 1, 2, 3, 4, 5).stream().dropWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(3, 2, 1), List.of(0, 1, 2, 3, 2, 1).stream().dropWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(3, 2, 1), List.of(3, 2, 1).stream().dropWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(3, 4, 5), list(dropWhile(i -> i < 3, iterable(0, 1, 2, 3, 4, 5))));
+        assertEquals(List.of(3, 2, 1), list(dropWhile(i -> i < 3, iterable(0, 1, 2, 3, 2, 1))));
+        assertEquals(List.of(3, 2, 1), list(dropWhile(i -> i < 3, iterable(3, 2, 1))));
+    }
+
+    @Test
+    void testTakeWhile() {
+        assertEquals(List.of(0, 1, 2), List.of(0, 1, 2, 3, 4, 5).stream().takeWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(0, 1, 2), List.of(0, 1, 2, 3, 2, 1).stream().takeWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(), List.of(3, 2, 1).stream().takeWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(0, 1, 2), list(takeWhile(i -> i < 3, iterable(0, 1, 2, 3, 4, 5))));
+        assertEquals(List.of(0, 1, 2), list(takeWhile(i -> i < 3, iterable(0, 1, 2, 3, 2, 1))));
+        assertEquals(List.of(), list(takeWhile(i -> i < 3, iterable(3, 2, 1))));
     }
 
 }

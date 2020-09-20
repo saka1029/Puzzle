@@ -36,6 +36,11 @@ import java.util.stream.IntStream;
  * <li>配列にするにはstream.toArray()でよいが、リストにするときはstream.collec(Collectors.toList())とする必要があります。</li>
  * <li>String.chars()はStream&lt;Character&gt;ではなく、Stream&lt;Integer&gt;を返します。</li>
  * </ul>
+ * 設計方針
+ * <ul>
+ * <li>値がない時（空のリストに対して最小値を求めるなど）はデフォルト値を指定します。</li>
+ * </ul>
+ * <ul>
  */
 public class Iterables {
 
@@ -50,7 +55,8 @@ public class Iterables {
         return a -> c.apply(b.apply(a));
     }
 
-    public static <A, B, C, D> Function<A, D> and(Function<A, B> b, Function<B, C> c, Function<C, D> d) {
+    public static <A, B, C, D> Function<A, D> and(Function<A, B> b, Function<B, C> c,
+        Function<C, D> d) {
         return a -> d.apply(c.apply(b.apply(a)));
     }
 
@@ -63,6 +69,20 @@ public class Iterables {
 
     public static <T> Predicate<T> not(Predicate<T> predicate) {
         return t -> !predicate.test(t);
+    }
+
+    static <T> BinaryOperator<T> min(Comparator<? super T> comparator) {
+        return (a, b) -> a == null && b == null ? null
+            : a == null && b != null ? b
+                : a != null && b == null ? a
+                    : comparator.compare(a, b) <= 0 ? a : b;
+    }
+
+    static <T> BinaryOperator<T> max(Comparator<? super T> comparator) {
+        return (a, b) -> a == null && b == null ? null
+            : a == null && b != null ? b
+                : a != null && b == null ? a
+                    : comparator.compare(a, b) >= 0 ? a : b;
     }
 
     /*
@@ -82,11 +102,11 @@ public class Iterables {
         return (a, b) -> comparator.compare(b, a);
     }
 
-    public static <T extends Comparable<T>> Comparator<T> natualOrder() {
+    public static <T extends Comparable<? super T>> Comparator<T> naturalOrder() {
         return (a, b) -> a.compareTo(b);
     }
 
-    public static <T extends Comparable<T>> Comparator<T> reverseOrder() {
+    public static <T extends Comparable<? super T>> Comparator<T> reverseOrder() {
         return (a, b) -> b.compareTo(a);
     }
 
@@ -325,7 +345,7 @@ public class Iterables {
     }
 
     public static <T> Iterable<T> exclude(Predicate<T> predicate, Iterable<T> source) {
-        return () -> new FilterIterator<>(source.iterator(), not(predicate));
+        return filter(not(predicate), source);
     }
 
     public static <T, U> Iterable<U> map(Function<T, U> mapper, Iterable<T> source) {
@@ -368,7 +388,7 @@ public class Iterables {
     public static <T> Iterable<T> concat(Iterable<T>... sources) {
         return () -> new Iterator<T>() {
 
-            final List<Iterator<T>> iterators = list(map(Iterable::iterator, list(sources)));
+            final List<Iterator<T>> iterators = list(map(Iterable::iterator, iterable(sources)));
             int index = 0;
             boolean hasNext = advance();
 
@@ -414,7 +434,7 @@ public class Iterables {
     }
 
     public static <T> Iterable<T> distinct(Iterable<T> source) {
-        return hashSet(source);
+        return linkedHashSet(source);
     }
 
     public static <T> Iterable<T> reverse(Iterable<T> source) {
@@ -441,6 +461,78 @@ public class Iterables {
                 c.index++;
                 return c.iterator.next();
             });
+    }
+
+    public static <T> Iterable<T> dropWhile(Predicate<? super T> predicate, Iterable<T> source) {
+        return () -> new Iterator<T>() {
+
+            final Iterator<T> iterator = source.iterator();
+            boolean hasNext = init();
+            T next;
+
+            boolean init() {
+                while (iterator.hasNext())
+                    if (!predicate.test(next = iterator.next()))
+                        return true;
+                return false;
+            }
+
+            boolean advance() {
+                if (!iterator.hasNext())
+                    return false;
+                next = iterator.next();
+                return true;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public T next() {
+                T result = next;
+                hasNext = advance();
+                return result;
+            }
+
+        };
+    }
+
+    public static <T> Iterable<T> takeWhile(Predicate<? super T> predicate, Iterable<T> source) {
+        return () -> new Iterator<T>() {
+
+            final Iterator<T> iterator = source.iterator();
+            T next;
+            boolean hasNext = true;
+            {
+                hasNext = advance();
+            }
+
+            boolean advance() {
+                if (!hasNext)
+                    return false;
+                while (iterator.hasNext())
+                    if (predicate.test(next = iterator.next()))
+                        return true;
+                    else
+                        return false;
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public T next() {
+                T result = next;
+                hasNext = advance();
+                return result;
+            }
+
+        };
     }
 
     public static <T> Iterable<List<T>> combination(int r, Iterable<T> source) {
@@ -490,13 +582,6 @@ public class Iterables {
         return true;
     }
 
-    /*
-     * listのオーバーロード <pre> public static <T> List<T> list(Supplier<List<T>>
-     * supplier, Iterable<T> source) public static <T> List<T> list(Iterable<T>
-     * source) public static <T> List<T> list() public static <T> List<T>
-     * list(T... elements) public static List<Integer> list(int... elements)
-     * </pre>
-     */
     public static <T> List<T> list(Supplier<List<T>> supplier, Iterable<T> source) {
         List<T> result = supplier.get();
         for (T e : source)
@@ -549,7 +634,7 @@ public class Iterables {
         return result;
     }
 
-    public static <T> Set<T> hashSet(Iterable<T> source) {
+    public static <T> Set<T> linkedHashSet(Iterable<T> source) {
         return set(() -> new LinkedHashSet<>(), source);
     }
 
@@ -593,30 +678,18 @@ public class Iterables {
             keyExtractor, valueExtractor, source);
     }
 
-    // public static <T, K, V> Map<K, List<V>> grouping(
-    // Function<T, K> keyExtractor, Function<T, V> valueExtractor, Iterable<T>
-    // source) {
-    // Map<K, List<V>> result = new LinkedHashMap<>();
-    // for (T e : source)
-    // result.computeIfAbsent(keyExtractor.apply(e), k -> new ArrayList<>())
-    // .add(valueExtractor.apply(e));
-    // return result;
-    // }
-
-    public static <T, K, V> Map<K, V> grouping(Function<T, K> keyExtractor,
-        Function<Iterable<T>, V> aggregator, Iterable<T> source) {
-        Map<K, List<T>> map = new LinkedHashMap<>();
-        for (T e : source)
-            map.computeIfAbsent(keyExtractor.apply(e), k -> new ArrayList<>()).add(e);
-        return linkedHashMap(Entry::getKey, e -> aggregator.apply(e.getValue()), map.entrySet());
-    }
-
     public static <T, K> Map<K, List<T>> grouping(Function<T, K> keyExtractor, Iterable<T> source) {
-        // return grouping(keyExtractor, Iterables::list, source);
         Map<K, List<T>> result = new LinkedHashMap<>();
         for (T e : source)
             result.computeIfAbsent(keyExtractor.apply(e), k -> new ArrayList<>()).add(e);
         return result;
+    }
+
+    public static <T, K, V> Map<K, V> grouping(Function<T, K> keyExtractor,
+        Function<Iterable<T>, V> aggregator, Iterable<T> source) {
+        return linkedHashMap(Entry::getKey,
+            e -> aggregator.apply(e.getValue()),
+            grouping(keyExtractor, source).entrySet());
     }
 
     public static <T, K extends Comparable<K>, V> TreeMap<K, V> treeMap(
@@ -626,71 +699,64 @@ public class Iterables {
             valueExtractor, source);
     }
 
-    public static <T> T reduce(BinaryOperator<T> reducer, Iterable<T> source) {
-        Iterator<T> iterator = source.iterator();
-        if (!iterator.hasNext())
-            return null;
-        T prev = iterator.next();
-        while (iterator.hasNext())
-            prev = reducer.apply(prev, iterator.next());
-        return prev;
+    public static <T, U> U reduce(U unit, BiFunction<U, T, U> reducer, Iterable<T> source) {
+        for (T e : source)
+            unit = reducer.apply(unit, e);
+        return unit;
     }
 
-    public static <T> T reduce(T start, BinaryOperator<T> reducer, Iterable<T> source) {
-        for (T e : source)
-            start = reducer.apply(start, e);
-        return start;
+    public static <T, U> Iterable<U> cumulative(U unit, BiFunction<U, T, U> function,
+        Iterable<T> source) {
+        return () -> new Iterator<U>() {
+
+            Iterator<T> iterator = source.iterator();
+            U accumlator = unit;
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public U next() {
+                if (!hasNext())
+                    throw new NoSuchElementException();
+                return accumlator = function.apply(accumlator, iterator.next());
+            }
+
+        };
     }
 
     public static <T> int count(Iterable<T> source) {
-        int result = 0;
-        for (Iterator<T> i = source.iterator(); i.hasNext(); ++result)
-            i.next();
-        return result;
+        return reduce(0, (a, b) -> a + 1, source);
     }
 
     public static int sum(Iterable<Integer> source) {
-        int result = 0;
-        for (int i : source)
-            result += i;
-        return result;
+        return reduce(0, Integer::sum, source);
     }
 
-    static <T> T selectMin(Comparator<T> comparator, Iterable<T> source) {
-        Iterator<T> iterator = source.iterator();
-        if (!iterator.hasNext())
-            return null;
-        T selected = iterator.next();
-        while (iterator.hasNext()) {
-            T e = iterator.next();
-            selected = comparator.compare(e, selected) < 0 ? e : selected;
-        }
-        return selected;
+    public static <T> T min(T defaultValue, Comparator<T> comparator, Iterable<T> source) {
+        return reduce(defaultValue, min(comparator), source);
     }
 
-    public static <T> T min(Comparator<T> comparator, Iterable<T> source) {
-        return selectMin(comparator, source);
+    public static <T> T max(T defaultValue, Comparator<T> comparator, Iterable<T> source) {
+        return reduce(defaultValue, max(comparator), source);
     }
 
-    public static <T> T max(Comparator<T> comparator, Iterable<T> source) {
-        return selectMin(reverse(comparator), source);
+    public static <T extends Comparable<? super T>> T min(T defaultValue, Iterable<T> source) {
+        return reduce(defaultValue, min(naturalOrder()), source);
     }
 
-    public static <T extends Comparable<T>> T min(Iterable<T> source) {
-        return selectMin(Comparator.naturalOrder(), source);
-    }
-
-    public static <T extends Comparable<T>> T max(Iterable<T> source) {
-        return selectMin(Comparator.reverseOrder(), source);
+    public static <T extends Comparable<T>> T max(T defaultValue, Iterable<T> source) {
+        return reduce(defaultValue, max(naturalOrder()), source);
     }
 
     public static <T> String join(String separator, Iterable<T> source) {
-        String sep = "";
-        StringBuilder sb = new StringBuilder();
-        for (T e : source) {
-            sb.append(sep).append(e);
-            sep = separator;
-        }
-        return sb.toString();
+        return reduce(new StringBuilder(),
+            (sb, e) -> (sb.length() == 0 ? sb : sb.append(separator)).append(e), source).toString();
+    }
+
+    public static <T> String join(String separator, String begin, String end, Iterable<T> source) {
+        return begin + join(separator, source) + end;
     }
 }

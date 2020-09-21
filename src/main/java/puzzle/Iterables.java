@@ -535,6 +535,15 @@ public class Iterables {
         };
     }
 
+    @SuppressWarnings("preview")
+    public static record Indexed<T>(int index, T value) {}
+
+    public static <T> Iterable<Indexed<T>> indexed(Iterable<T> source) {
+        return () -> iterator(new Object() {
+            Iterator<T> iterator = source.iterator(); int index = 0;
+        }, c -> c.iterator.hasNext(), c -> new Indexed<>(c.index++, c.iterator.next()));
+    }
+
     public static <T> Iterable<List<T>> combination(int r, Iterable<T> source) {
         List<T> list = arrayList(source);
         int size = list.size();
@@ -607,8 +616,9 @@ public class Iterables {
     }
 
     public static List<Integer> list(int... elements) {
-        int[] copy = elements.clone();
         return new AbstractList<Integer>() {
+
+            final int[] copy = elements.clone();
 
             @Override
             public Integer get(int index) {
@@ -676,6 +686,11 @@ public class Iterables {
         Iterable<T> source) {
         return (LinkedHashMap<K, V>) map(() -> new LinkedHashMap<>(),
             keyExtractor, valueExtractor, source);
+    }
+
+    public static <T> void forEach(Consumer<T> body, Iterable<T> source) {
+        for (T e : source)
+            body.accept(e);
     }
 
     public static <T, K> Map<K, List<T>> grouping(Function<T, K> keyExtractor, Iterable<T> source) {

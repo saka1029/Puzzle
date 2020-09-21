@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 import puzzle.Iterables;
+import puzzle.Iterables.Indexed;
 
 class TestIterables {
 
@@ -370,6 +371,12 @@ class TestIterables {
         assertEquals(List.of(0, 1, 2), list(takeWhile(i -> i < 3, iterable(0, 1, 2, 3, 4, 5))));
         assertEquals(List.of(0, 1, 2), list(takeWhile(i -> i < 3, iterable(0, 1, 2, 3, 2, 1))));
         assertEquals(List.of(), list(takeWhile(i -> i < 3, iterable(3, 2, 1))));
+    }
+
+    @Test
+    public void testIndexed() {
+        assertEquals(List.of(new Indexed<>(0, "a"), new Indexed<>(1, "b"), new Indexed<>(2, "c")),
+            list(indexed(list("a", "b", "c"))));
     }
 
 }

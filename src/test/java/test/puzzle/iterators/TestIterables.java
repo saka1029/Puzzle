@@ -5,12 +5,11 @@ import static puzzle.Iterables.*;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
@@ -44,12 +43,18 @@ class TestIterables {
     @Test
     void testFlatMap() {
         assertEquals(list(0, 1, 2, 10, 11, 12, 20, 21, 22),
-            list(flatMap(i -> range(i, i + 3), list(0, 10, 20))));
+            list(
+                flatMap(i -> range(i, i + 3),
+                    list(0, 10, 20))));
         assertEquals(list(0, 1, 2, 10, 11, 12, 20, 21, 22),
             IntStream.of(0, 10, 20)
                 .flatMap(i -> IntStream.range(i, i + 3))
                 .boxed()
                 .collect(Collectors.toList()));
+        assertEquals(list(0, 1, 2, 20, 21, 22, 40, 41, 42),
+            list(
+                flatMap(i -> i / 10 % 2 != 0 ? empty() : range(i, i + 3),
+                    list(0, 10, 20, 30, 40))));
     }
 
     @Test
@@ -156,7 +161,8 @@ class TestIterables {
         assertEquals(120, reduce(1, (a, b) -> a * b, range(1, 6)));
         assertEquals(0, reduce(0, (a, b) -> a + b, range(0, 0)));
         assertEquals(10, reduce(0, Integer::sum, range(0, 5)));
-        assertEquals(BigInteger.TEN, reduce(BigInteger.ZERO, (a, b) -> a.add(BigInteger.valueOf((long)b)), range(0, 5)));
+        assertEquals(BigInteger.TEN,
+            reduce(BigInteger.ZERO, (a, b) -> a.add(BigInteger.valueOf((long) b)), range(0, 5)));
     }
 
     @Test
@@ -310,21 +316,29 @@ class TestIterables {
 
     @Test
     void testGrouping() {
-        Map<String, Integer> map = Map.of("いち", 1, "に", 2, "さん", 3, "one", 1, "three", 3);
-        Map<Integer, List<String>> inverted = grouping(Entry::getValue,
-            s -> list(map(Entry::getKey, s)), map.entrySet());
-        assertEquals(Set.of("いち", "one"), build(new HashSet<>(), s -> s.addAll(inverted.get(1))));
-        assertEquals(Set.of("に"), build(new HashSet<>(), s -> s.addAll(inverted.get(2))));
-        assertEquals(Set.of("さん", "three"), build(new HashSet<>(), s -> s.addAll(inverted.get(3))));
-        Map<Integer, List<String>> streamMap = map.entrySet().stream()
+        Map<String, Integer> map = build(new LinkedHashMap<>(),
+            m -> m.put("いち", 1),
+            m -> m.put("に", 2),
+            m -> m.put("さん", 3),
+            m -> m.put("one", 1),
+            m -> m.put("three", 3));
+
+        assertEquals(Map.of(
+            1, List.of("いち", "one"),
+            2, List.of("に"),
+            3, List.of("さん", "three")
+        ), grouping(Entry::getValue, s -> list(map(Entry::getKey, s)), map.entrySet()));
+
+        assertEquals(Map.of(
+            1, List.of("いち", "one"),
+            2, List.of("に"),
+            3, List.of("さん", "three")
+        ), map.entrySet().stream()
             .collect(Collectors.groupingBy(Entry::getValue,
-                Collectors.mapping(Entry::getKey, Collectors.toList())));
-        assertEquals(Set.of("いち", "one"), build(new HashSet<>(), s -> s.addAll(streamMap.get(1))));
-        assertEquals(Set.of("に"), build(new HashSet<>(), s -> s.addAll(streamMap.get(2))));
-        assertEquals(Set.of("さん", "three"),
-            build(new HashSet<>(), s -> s.addAll(streamMap.get(3))));
-        Map<Integer, Integer> counts = grouping(Entry::getValue, Iterables::count, map.entrySet());
-        assertEquals(Map.of(1, 2, 2, 1, 3, 2), counts);
+                Collectors.mapping(Entry::getKey, Collectors.toList()))));
+
+        assertEquals(Map.of(1, 2, 2, 1, 3, 2),
+            grouping(Entry::getValue, Iterables::count, map.entrySet()));
     }
 
     @Test
@@ -334,7 +348,8 @@ class TestIterables {
 
     @Test
     void testAddNumbersInString() {
-        // java - I want to extract integers from a input string "a2re45pr456#$#$80" - Stack Overflow
+        // java - I want to extract integers from a input string
+        // "a2re45pr456#$#$80" - Stack Overflow
         // https://stackoverflow.com/questions/63950029/i-want-to-extract-integers-from-a-input-string-a2re45pr45680
         String input = "a2re45pr456#$#$80";
         // I should get a output like below
@@ -349,15 +364,21 @@ class TestIterables {
     void testCumulative() {
         assertEquals(List.of(0, 1, 3, 6, 10, 15, 21, 28, 36, 45),
             list(cumulative(0, (a, b) -> a + b, range(0, 10))));
-        assertEquals(list(map(i -> BigInteger.valueOf((long)i), iterable(1, 2, 6, 24, 120, 720, 5040, 40320, 362880))),
-            list(cumulative(BigInteger.ONE, (a, b) -> a.multiply(BigInteger.valueOf((long)b)), range(1, 10))));
+        assertEquals(
+            list(map(i -> BigInteger.valueOf((long) i),
+                iterable(1, 2, 6, 24, 120, 720, 5040, 40320, 362880))),
+            list(cumulative(BigInteger.ONE, (a, b) -> a.multiply(BigInteger.valueOf((long) b)),
+                range(1, 10))));
     }
 
     @Test
     void testDropWhile() {
-        assertEquals(List.of(3, 4, 5), List.of(0, 1, 2, 3, 4, 5).stream().dropWhile(i -> i < 3).collect(Collectors.toList()));
-        assertEquals(List.of(3, 2, 1), List.of(0, 1, 2, 3, 2, 1).stream().dropWhile(i -> i < 3).collect(Collectors.toList()));
-        assertEquals(List.of(3, 2, 1), List.of(3, 2, 1).stream().dropWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(3, 4, 5),
+            List.of(0, 1, 2, 3, 4, 5).stream().dropWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(3, 2, 1),
+            List.of(0, 1, 2, 3, 2, 1).stream().dropWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(3, 2, 1),
+            List.of(3, 2, 1).stream().dropWhile(i -> i < 3).collect(Collectors.toList()));
         assertEquals(List.of(3, 4, 5), list(dropWhile(i -> i < 3, iterable(0, 1, 2, 3, 4, 5))));
         assertEquals(List.of(3, 2, 1), list(dropWhile(i -> i < 3, iterable(0, 1, 2, 3, 2, 1))));
         assertEquals(List.of(3, 2, 1), list(dropWhile(i -> i < 3, iterable(3, 2, 1))));
@@ -365,9 +386,12 @@ class TestIterables {
 
     @Test
     void testTakeWhile() {
-        assertEquals(List.of(0, 1, 2), List.of(0, 1, 2, 3, 4, 5).stream().takeWhile(i -> i < 3).collect(Collectors.toList()));
-        assertEquals(List.of(0, 1, 2), List.of(0, 1, 2, 3, 2, 1).stream().takeWhile(i -> i < 3).collect(Collectors.toList()));
-        assertEquals(List.of(), List.of(3, 2, 1).stream().takeWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(0, 1, 2),
+            List.of(0, 1, 2, 3, 4, 5).stream().takeWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(0, 1, 2),
+            List.of(0, 1, 2, 3, 2, 1).stream().takeWhile(i -> i < 3).collect(Collectors.toList()));
+        assertEquals(List.of(),
+            List.of(3, 2, 1).stream().takeWhile(i -> i < 3).collect(Collectors.toList()));
         assertEquals(List.of(0, 1, 2), list(takeWhile(i -> i < 3, iterable(0, 1, 2, 3, 4, 5))));
         assertEquals(List.of(0, 1, 2), list(takeWhile(i -> i < 3, iterable(0, 1, 2, 3, 2, 1))));
         assertEquals(List.of(), list(takeWhile(i -> i < 3, iterable(3, 2, 1))));
@@ -378,5 +402,31 @@ class TestIterables {
         assertEquals(List.of(new Indexed<>(0, "a"), new Indexed<>(1, "b"), new Indexed<>(2, "c")),
             list(indexed(list("a", "b", "c"))));
     }
+
+    static int num(int... digits) {
+        return reduce(0, (a, b) -> a * 10 + b, iterable(digits));
+    }
+
+    static boolean check(int a, int b, int c, int d, int e) {
+        if (a == 0 || e == 0)
+            return false;
+        int abcde = num(a, b, c, d, e);
+        int eeeeee = num(e, e, e, e, e, e);
+        return abcde * a == eeeeee;
+    }
+
+    /**
+     * Hard Problem For 9 Year Olds In Taiwan - YouTube
+     * https://www.youtube.com/watch?v=gaDiyWowbUc
+     */
+    @Test
+    public void testHardProblemFor9YearOldsInTaiwan() {
+        List<List<Integer>> results = list(
+            map(a -> list(a),
+                filter(a -> check(a[0], a[1], a[2], a[3], a[4]),
+                    permutation(10, 5))));
+        System.out.println(results);
+    }
+
 
 }

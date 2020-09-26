@@ -120,40 +120,40 @@ public class Iterables {
     /*
      * Common Iterator
      */
-    static class FilterIterator<T> implements Iterator<T> {
-
-        final Iterator<T> source;
-        final Predicate<T> predicate;
-        boolean hasNext;
-        T next = null;
-
-        FilterIterator(Iterator<T> source, Predicate<T> predicate) {
-            this.source = source;
-            this.predicate = predicate;
-            hasNext = advance();
-        }
-
-        boolean advance() {
-            while (source.hasNext())
-                if (predicate.test(next = source.next()))
-                    return true;
-            return false;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return hasNext;
-        }
-
-        @Override
-        public T next() {
-            if (!hasNext())
-                throw new NoSuchElementException();
-            T result = next;
-            hasNext = advance();
-            return result;
-        }
-    }
+    // static class FilterIterator<T> implements Iterator<T> {
+    //
+    // final Iterator<T> source;
+    // final Predicate<T> predicate;
+    // boolean hasNext;
+    // T next = null;
+    //
+    // FilterIterator(Iterator<T> source, Predicate<T> predicate) {
+    // this.source = source;
+    // this.predicate = predicate;
+    // hasNext = advance();
+    // }
+    //
+    // boolean advance() {
+    // while (source.hasNext())
+    // if (predicate.test(next = source.next()))
+    // return true;
+    // return false;
+    // }
+    //
+    // @Override
+    // public boolean hasNext() {
+    // return hasNext;
+    // }
+    //
+    // @Override
+    // public T next() {
+    // if (!hasNext())
+    // throw new NoSuchElementException();
+    // T result = next;
+    // hasNext = advance();
+    // return result;
+    // }
+    // }
 
     static class IntRangeIterator implements Iterator<Integer> {
 
@@ -301,6 +301,22 @@ public class Iterables {
     /*
      * start operations
      */
+    public static <T> Iterable<T> empty() {
+        return () -> new Iterator<T>() {
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public T next() {
+                throw new NoSuchElementException();
+            }
+
+        };
+    }
+
     public static Iterable<Integer> range(int from, int to) {
         return () -> new IntRangeIterator(from, to);
     }
@@ -341,7 +357,33 @@ public class Iterables {
      * intermediate operations
      */
     public static <T> Iterable<T> filter(Predicate<T> predicate, Iterable<T> source) {
-        return () -> new FilterIterator<>(source.iterator(), predicate);
+        return () -> new Iterator<T>() {
+
+            final Iterator<T> iterator = source.iterator();
+            boolean hasNext = advance();
+            T next;
+
+            boolean advance() {
+                while (iterator.hasNext())
+                    if (predicate.test(next = iterator.next()))
+                        return true;
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public T next() {
+                T result = next;
+                hasNext = advance();
+                return result;
+            }
+
+        };
+        // return () -> new FilterIterator<>(source.iterator(), predicate);
     }
 
     public static <T> Iterable<T> exclude(Predicate<T> predicate, Iterable<T> source) {
@@ -352,19 +394,60 @@ public class Iterables {
         return () -> iterator(source.iterator(), s -> s.hasNext(), s -> mapper.apply(s.next()));
     }
 
-    public static <T, U> Iterable<U> flatMap(Function<T, Iterable<U>> mapper, Iterable<T> source) {
+    // public static <T, U> Iterable<U> flatMap(Function<T, Iterable<U>> mapper,
+    // Iterable<T> source) {
+    // return () -> new Iterator<U>() {
+    //
+    // final List<Iterator<U>> iterators = list(
+    // map(and(mapper, Iterable::iterator), source));
+    // int index = 0;
+    // boolean hasNext = advance();
+    //
+    // boolean advance() {
+    // for (int size = iterators.size(); index < size; ++index)
+    // if (iterators.get(index).hasNext())
+    // return true;
+    // return false;
+    // }
+    //
+    // @Override
+    // public boolean hasNext() {
+    // return hasNext;
+    // }
+    //
+    // @Override
+    // public U next() {
+    // if (!hasNext())
+    // throw new NoSuchElementException();
+    // U result = iterators.get(index).next();
+    // hasNext = advance();
+    // return result;
+    // }
+    //
+    // };
+    // }
+
+    public static <T, U> Iterable<U> flatMap(Function<T, Iterable<U>> flatter, Iterable<T> source) {
         return () -> new Iterator<U>() {
 
-            final List<Iterator<U>> iterators = list(
-                map(and(mapper, Iterable::iterator), source));
-            int index = 0;
+            final Iterator<T> parent = source.iterator();
+            Iterator<U> child = null;
             boolean hasNext = advance();
+            U next;
 
             boolean advance() {
-                for (int size = iterators.size(); index < size; ++index)
-                    if (iterators.get(index).hasNext())
+                while (true) {
+                    if (child == null) {
+                        if (!parent.hasNext())
+                            return false;
+                        child = flatter.apply(parent.next()).iterator();
+                    }
+                    if (child.hasNext()) {
+                        next = child.next();
                         return true;
-                return false;
+                    }
+                    child = null;
+                }
             }
 
             @Override
@@ -376,7 +459,7 @@ public class Iterables {
             public U next() {
                 if (!hasNext())
                     throw new NoSuchElementException();
-                U result = iterators.get(index).next();
+                U result = next;
                 hasNext = advance();
                 return result;
             }
@@ -536,11 +619,13 @@ public class Iterables {
     }
 
     @SuppressWarnings("preview")
-    public static record Indexed<T>(int index, T value) {}
+    public static record Indexed<T> (int index, T value) {
+    }
 
     public static <T> Iterable<Indexed<T>> indexed(Iterable<T> source) {
         return () -> iterator(new Object() {
-            Iterator<T> iterator = source.iterator(); int index = 0;
+            Iterator<T> iterator = source.iterator();
+            int index = 0;
         }, c -> c.iterator.hasNext(), c -> new Indexed<>(c.index++, c.iterator.next()));
     }
 
@@ -666,8 +751,7 @@ public class Iterables {
         return result;
     }
 
-    static <T, K, V> Map<K, V> map(Supplier<Map<K, V>> supplier,
-        Function<T, K> keyExtractor,
+    static <T, K, V> Map<K, V> map(Supplier<Map<K, V>> supplier, Function<T, K> keyExtractor,
         Function<T, V> valueExtractor, Iterable<T> source) {
         Map<K, V> result = supplier.get();
         for (T t : source)
@@ -681,12 +765,19 @@ public class Iterables {
             valueExtractor, source);
     }
 
-    public static <T, K, V> LinkedHashMap<K, V> linkedHashMap(
-        Function<T, K> keyExtractor, Function<T, V> valueExtractor,
-        Iterable<T> source) {
+    public static <T, K, V> LinkedHashMap<K, V> linkedHashMap(Function<T, K> keyExtractor,
+        Function<T, V> valueExtractor, Iterable<T> source) {
         return (LinkedHashMap<K, V>) map(() -> new LinkedHashMap<>(),
             keyExtractor, valueExtractor, source);
     }
+
+    // public static <K, V> LinkedHashMap<K, V> linkedHashMap(Iterable<Entry<K,
+    // V>> source) {
+    // LinkedHashMap<K, V> result = new LinkedHashMap<>();
+    // for (Entry<K, V> e : source)
+    // result.put(e.getKey(), e.getValue());
+    // return result;
+    // }
 
     public static <T> void forEach(Consumer<T> body, Iterable<T> source) {
         for (T e : source)

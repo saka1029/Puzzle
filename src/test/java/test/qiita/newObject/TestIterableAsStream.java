@@ -11,27 +11,10 @@ import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
-
-
-/**
- * Iterableを使用したStreamライクな関数群です。
- *
- * Streamライブラリの問題点
- * <ul>
- * <li>map()やfilter()などのStream操作メソッドはインスタンスメソッドになっており、容易に拡張することができません。</li>
- * <li>IntStreamはありますが、CharStreamやByteStreamはありません。</li>
- * <li>配列にするにはstream.toArray()でよいが、リストにするときはstream.collec(Collectors.toList())とする必要があります。</li>
- * <li>String.chars()はStream&lt;Character&gt;ではなく、Stream&lt;Integer&gt;を返します。</li>
- * </ul>
- * 設計方針
- * <ul>
- * <li>静的メソッドで実現します。</li>
- * <li>値がない時（空のリストに対して最小値を求めるなど）はデフォルト値を指定します。</li>
- * </ul>
- * <ul>
- */
 
 class TestIterableAsStream {
 
@@ -69,8 +52,16 @@ class TestIterableAsStream {
 
     @Test
     void testMap() {
-        assertEquals(List.of("A", "B", "C"),
-            toList(map(String::toUpperCase, List.of("a", "b", "c"))));
+        List<String> actual = toList(
+            map(String::toUpperCase,
+                List.of("a", "b", "c")));
+        List<String> expected = List.of("A", "B", "C");
+        assertEquals(actual, expected);
+
+        List<String> stream = List.of("a", "b", "c").stream()
+            .map(String::toUpperCase)
+            .collect(Collectors.toList());
+        assertEquals(stream, expected);
     }
 
     public static <T> Iterable<T> filter(Predicate<T> selector, Iterable<T> source) {
@@ -103,11 +94,144 @@ class TestIterableAsStream {
 
     @Test
     void testFilter() {
-        assertEquals(List.of(0, 20, 40),
-            toList(map(i -> i * 10, filter(i -> i % 2 == 0, List.of(0, 1, 2, 3, 4, 5)))));
+        List<Integer> actual = toList(
+            map(i -> i * 10,
+                filter(i -> i % 2 == 0,
+                    List.of(0, 1, 2, 3, 4, 5))));
+        List<Integer> expected = List.of(0, 20, 40);
+        assertEquals(expected, actual);
+
+        List<Integer> stream = List.of(0, 1, 2, 3, 4, 5).stream()
+            .filter(i -> i % 2 == 0)
+            .map(i -> i * 10)
+            .collect(Collectors.toList());
+        assertEquals(stream, actual);
     }
 
-    static <T, U, V> Iterable<V> zip(BiFunction<T, U, V> zipper, Iterable<T> source1, Iterable<U> source2) {
+    @Test
+    void testSaveFilter() {
+        Iterable<Integer> saved;
+        List<Integer> actual = toList(
+            map(i -> i * 10,
+                saved = filter(i -> i % 2 == 0,
+                    List.of(0, 1, 2, 3, 4, 5))));
+        List<Integer> expected = List.of(0, 20, 40);
+        assertEquals(expected, actual);
+
+        assertEquals(List.of(0, 2, 4), toList(saved));
+    }
+
+    public static <T, K, V> Map<K, V> toMap(Function<T, K> keyExtractor,
+        Function<T, V> valueExtractor, Iterable<T> source) {
+        Map<K, V> result = new LinkedHashMap<>();
+        for (T element : source)
+            result.put(keyExtractor.apply(element), valueExtractor.apply(element));
+        return result;
+    }
+
+    public static <T, K> Map<K, List<T>> groupingBy(Function<T, K> keyExtractor,
+        Iterable<T> source) {
+        Map<K, List<T>> result = new LinkedHashMap<>();
+        for (T e : source)
+            result.computeIfAbsent(keyExtractor.apply(e), k -> new ArrayList<>()).add(e);
+        return result;
+    }
+
+    @Test
+    public void testGroupingBy() {
+        Map<Integer, List<String>> actual = groupingBy(String::length,
+            List.of("one", "two", "three", "four", "five"));
+        Map<Integer, List<String>> expected = Map.of(
+            3, List.of("one", "two"),
+            5, List.of("three"),
+            4, List.of("four", "five"));
+        assertEquals(expected, actual);
+
+        Map<Integer, List<String>> stream = List.of("one", "two", "three", "four", "five").stream()
+            .collect(Collectors.groupingBy(String::length));
+        assertEquals(stream, actual);
+    }
+
+    static <T, K, V> Map<K, V> groupingBy(Function<T, K> keyExtractor,
+        Function<Iterable<T>, V> valueAggregator, Iterable<T> source) {
+        return toMap(Entry::getKey, e -> valueAggregator.apply(e.getValue()),
+            groupingBy(keyExtractor, source).entrySet());
+    }
+
+    public static <T> long count(Iterable<T> source) {
+        long count = 0;
+        for (@SuppressWarnings("unused")
+        T e : source)
+            ++count;
+        return count;
+    }
+
+    @Test
+    public void testGroupingByCount() {
+        Map<Integer, Long> actual = groupingBy(String::length, s -> count(s),
+            List.of("one", "two", "three", "four", "five"));
+        Map<Integer, Long> expected = Map.of(3, 2L, 5, 1L, 4, 2L);
+        assertEquals(expected, actual);
+
+        Map<Integer, Long> stream = List.of("one", "two", "three", "four", "five").stream()
+            .collect(Collectors.groupingBy(String::length, Collectors.counting()));
+        assertEquals(stream, actual);
+    }
+
+    public static <T, U> Iterable<U> flatMap(Function<T, Iterable<U>> flatter, Iterable<T> source) {
+        return () -> new Iterator<U>() {
+
+            final Iterator<T> parent = source.iterator();
+            Iterator<U> child = null;
+            boolean hasNext = advance();
+            U next;
+
+            boolean advance() {
+                while (true) {
+                    if (child == null) {
+                        if (!parent.hasNext())
+                            return false;
+                        child = flatter.apply(parent.next()).iterator();
+                    }
+                    if (child.hasNext()) {
+                        next = child.next();
+                        return true;
+                    }
+                    child = null;
+                }
+            }
+
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public U next() {
+                U result = next;
+                hasNext = advance();
+                return result;
+            }
+
+        };
+    }
+
+    @Test
+    public void testFlatMap() {
+        List<Integer> actual = toList(
+            flatMap(i -> List.of(i, i),
+                List.of(0, 1, 2, 3)));
+        List<Integer> expected = List.of(0, 0, 1, 1, 2, 2, 3, 3);
+        assertEquals(expected, actual);
+
+        List<Integer> stream = List.of(0, 1, 2, 3).stream()
+            .flatMap(i -> Stream.of(i, i))
+            .collect(Collectors.toList());
+        assertEquals(stream, actual);
+    }
+
+    static <T, U, V> Iterable<V> zip(BiFunction<T, U, V> zipper, Iterable<T> source1,
+        Iterable<U> source2) {
         return () -> new Iterator<V>() {
 
             final Iterator<T> iterator1 = source1.iterator();
@@ -128,45 +252,41 @@ class TestIterableAsStream {
 
     @Test
     void testZip() {
-        assertEquals(List.of("0-zero", "1-one", "2-two"),
-            toList(zip((a, b) -> a + "-" + b, List.of(0, 1, 2), List.of("zero", "one", "two"))));
+        List<String> actual = toList(
+            zip((x, y) -> x + "-" + y,
+                List.of(0, 1, 2),
+                List.of("zero", "one", "two")));
+        List<String> expected = List.of("0-zero", "1-one", "2-two");
+        assertEquals(expected, actual);
     }
 
-    public static <T> int count(Iterable<T> source) {
-        int count = 0;
-        for (@SuppressWarnings("unused") T e : source)
-            ++count;
-        return count;
-    }
+    public static <T, U> Iterable<U> cumulative(U unit, BiFunction<U, T, U> function,
+        Iterable<T> source) {
+        return () -> new Iterator<U>() {
 
-    public static <T, K, V> Map<K, V> toMap(Function<T, K> keyExtractor, Function<T, V> valueExtractor, Iterable<T> source) {
-        Map<K, V> result = new LinkedHashMap<>();
-        for (T element : source)
-            result.put(keyExtractor.apply(element), valueExtractor.apply(element));
-        return result;
-    }
+            Iterator<T> iterator = source.iterator();
+            U accumlator = unit;
 
-    public static <T, K> Map<K, List<T>> groupingBy(Function<T, K> keyExtractor, Iterable<T> source) {
-        Map<K, List<T>> result = new LinkedHashMap<>();
-        for (T e : source)
-            result.computeIfAbsent(keyExtractor.apply(e), k -> new ArrayList<>()).add(e);
-        return result;
-    }
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
 
-    static <T, K, V> Map<K, V> groupingBy(Function<T, K> keyExtractor, Function<Iterable<T>, V> valueAggregator, Iterable<T> source) {
-        return toMap(Entry::getKey, e -> valueAggregator.apply(e.getValue()),
-            groupingBy(keyExtractor, source).entrySet());
+            @Override
+            public U next() {
+                return accumlator = function.apply(accumlator, iterator.next());
+            }
+
+        };
     }
 
     @Test
-    public void testGroupingBy() {
-        List<String> list = List.of("one", "two", "three", "four", "five");
-
-        assertEquals(Map.of(3, List.of("one", "two"), 5, List.of("three"), 4, List.of("four", "five")),
-            groupingBy(String::length, list));
-
-        assertEquals(Map.of(3, 2, 5, 1, 4, 2),
-            groupingBy(String::length, s -> count(s), list));
+    public void testCumalative() {
+        List<Integer> actual = toList(
+            cumulative(0, (x, y) -> x + y,
+                List.of(0, 1, 2, 3, 4, 5)));
+        List<Integer> expected = List.of(0, 1, 3, 6, 10, 15);
+        assertEquals(expected, actual);
     }
 
 }

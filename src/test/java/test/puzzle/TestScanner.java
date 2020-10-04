@@ -1,6 +1,6 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -21,9 +21,8 @@ class TestScanner {
     static class RuntimeContext {
         final List<Object> stack = new ArrayList<>();
 
-        int lastIndex() { return stack.size() - 1; }
         void push(Object element) { stack.add(element); }
-        Object pop() { return stack.remove(lastIndex()); }
+        Object pop() { return stack.remove(stack.size() - 1); }
 
         final Map<String, Executable> dictionary = new HashMap<>();
         void put(String name, Executable executable) { dictionary.put(name, executable); }
@@ -92,10 +91,12 @@ class TestScanner {
         }
 
         void parse() throws IOException {
-            while (ch != -1) {
+            L: while (ch != -1) {
                 while (isWhitespace(ch))
                     getCh();
                 switch (ch) {
+                case -1:
+                    break;     
                 case '\"':
                     parseString();
                     break;
@@ -117,7 +118,7 @@ class TestScanner {
     }
 
     @Test
-    void test() throws IOException {
+    void testInteger() throws IOException {
         RuntimeContext context = new RuntimeContext();
         context.put("+", c -> c.push((int)c.pop() + (int)c.pop()));
         context.put("*", c -> c.push((int)c.pop() * (int)c.pop()));
@@ -125,6 +126,16 @@ class TestScanner {
         Parser p = new Parser(new StringReader(s), context);
         p.parse();
         assertEquals(21, context.pop());
+    }
+
+    @Test
+    void testString() throws IOException {
+        RuntimeContext context = new RuntimeContext();
+        context.put("+", c -> { Object s = c.pop(); c.push(c.pop().toString() + s); });
+        String s = "\"ABC\" 123 + ";
+        Parser p = new Parser(new StringReader(s), context);
+        p.parse();
+        assertEquals("ABC123", context.pop());
     }
 
 }

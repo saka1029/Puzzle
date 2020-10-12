@@ -1,10 +1,7 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,128 +11,213 @@ import org.junit.jupiter.api.Test;
 
 class TestScanner {
 
+    static class RuntimeContext {
+        final List<Object> stack = new ArrayList<>();
+        int pc;
+
+        void push(Object element) { stack.add(element); }
+        Object pop() { return stack.remove(stack.size() - 1); }
+    }
+
     interface Executable {
         void execute(RuntimeContext context);
     }
 
-    static class RuntimeContext {
-        final List<Object> stack = new ArrayList<>();
-
-        void push(Object element) { stack.add(element); }
-        Object pop() { return stack.remove(stack.size() - 1); }
-
-        final Map<String, Executable> dictionary = new HashMap<>();
-        void put(String name, Executable executable) { dictionary.put(name, executable); }
-        Executable get(String name) { return dictionary.get(name); }
+    interface Compiler {
+        void compile(CompileContext context);
     }
 
-    static class Parser {
-        final Reader reader;
-        final RuntimeContext context;
-        int ch;
+    static class CompileContext {
 
-        Parser(Reader reader, RuntimeContext context) throws IOException {
-            this.reader = reader;
-            this.context = context;
-            getCh();
+        final List<Executable> codes = new ArrayList<>();
+        final List<Integer> stack = new ArrayList<>();
+        final Map<String, Compiler> dictionary = new HashMap<>();
+
+        void execute(RuntimeContext c) {
+            int size = codes.size();
+            c.pc = 0;
+            while (c.pc < size)
+                codes.get(c.pc++).execute(c);
         }
 
-        int getCh() throws IOException {
-            if (ch != -1)
-                ch = reader.read();
-            return ch;
-        }
+        void parse(String input) {
+            new Object() {
+                int index = 0;
+                int ch;
 
-        static boolean isWhitespace(int ch) {
-            return Character.isWhitespace(ch);
-        }
-
-        static boolean isDigit(int ch) {
-            return Character.isDigit(ch);
-        }
-
-        void parseString() throws IOException {
-            getCh();
-            StringBuilder sb = new StringBuilder();
-            while (ch != -1 && ch != '\"') {
-                sb.append((char)ch);
-                getCh();
-            }
-            if (ch == -1)
-                throw new RuntimeException("'\"' expected");
-            getCh(); // skip last '\"'
-            context.push(sb.toString());
-        }
-
-        void parseInteger(int prefix) throws IOException {
-            StringBuilder sb = new StringBuilder();
-            if (prefix != -1)
-                sb.append((char) prefix);
-            while (isDigit(ch)) {
-                sb.append((char) ch);
-                getCh();
-            }
-            context.push(Integer.valueOf(sb.toString()));
-        }
-
-        void parseWord(int prefix) throws IOException {
-            StringBuilder sb = new StringBuilder();
-            if (prefix != -1)
-                sb.append((char) prefix);
-            while (ch != -1 && !isWhitespace(ch)) {
-                sb.append((char) ch);
-                getCh();
-            }
-            String word = sb.toString();
-            context.get(word).execute(context);
-        }
-
-        void parse() throws IOException {
-            L: while (ch != -1) {
-                while (isWhitespace(ch))
-                    getCh();
-                switch (ch) {
-                case -1:
-                    break;     
-                case '\"':
-                    parseString();
-                    break;
-                case '-':
-                    if (Character.isDigit(getCh()))
-                        parseInteger('-');
-                    else
-                        parseWord('-');
-                    break;
-                default:
-                    if (Character.isDigit(ch))
-                        parseInteger(-1);
-                    else
-                        parseWord(-1);
-                    break;
+                int getCh() {
+                    return ch = index < input.length() ? input.charAt(index++) : -1;
                 }
-            }
+
+                void parseString() {
+                    getCh();
+                    StringBuilder sb = new StringBuilder();
+                    while (ch != -1 && ch != '\"') {
+                        sb.append((char) ch);
+                        getCh();
+                    }
+                    if (ch == -1)
+                        throw new RuntimeException("'\"' expected");
+                    getCh(); // skip last '\"'
+                    codes.add(c -> c.push(sb.toString()));
+                }
+
+                void parseInteger(int prefix) {
+                    StringBuilder sb = new StringBuilder();
+                    if (prefix != -1)
+                        sb.append((char) prefix);
+                    while (Character.isDigit(ch)) {
+                        sb.append((char) ch);
+                        getCh();
+                    }
+                    codes.add(c -> c.push(Integer.valueOf(sb.toString())));
+                }
+
+                void parseWord(int prefix) {
+                    StringBuilder sb = new StringBuilder();
+                    if (prefix != -1)
+                        sb.append((char) prefix);
+                    while (ch != -1 && !Character.isWhitespace(ch)) {
+                        sb.append((char) ch);
+                        getCh();
+                    }
+                    String word = sb.toString();
+                    dictionary.get(word).compile(CompileContext.this);
+                }
+
+                void parse() {
+                    getCh();
+                    L: while (ch != -1) {
+                        while (Character.isWhitespace(ch))
+                            getCh();
+                        switch (ch) {
+                        case -1:
+                            break L;
+                        case '\"':
+                            parseString();
+                            break;
+                        case '-':
+                            if (Character.isDigit(getCh()))
+                                parseInteger('-');
+                            else
+                                parseWord('-');
+                            break;
+                        default:
+                            if (Character.isDigit(ch))
+                                parseInteger(-1);
+                            else
+                                parseWord(-1);
+                            break;
+                        }
+                    }
+                }
+            }.parse();
         }
     }
 
     @Test
-    void testInteger() throws IOException {
-        RuntimeContext context = new RuntimeContext();
-        context.put("+", c -> c.push((int)c.pop() + (int)c.pop()));
-        context.put("*", c -> c.push((int)c.pop() * (int)c.pop()));
-        String s = "1 2 + 3 4 + *";
-        Parser p = new Parser(new StringReader(s), context);
-        p.parse();
-        assertEquals(21, context.pop());
+    void testInteger() {
+        CompileContext context = new CompileContext();
+        context.dictionary.put("+", c -> c.codes.add(r -> r.push((int) r.pop() + (int) r.pop())));
+        context.dictionary.put("-", c -> c.codes.add(r -> r.push(-(int) r.pop() + (int)r.pop())));
+        context.dictionary.put("*", c -> c.codes.add(r -> r.push((int) r.pop() * (int) r.pop())));
+        context.parse(" 1 2 +");
+        context.parse(" 3 4 - *");
+        RuntimeContext rc = new RuntimeContext();
+        context.execute(rc);
+        assertEquals(-3, rc.pop());
     }
 
     @Test
-    void testString() throws IOException {
-        RuntimeContext context = new RuntimeContext();
-        context.put("+", c -> { Object s = c.pop(); c.push(c.pop().toString() + s); });
-        String s = "\"ABC\" 123 + ";
-        Parser p = new Parser(new StringReader(s), context);
-        p.parse();
-        assertEquals("ABC123", context.pop());
+    void testString() {
+        CompileContext context = new CompileContext();
+        context.dictionary.put("+", c -> c.codes.add(r -> { Object t = r.pop(); r.push(r.pop().toString() + t); }));
+        context.parse("\"ABC\" 123 + ");
+        RuntimeContext rc = new RuntimeContext();
+        context.execute(rc);
+        assertEquals("ABC123", rc.pop());
+    }
+
+    /*
+     * <pre>
+     * ... bool if ... else ... then ...
+     * </pre>
+     */
+    static Executable branchFalse(int offset) {
+        return r -> {
+            if (!(boolean)r.pop())
+                r.pc += offset;
+        };
+    }
+
+    static Executable branchAlways(int offset) {
+        return r -> r.pc += offset;
+    }
+
+    static void ifThenElse(CompileContext context) {
+        context.dictionary.put("if", c -> {
+            int pos = c.codes.size();
+            c.codes.add(null);
+            c.stack.add(pos);
+        });
+        context.dictionary.put("else", c -> {
+            int ifPos = c.stack.remove(c.stack.size() - 1);
+            int elsePos = c.codes.size();
+            c.codes.set(ifPos, branchFalse(elsePos - ifPos));
+            c.codes.add(null);
+            c.stack.add(-elsePos);
+        });
+        context.dictionary.put("then", c -> {
+            int prevPos = c.stack.remove(c.stack.size() - 1);
+            int thenPos = c.codes.size();
+            if (prevPos < 0)
+                c.codes.set(-prevPos, branchAlways(thenPos + prevPos));
+            else
+                c.codes.set(prevPos, branchFalse(thenPos - prevPos));
+            c.codes.add(r -> {}); // NOP
+        });
+        context.dictionary.put("true", c -> c.codes.add(r -> r.push(true)));
+        context.dictionary.put("false", c -> c.codes.add(r -> r.push(false)));
+    }
+
+    @Test
+    void testIfElseThenTrue() {
+        CompileContext context = new CompileContext();
+        ifThenElse(context);
+        context.parse("true if 1 else 2 then");
+        RuntimeContext rc = new RuntimeContext();
+        context.execute(rc);
+        assertEquals(1, rc.pop());
+    }
+
+    @Test
+    void testIfElseTheFalse() {
+        CompileContext context = new CompileContext();
+        ifThenElse(context);
+        context.parse("false if 1 else 2 then");
+        RuntimeContext rc = new RuntimeContext();
+        context.execute(rc);
+        assertEquals(2, rc.pop());
+    }
+
+    @Test
+    void testIfThenTrue() {
+        CompileContext context = new CompileContext();
+        ifThenElse(context);
+        context.parse("true if 1 then");
+        RuntimeContext rc = new RuntimeContext();
+        context.execute(rc);
+        assertEquals(1, rc.pop());
+    }
+
+    @Test
+    void testIfThenFalse() {
+        CompileContext context = new CompileContext();
+        ifThenElse(context);
+        context.parse("false if 1 then");
+        RuntimeContext rc = new RuntimeContext();
+        context.execute(rc);
+        assertEquals(true, rc.stack.isEmpty());
     }
 
 }

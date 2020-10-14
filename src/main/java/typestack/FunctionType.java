@@ -24,22 +24,24 @@ public class FunctionType implements Type {
         return false;
     }
 
-    void check(Type[] output, Type[] input, int matchLength, FunctionType next) {
+    boolean typeCheck(Type[] output, Type[] input, int matchLength, FunctionType next) {
         int op = output.length - matchLength;
         int ip = input.length - matchLength;
         for (int k = 0; k < matchLength; ++k, ++op, ++ip) {
             logger.info("check: pos=" + k + " " + output[op] + ":" + input[ip]);
             if (!input[ip].isAssignableFrom(output[op]))
-                throw new CompileError("Cannot composite %s and %s (cannot convert %s to %s)",
-                    this, next, output[op], input[ip]);
+                return false;
+//                throw new CompileError("Cannot composite %s and %s (cannot convert %s to %s)",
+//                    this, next, output[op], input[ip]);
         }
+        return true;
     }
 
     public FunctionType composite(FunctionType next) {
         int matchLength = Math.min(this.output.length, next.input.length);
         int inputLength = this.input.length + next.input.length - matchLength;
         int outputLength = this.output.length + next.output.length - matchLength;
-        check(this.output, next.input, matchLength, next);
+        if (!typeCheck(this.output, next.input, matchLength, next)) return null;
         Type[] input = new Type[inputLength];
         int inputRest = next.input.length - matchLength;
         System.arraycopy(next.input, 0, input, 0, inputRest);

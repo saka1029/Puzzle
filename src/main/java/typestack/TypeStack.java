@@ -10,7 +10,7 @@ public class TypeStack {
 
     final Map<String, List<Definition>> definitions = new HashMap<>();
 
-    public void add(String name, Definition definition) {
+    public void put(String name, Definition definition) {
         definitions.computeIfAbsent(name, k -> new ArrayList<>())
             .add(definition);
     }
@@ -18,6 +18,10 @@ public class TypeStack {
     public Iterable<Definition> get(String name) {
         List<Definition> list = definitions.get(name);
         return list != null ? list : Collections.emptyList();
+    }
+
+    public Block parse(String source) {
+        return new Parser(this, source).parse();
     }
 
 }

@@ -28,11 +28,10 @@ public class FunctionType implements Type {
         int op = output.length - matchLength;
         int ip = input.length - matchLength;
         for (int k = 0; k < matchLength; ++k, ++op, ++ip) {
-            logger.info("check: pos=" + k + " " + output[op] + ":" + input[ip]);
-            if (!input[ip].isAssignableFrom(output[op]))
+            boolean ok = input[ip].isAssignableFrom(output[op]);
+            logger.info("check: pos=" + k + " " + output[op] + ":" + input[ip] + " check=" + ok);
+            if (!ok)
                 return false;
-//                throw new CompileError("Cannot composite %s and %s (cannot convert %s to %s)",
-//                    this, next, output[op], input[ip]);
         }
         return true;
     }

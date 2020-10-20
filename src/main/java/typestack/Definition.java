@@ -1,23 +1,6 @@
 package typestack;
 
-interface Definition extends TypeResolver {
-
+public interface Definition {
     Executable executable();
-
-    public static Definition of(TypeResolver resolver, Executable executable) {
-        return new Definition() {
-
-            @Override
-            public FunctionType type(FunctionType previous) {
-                return resolver.type(previous);
-            }
-
-            @Override
-            public Executable executable() {
-                return executable;
-            }
-
-        };
-    }
-
+    FunctionType type(FunctionType left);
 }

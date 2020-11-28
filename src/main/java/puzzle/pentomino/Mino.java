@@ -125,7 +125,7 @@ public class Mino implements Iterable<Point> {
         return Arrays.equals(points, ((Mino) obj).points);
     }
 
-    static final String NL = String.format("%n");
+    static final String NL = System.lineSeparator();
 
     @Override
     public String toString() {

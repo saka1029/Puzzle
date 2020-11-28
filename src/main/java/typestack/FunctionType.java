@@ -18,6 +18,9 @@ public class FunctionType implements Type {
         this.output = output;
     }
 
+    public Type[] input() { return input.clone(); }
+    public Type[] output() { return output.clone(); }
+
     @Override
     public boolean isAssignableFrom(Type other) {
         // TODO Auto-generated method stub

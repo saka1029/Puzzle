@@ -40,6 +40,18 @@ public final class Rational extends Number implements Comparable<Rational> {
         }
     }
 
+    public Rational multiply(Rational r) {
+        return new Rational(numerator * r.numerator, denominator * r.denominator);
+    }
+
+    public Rational divide(Rational r) {
+        return new Rational(numerator * r.denominator, denominator * r.numerator);
+    }
+
+    public Rational add(Rational r) {
+        return new Rational(numerator * r.denominator + r.numerator * denominator, denominator * r.denominator);
+    }
+
     public boolean isNaN() { return denominator == 0 && numerator == 0; }
     public boolean isInfinite() { return numerator != 0 && denominator == 0; }
     public boolean isFinite() { return denominator != 0; }

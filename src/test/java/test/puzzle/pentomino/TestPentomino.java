@@ -27,11 +27,12 @@ class TestPentomino {
         Set<Board> all = new HashSet<>();
         Set<Board> uniq = new HashSet<>();
         Solver.solve(board, minos, b -> {
-            if (all.contains(b)) return;
+            if (all.contains(b)) return true;
             Board n = new Board(b.board);
             uniq.add(n);
             all.addAll(n.allDirections());
-        });
+            return true;
+        }, null);
         assertEquals(2339, uniq.size());
     }
 
@@ -46,11 +47,12 @@ class TestPentomino {
         Set<Board> all = new HashSet<>();
         Set<Board> uniq = new HashSet<>();
         Solver.solve(board, minos, b -> {
-            if (all.contains(b)) return;
+            if (all.contains(b)) return true;
             Board n = new Board(b.board);
             uniq.add(n);
             all.addAll(n.allDirections());
-        });
+            return true;
+        }, null);
         assertEquals(1010, uniq.size());
     }
 
@@ -65,11 +67,12 @@ class TestPentomino {
         Set<Board> all = new HashSet<>();
         Set<Board> uniq = new HashSet<>();
         Solver.solve(board, minos, b -> {
-            if (all.contains(b)) return;
+            if (all.contains(b)) return true;
             Board n = new Board(b.board);
             uniq.add(n);
             all.addAll(n.allDirections());
-        });
+            return true;
+        }, null);
         assertEquals(2, uniq.size());
     }
 
@@ -84,11 +87,12 @@ class TestPentomino {
         Set<Board> all = new HashSet<>();
         Set<Board> uniq = new HashSet<>();
         Solver.solve(board, minos, b -> {
-            if (all.contains(b)) return;
+            if (all.contains(b)) return true;
             Board n = new Board(b.board);
             uniq.add(n);
             all.addAll(n.allDirections());
-        });
+            return true;
+        }, null);
         assertEquals(368, uniq.size());
     }
 
@@ -107,11 +111,12 @@ class TestPentomino {
         Set<Board> all = new HashSet<>();
         Set<Board> uniq = new HashSet<>();
         Solver.solve(board, minos, b -> {
-            if (all.contains(b)) return;
+            if (all.contains(b)) return true;
             Board n = new Board(b.board);
             uniq.add(n);
             all.addAll(n.allDirections());
-        });
+            return true;
+        }, null);
         assertEquals(65, uniq.size());
     }
 

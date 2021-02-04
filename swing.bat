@@ -1,3 +1,4 @@
+@echo off
 setlocal
 set JAVA_TOOL_OPTIONS=
 set CP=target\classes;target\test-classes

@@ -319,4 +319,31 @@ class TestVisualCache {
         }.main();
     }
 
+    @Test
+    public void testTarai() {
+        new Object() {
+            VisualCache<Integer> tarai = VisualCache
+                .forFunction("tarai", args -> tarai((int)args[0], (int)args[1], (int)args[2]))
+                .output(logger::info)
+                .caching(true);
+
+            int tarai(int x, int y, int z) {
+                tarai.enter(x, y, z);
+                if (x <= y)
+                    return tarai.exit(y);
+                else
+                    return tarai.exit(tarai.call(
+                        tarai.call(x - 1, y, z),
+                        tarai.call(y - 1, z, x),
+                        tarai.call(z - 1, x, y)));
+            }
+
+            void test() {
+                assertEquals(5, (int)tarai.call(5, 2, 1));
+                System.out.println(tarai.cache());
+            }
+
+        }.test();
+    }
+
 }

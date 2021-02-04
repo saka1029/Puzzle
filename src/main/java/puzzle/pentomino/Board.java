@@ -121,7 +121,7 @@ public class Board implements Cloneable {
     }
 
     @Override
-    protected Object clone() {
+    public Board clone() {
         return new Board(Arrays.stream(board)
             .map(row -> row.clone())
             .toArray(int[][]::new));

@@ -1,5 +1,6 @@
 package puzzle.pentomino;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -9,6 +10,28 @@ import java.util.Objects;
 import java.util.Set;
 
 public class Mino implements Iterable<Point> {
+
+    /*
+     * Colors - A nicer color palette for the web.
+     * http://clrs.cc/
+     */
+    public static final Color WHITE = new Color(0xFFFFFF);
+    public static final Color NAVY = new Color(0x001f3f);
+    public static final Color BLUE = new Color(0x0074D9);
+    public static final Color AQUA = new Color(0x7FDBFF);
+    public static final Color TEAL = new Color(0x39CCCC);
+    public static final Color OLIVE = new Color(0x3D9970);
+    public static final Color GREEN = new Color(0x2ECC40);
+    public static final Color LIME = new Color(0x01FF70);
+    public static final Color YELLOW = new Color(0xFFDC00);
+    public static final Color ORANGE = new Color(0xFF851B);
+    public static final Color RED = new Color(0xFF4136);
+    public static final Color MAROON = new Color(0x85144b);
+    public static final Color FUCHSIA = new Color(0xF012BE);
+    public static final Color PURPLE = new Color(0xB10DC9);
+    public static final Color BLACK = new Color(0x111111);
+    public static final Color GRAY = new Color(0xAAAAAA);
+    public static final Color SILVER = new Color(0xDDDDDD);
 
     private final Point[] points;
 

@@ -1,16 +1,14 @@
 package puzzle.lambda;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class LambdaCalculus {
 
-    public static class Bind<K, V> {
-        final K key;
-        final V value;
+    static class Bind<K, V> {
+        final K key; final V value;
         final Bind<K, V> previous;
+        int count = 0;
 
         Bind(Bind<K, V> previous, K key, V value) {
             this.key = key;
@@ -20,237 +18,254 @@ public class LambdaCalculus {
 
         static <K, V> V find(Bind<K, V> bind, K key) {
             for ( ; bind != null; bind = bind.previous)
-                if (bind.key.equals(key))
+                if (key.equals(bind.key)) {
+                    ++bind.count;
                     return bind.value;
+                }
             return null;
         }
     }
 
-    public static class NormalizeBind {
-        Bind<Variable, Variable> bind = null;
-        public int size = 0;
 
-        public Variable add(Variable key) {
-            Variable replace = Variable.of(size++);
-            bind = new Bind<>(bind, key, replace);
-            return replace;
-        }
-
-        public void remove() {
-            bind = bind.previous;
-        }
-
-        public Variable find(Variable key) {
-            return Bind.find(bind, key);
-        }
+    static class IntHolder {
+        public int value = 0;
     }
 
     public static abstract class Term {
 
-        public Term apply(Term arg) {
-            return new Application(this, arg);
+        abstract void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb);
+
+        public String normalize() {
+            StringBuilder sb = new StringBuilder();
+            normalize(null, new IntHolder(), sb);
+            return sb.toString();
         }
 
-        /**
-         * 簡約します。
-         * 最内側から順にβ簡約のみ行います。
-         * @param bind 簡約するためのコンテキストを指定します。
-         * @return 簡約した式を返します。
-         */
-        public abstract Term reduce(Bind<Variable, Term> bind);
-
-        public boolean equivalentTo(Term term) {
-            if (term == null)
-                return false;
-            if (term == this)
-                return true;
-            return normalize().equals(term.normalize());
-        }
+        abstract Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind);
 
         public Term reduce() {
-            return reduce(null);
+            return reduce(null, null);
         }
 
-        /**
-         * 式を正規化します。具体的には
-         * (1)束縛変数を出現順にユニークな変数名に置換します。
-         * (2)自由変数は置換せず、そのままにします。
-         * ex) λx.(λx.x) x p -> λA.(λB.B) A p
-         * @param map 正規化用のコンテキストです。
-         * @return 正規化されたTermを返します。
-         */
-        public abstract Term normalize(NormalizeBind map);
-
-        public Term normalize() {
-            return normalize(new NormalizeBind());
-        }
-    }
-
-    public static class Variable extends Term {
-        static final Map<String, Variable> freeVariables = new HashMap<>();
-        static final List<Variable> boundVariables = new ArrayList<>();
-        final String name;
-
-        private Variable(String name ) {
-            this.name = name;
+        public static String normalizedBoundVariableName(int n) {
+            return "%" + n;
         }
 
-        static Variable of(String name) {
-            Variable v = freeVariables.get(name);
-            if (v == null)
-                freeVariables.put(name, v = new Variable(name));
-            return v;
-        }
+        abstract Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind);
 
-        /**
-         * Excelの列番号を列名に変換します。
-         * ex) 1 -> A, 2 -> B, ... 26 -> Z, 27 -> AA, 28 -> AB, ...
-         * @param n Excelの列番号を指定します。
-         * @return Excelの列名を返します。
-         */
-        static String excelColumnIndexToName(int n) {
-            StringBuilder sb = new StringBuilder();
-            for ( ; n > 0; n /= 26)
-                sb.append((char)('A' + --n % 26));
-            return sb.reverse().toString();
-        }
-
-        static String intToString(int n) {
-            return excelColumnIndexToName(n + 1);
-        }
-
-        static Variable of(int number) {
-            int size = boundVariables.size();
-            for (int i = size; i <= number; ++i)
-                boundVariables.add(new Variable(intToString(i)));
-//                boundVariables.add(new Variable("" + (char)('A' + i)));
-            return boundVariables.get(number);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return super.equals(obj);
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-
-        @Override
-        public Term reduce(Bind<Variable, Term> bind) {
-            Term r = Bind.find(bind, this);
-            return r != null ? r : this;
-        }
-
-        @Override
-        public Term normalize(NormalizeBind bind) {
-            Variable replace = bind.find(this);
-            return replace == null ? this : replace;
+        public Term expand(Map<String, Term> globals) {
+            return expand(globals, null);
         }
     }
 
     public static class Lambda extends Term {
-        final Variable variable;
-        final Term body;
+        final String name;
+        Term body = null;
+        int referenceCount = -1;
 
-        Lambda(Variable variable, Term body) {
-            this.variable = variable;
-            this.body = body;
+        private Lambda(String name) {
+            this.name = name;
         }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null)
-                return false;
-            if (obj == this)
-                return true;
-            if (!(obj instanceof Lambda))
-                return false;
-            Lambda o = (Lambda)obj;
-            return o.variable.equals(variable) && o.body.equals(body);
+        static Lambda of(String name) {
+            return new Lambda(name);
+        }
+
+        void setBody(Term body, int referenceCount) {
+            if (body == null)
+                throw new IllegalArgumentException("body");
+            if (this.body != null)
+                throw new IllegalStateException("body is already set");
+            this.body = body;
+            this.referenceCount = referenceCount;
         }
 
         @Override
         public String toString() {
-            return String.format("(λ%s.%s)", variable, body);
+            return String.format("λ%s[r=%d].%s", name, referenceCount, body);
         }
 
         @Override
-        public Term reduce(Bind<Variable, Term> bind) {
-            return new Lambda(variable, body.reduce(bind));
+        public void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb) {
+            sb.append("λ").append(normalizedBoundVariableName(number.value)).append(".");
+            body.normalize(new Bind<>(bind, this, number.value++), number, sb);
         }
 
         @Override
-        public Term normalize(NormalizeBind bind) {
-            Variable replace = bind.add(variable);
-            Term newBody = body.normalize(bind);
-            bind.remove();
-            return new Lambda(replace, newBody);
+        Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind) {
+            Lambda newLambda = Lambda.of(name);
+            BoundVariable newVariable = BoundVariable.of(newLambda);
+            Bind<Lambda, BoundVariable> newBind = new Bind<>(lambdaBind, this, newVariable);
+            Term newBody = body.reduce(newBind, reductionBind);
+            newLambda.setBody(newBody, newBind.count);
+            return newLambda;
+        }
+
+        @Override
+        Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind) {
+            Lambda newLambda = Lambda.of(name);
+            BoundVariable newVariable = BoundVariable.of(newLambda);
+            Bind<Lambda, BoundVariable> newBind = new Bind<>(lambdaBind, this, newVariable);
+            Term newBody = body.expand(globals, newBind);
+            newLambda.setBody(newBody, newBind.count);
+            return newLambda;
+        }
+    }
+
+    public static abstract class Variable extends Term {
+    }
+
+    public static class BoundVariable extends Variable {
+        final Lambda lambda;
+
+        private BoundVariable(Lambda lambda) {
+            this.lambda = lambda;
+        }
+
+        static BoundVariable of(Lambda lambda) {
+            return new BoundVariable(lambda);
+        }
+
+        @Override
+        public String toString() {
+            return lambda.name;
+        }
+
+        @Override
+        public void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb) {
+            sb.append(normalizedBoundVariableName(Bind.find(bind, lambda)));
+        }
+
+        @Override
+        Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind) {
+            BoundVariable newVariable = Bind.find(lambdaBind, lambda);
+            if (newVariable != null)
+                return newVariable;
+            Term newTerm = Bind.find(reductionBind, lambda);
+            if (newTerm != null)
+                return newTerm;
+            return this;
+        }
+
+        @Override
+        Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind) {
+            BoundVariable newVariable = Bind.find(lambdaBind, lambda);
+            if (newVariable == null)
+                throw new RuntimeException("BoundVariable " + this + " is not bound");
+            return newVariable;
+        }
+    }
+
+    public static class FreeVariable extends Variable {
+        static final Map<String, FreeVariable> all = new HashMap<>();
+        final String name;
+
+        private FreeVariable(String name) {
+            this.name = name;
+        }
+
+        static FreeVariable of(String name) {
+            return all.computeIfAbsent(name, k -> new FreeVariable(k));
+        }
+
+        @Override
+        public String toString() {
+            return name + "[free]";
+        }
+
+        @Override
+        public void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb) {
+            sb.append(name);
+        }
+
+        @Override
+        Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind) {
+            return this;
+        }
+
+        @Override
+        Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind) {
+            Term term = globals.get(name);
+            if (term != null)
+                return term.expand(globals);
+            return this;
         }
     }
 
     public static class Application extends Term {
         final Term head, tail;
 
-        Application(Term head, Term tail) {
+        private Application(Term head, Term tail) {
             this.head = head;
             this.tail = tail;
         }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null)
-                return false;
-            if (obj == this)
-                return true;
-            if (obj.getClass() != Application.class)
-                return false;
-            Application o = (Application)obj;
-            return o.head.equals(head) && o.tail.equals(tail);
+        static Application of(Term head, Term tail) {
+            return new Application(head, tail);
         }
 
         @Override
         public String toString() {
-            return String.format("(%s %s)", head, tail);
+            StringBuilder sb = new StringBuilder();
+            if (head instanceof Lambda)
+                sb.append("(").append(head).append(")");
+            else
+                sb.append(head);
+            sb.append(" ");
+            if (!(tail instanceof Variable))
+                sb.append("(").append(tail).append(")");
+            else
+                sb.append(tail);
+            return sb.toString();
         }
 
         @Override
-        public Term reduce(Bind<Variable, Term> bind) {
-            Term newHead = head.reduce(bind);
-            Term newTail = tail.reduce(bind);
-            if (!(newHead instanceof Lambda))
-                return new Application(newHead, newTail);
-            Lambda lambda = (Lambda)newHead;
-            Term reduced = lambda.body.reduce(new Bind<>(bind, lambda.variable, newTail));
-            return reduced;
+        public void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb) {
+            boolean isHeadLambda = head instanceof Lambda;
+            boolean isTailVariable = tail instanceof Variable;
+            if (isHeadLambda)
+                sb.append("(");
+            head.normalize(bind, number, sb);
+            if (isHeadLambda)
+                sb.append(")");
+            sb.append(" ");
+            if (!isTailVariable)
+                sb.append("(");
+            tail.normalize(bind, number, sb);
+            if (!isTailVariable)
+                sb.append(")");
         }
 
         @Override
-        public Term normalize(NormalizeBind bind) {
-            return new Application(head.normalize(bind), tail.normalize(bind));
+        Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind) {
+            Term newHead = head.reduce(lambdaBind, reductionBind);
+            Term newTail = tail.reduce(lambdaBind, reductionBind);
+            if (newHead instanceof Lambda) {
+                Lambda lambda = (Lambda)newHead;
+                // bodyが属するラムダの変数を参照していなければ単純にbodyをそのまま返します。
+                if (lambda.referenceCount <= 0)
+                    return lambda.body;
+                Bind<Lambda, Term> newBind = new Bind<>(reductionBind, lambda, newTail);
+                return lambda.body.reduce(lambdaBind, newBind);
+            } else
+                return Application.of(newHead, newTail);
+        }
+
+        @Override
+        Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind) {
+            return Application.of(head.expand(globals, lambdaBind), tail.expand(globals, lambdaBind));
         }
     }
 
-    /**
-     * 文字列を式に変換します。 式の文法は以下のとおりです。
-     *
-     * <pre>
-     * <code>
-     * Expression = Term { Term }
-     * Term       = Variable | Lambda | '(' Expression ')'
-     * Lambda     = Variable '.' Expression
-     * </code>
-     * </pre>
-     */
     public static Term parse(String source) {
         return new Object() {
-            Bind<String, Variable> bind = null;
             int index = 0;
+            int[] codePoints = source.codePoints().toArray();
             int ch = ' ';
+            Bind<String, Lambda> bind = null;
 
             int get() {
-                return ch = index < source.length() ? source.charAt(index++) : -1;
+                return ch = index < codePoints.length ? codePoints[index++] : -1;
             }
 
             boolean isVariableChar(int ch) {
@@ -268,60 +283,64 @@ public class LambdaCalculus {
                     get();
             }
 
-            Variable parseVariable(boolean isDefinition) {
-                StringBuilder sb = new StringBuilder();
-                while (isVariableChar(ch)) {
-                    sb.append((char) ch);
-                    get();
-                }
-                String name = sb.toString();
-                if (isDefinition)
-                    return Variable.of(name);  // variable definition
-                Variable bound = Bind.find(bind, name);
-                if (bound != null)
-                    return bound;           // bound variable
-                return Variable.of(name);  // free variable
-            }
-
-            Lambda parseLambda() {
-                get(); // skip 'λ'
+            Term parseLambda() {
                 skipSpaces();
                 if (!isVariableChar(ch))
                     throw new RuntimeException("variable expected");
-                Variable variable = parseVariable(true);
+                String variableName = parseVariableName();
+                Lambda lambda = Lambda.of(variableName);
+                bind = new Bind<>(bind, variableName, lambda);
                 skipSpaces();
-                if (ch != '.')
-                    throw new RuntimeException("'.' expected");
-                get(); // skip '.'
-                bind = new Bind<>(bind, variable.name, variable);   // bind lambda variable
-                Term body = parse();    // parse lambda body
-                bind = bind.previous;   // restore bind lambda variable
-                return new Lambda(variable, body);
+                Term body;
+                if (ch == '.') {
+                    get();  // skip '.'
+                    body = parse();
+                } else
+                    body = parseLambda();
+                lambda.setBody(body, bind.count);
+                bind = bind.previous;
+                return lambda;
             }
 
             Term parseParen() {
-                get(); // skip '('
-                Term body = parse();
                 skipSpaces();
+                Term term = parse();
                 if (ch != ')')
                     throw new RuntimeException("')' expected");
-                get(); // skip ')'
-                return body;
+                get();  // skip ')'
+                return term;
+            }
+
+            String parseVariableName() {
+                StringBuilder sb = new StringBuilder();
+                for ( ; isVariableChar(ch); get())
+                    sb.appendCodePoint(ch);
+                return sb.toString();
+            }
+
+            Term parseVariable() {
+                String variableName = parseVariableName();
+                Lambda lambda = Bind.find(bind, variableName);
+                return lambda != null
+                    ? BoundVariable.of(lambda)
+                    : FreeVariable.of(variableName);
             }
 
             Term parseTerm() {
                 skipSpaces();
                 switch (ch) {
                 case -1:
-                    throw new RuntimeException("unexpected EOS");
-                case '.': case ')':
-                    throw new RuntimeException("unexpected '" + ((char)ch) + "'");
+                    throw new RuntimeException("unexpected end of string");
                 case 'λ':
+                    get();  // skip 'λ'
                     return parseLambda();
                 case '(':
+                    get();  // skip '('
                     return parseParen();
                 default:
-                    return parseVariable(false);
+                    if (!isVariableChar(ch))
+                        throw new RuntimeException("unexpected '" + ((char)ch) + "'");
+                    return parseVariable();
                 }
             }
 
@@ -331,7 +350,7 @@ public class LambdaCalculus {
                     skipSpaces();
                     if (ch != 'λ' && ch != '(' && !isVariableChar(ch))
                         break;
-                    term = new Application(term, parseTerm());
+                    term = Application.of(term, parseTerm());
                 }
                 return term;
             }

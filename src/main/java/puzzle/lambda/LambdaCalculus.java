@@ -81,6 +81,7 @@ public class LambdaCalculus {
             return String.format("λ%s.%s", name, body);
         }
 
+<<<<<<< HEAD
         static String excelColumnName(int columnNumber) {
             StringBuilder sb = new StringBuilder();
             for ( ; columnNumber > 0; columnNumber /= 26)
@@ -90,6 +91,10 @@ public class LambdaCalculus {
 
         static String normalizedBoundVariableName(int number) {
             return excelColumnName(number + 1);
+=======
+        static String normalizedBoundVariableName(int number) {
+            return "%" + number;
+>>>>>>> eb74b825d0ebbbf1b2c29be86b77b5ab04a68eb8
         }
 
         @Override

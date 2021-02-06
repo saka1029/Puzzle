@@ -33,7 +33,7 @@ public class LambdaCalculus {
 
     public static abstract class Term {
 
-        abstract void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb);
+        abstract void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb);
 
         public String normalize() {
             StringBuilder sb = new StringBuilder();
@@ -45,10 +45,6 @@ public class LambdaCalculus {
 
         public Term reduce() {
             return reduce(null, null);
-        }
-
-        public static String normalizedBoundVariableName(int n) {
-            return "%" + n;
         }
 
         abstract Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind);
@@ -82,13 +78,24 @@ public class LambdaCalculus {
 
         @Override
         public String toString() {
-            return String.format("λ%s[r=%d].%s", name, referenceCount, body);
+            return String.format("λ%s.%s", name, body);
+        }
+
+        static String excelColumnName(int columnNumber) {
+            StringBuilder sb = new StringBuilder();
+            for ( ; columnNumber > 0; columnNumber /= 26)
+                sb.append((char)('A' + --columnNumber % 26));
+            return sb.reverse().toString();
+        }
+
+        static String normalizedBoundVariableName(int number) {
+            return excelColumnName(number + 1);
         }
 
         @Override
-        public void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb) {
+        void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb) {
             sb.append("λ").append(normalizedBoundVariableName(number.value)).append(".");
-            body.normalize(new Bind<>(bind, this, number.value++), number, sb);
+            body.normalize(new Bind<>(bind, this, normalizedBoundVariableName(number.value++)), number, sb);
         }
 
         @Override
@@ -132,8 +139,8 @@ public class LambdaCalculus {
         }
 
         @Override
-        public void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb) {
-            sb.append(normalizedBoundVariableName(Bind.find(bind, lambda)));
+        void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb) {
+            sb.append(Bind.find(bind, lambda));
         }
 
         @Override
@@ -149,10 +156,7 @@ public class LambdaCalculus {
 
         @Override
         Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind) {
-            BoundVariable newVariable = Bind.find(lambdaBind, lambda);
-            if (newVariable == null)
-                throw new RuntimeException("BoundVariable " + this + " is not bound");
-            return newVariable;
+            return Bind.find(lambdaBind, lambda);
         }
     }
 
@@ -170,11 +174,11 @@ public class LambdaCalculus {
 
         @Override
         public String toString() {
-            return name + "[free]";
+            return name;
         }
 
         @Override
-        public void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb) {
+        void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb) {
             sb.append(name);
         }
 
@@ -220,7 +224,7 @@ public class LambdaCalculus {
         }
 
         @Override
-        public void normalize(Bind<Lambda, Integer> bind, IntHolder number, StringBuilder sb) {
+        void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb) {
             boolean isHeadLambda = head instanceof Lambda;
             boolean isTailVariable = tail instanceof Variable;
             if (isHeadLambda)
@@ -257,6 +261,12 @@ public class LambdaCalculus {
         }
     }
 
+    /**
+     * Expression ::= Term { Term }.
+     * Term       ::= Variable
+     *              | 'λ' Variable { Variable } '.' Expression
+     *              | '(' Expression ')'.
+     */
     public static Term parse(String source) {
         return new Object() {
             int index = 0;

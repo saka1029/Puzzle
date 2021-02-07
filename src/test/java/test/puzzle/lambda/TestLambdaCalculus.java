@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import org.junit.jupiter.api.Test;
 
 import puzzle.Common;
-import puzzle.lambda.LambdaCalculus.Term;
+import puzzle.lambda.LambdaCalculus.Expression;
 
 class TestLambdaCalculus {
 
@@ -53,7 +53,7 @@ class TestLambdaCalculus {
     }
 
     @Test
-    void testEquivalant() {
+    void testNormalizeEquals() {
         assertNormalizeEquals("λx.x", "λa.a");
         assertNormalizeEquals("λx.x", "λa.(a)");
         assertNormalizeEquals("λx.x", "(λa.a)");
@@ -123,10 +123,10 @@ class TestLambdaCalculus {
         }
     }
 
-    Map<String, Term> globals = new HashMap<>();
+    Map<String, Expression> globals = new HashMap<>();
 
     void define(String name, String body) {
-        Term reduced = parse(body).expand(globals).reduce();
+        Expression reduced = parse(body).expand(globals).reduce();
         logger.info("define: " + name + " = " + reduced);
         globals.put(name, reduced);
     }
@@ -227,7 +227,7 @@ class TestLambdaCalculus {
         assertEquivalent("B", "car(cdr [AB])");
         assertEquivalent("[]", "cdr(cdr [AB])");
         assertEquivalent("λx.x", "car(cdr(cdr [AB]))"); // 空リストのcarはidになる。
-        assertEquivalent("λx y.x", "car(cdr(cdr(cdr [AB])))"); // ???
+        assertEquivalent("λx y.x", "car(cdr(cdr(cdr [AB])))"); // 空リストのcdrのcarはtrueになる。
     }
 
     /**

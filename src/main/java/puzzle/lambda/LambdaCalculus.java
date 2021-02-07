@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class LambdaCalculus {
 
+    private LambdaCalculus() {}
+
     static class Bind<K, V> {
         final K key; final V value;
         final Bind<K, V> previous;
@@ -31,9 +33,16 @@ public class LambdaCalculus {
         public int value = 0;
     }
 
-    public static abstract class Term {
+    static String excelColumnName(int columnNumber) {
+        StringBuilder sb = new StringBuilder();
+        for ( ; columnNumber > 0; columnNumber /= 26)
+            sb.append((char)('A' + --columnNumber % 26));
+        return sb.reverse().toString();
+    }
 
-        abstract void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb);
+    public static abstract class Expression {
+
+        abstract void normalize(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb);
 
         public String normalize() {
             StringBuilder sb = new StringBuilder();
@@ -41,131 +50,120 @@ public class LambdaCalculus {
             return sb.toString();
         }
 
-        abstract Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind);
+        abstract Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind);
 
-        public Term reduce() {
+        public Expression reduce() {
             return reduce(null, null);
         }
 
-        abstract Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind);
+        abstract Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind);
 
-        public Term expand(Map<String, Term> globals) {
+        public Expression expand(Map<String, Expression> globals) {
             return expand(globals, null);
         }
     }
 
-    public static class Lambda extends Term {
-        final String name;
-        Term body = null;
-        int referenceCount = -1;
+    public static class Lambda extends Expression {
+        final BoundVariable variable;
+        final Expression body;
+        final int referenceCount;
 
-        private Lambda(String name) {
-            this.name = name;
-        }
-
-        static Lambda of(String name) {
-            return new Lambda(name);
-        }
-
-        void setBody(Term body, int referenceCount) {
-            if (body == null)
-                throw new IllegalArgumentException("body");
-            if (this.body != null)
-                throw new IllegalStateException("body is already set");
+        private Lambda(BoundVariable variable, Expression body, int referenceCount) {
+            this.variable = variable;
             this.body = body;
             this.referenceCount = referenceCount;
         }
 
+        static Lambda of(BoundVariable variable, Expression body, int referenceCount) {
+            return new Lambda(variable, body, referenceCount);
+        }
+
         @Override
         public String toString() {
-            return String.format("λ%s.%s", name, body);
+            return String.format("λ%s.%s", variable, body);
         }
 
-        static String excelColumnName(int columnNumber) {
-            StringBuilder sb = new StringBuilder();
-            for ( ; columnNumber > 0; columnNumber /= 26)
-                sb.append((char)('A' + --columnNumber % 26));
-            return sb.reverse().toString();
-        }
-
-        static String normalizedBoundVariableName(int number) {
-            return excelColumnName(number + 1);
+        static String normalizedBoundVariableName(int n) {
+            return excelColumnName(n + 1);
         }
 
         @Override
-        void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb) {
+        void normalize(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
             sb.append("λ").append(normalizedBoundVariableName(number.value)).append(".");
-            body.normalize(new Bind<>(bind, this, normalizedBoundVariableName(number.value++)), number, sb);
+            body.normalize(new Bind<>(bind, variable, normalizedBoundVariableName(number.value++)), number, sb);
         }
 
         @Override
-        Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind) {
-            Lambda newLambda = Lambda.of(name);
-            BoundVariable newVariable = BoundVariable.of(newLambda);
-            Bind<Lambda, BoundVariable> newBind = new Bind<>(lambdaBind, this, newVariable);
-            Term newBody = body.reduce(newBind, reductionBind);
-            newLambda.setBody(newBody, newBind.count);
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind) {
+            BoundVariable newVariable = BoundVariable.of(variable.name);
+            Bind<BoundVariable, BoundVariable> newBind = new Bind<>(lambdaBind, variable, newVariable);
+            Expression newBody = body.reduce(newBind, reductionBind);
+            Lambda newLambda = Lambda.of(newVariable, newBody, newBind.count);
             return newLambda;
         }
 
         @Override
-        Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind) {
-            Lambda newLambda = Lambda.of(name);
-            BoundVariable newVariable = BoundVariable.of(newLambda);
-            Bind<Lambda, BoundVariable> newBind = new Bind<>(lambdaBind, this, newVariable);
-            Term newBody = body.expand(globals, newBind);
-            newLambda.setBody(newBody, newBind.count);
+        Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind) {
+            BoundVariable newVariable = BoundVariable.of(variable.name);
+            Bind<BoundVariable, BoundVariable> newBind = new Bind<>(lambdaBind, variable, newVariable);
+            Expression newBody = body.expand(globals, newBind);
+            Lambda newLambda = Lambda.of(newVariable, newBody, newBind.count);
             return newLambda;
         }
     }
 
-    public static abstract class Variable extends Term {
+    public static abstract class Variable extends Expression {
+
+        final String name;
+
+        Variable(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     public static class BoundVariable extends Variable {
-        final Lambda lambda;
 
-        private BoundVariable(Lambda lambda) {
-            this.lambda = lambda;
+        private BoundVariable(String name) {
+            super(name);
         }
 
-        static BoundVariable of(Lambda lambda) {
-            return new BoundVariable(lambda);
-        }
-
-        @Override
-        public String toString() {
-            return lambda.name;
+        static BoundVariable of(String name) {
+            return new BoundVariable(name);
         }
 
         @Override
-        void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb) {
-            sb.append(Bind.find(bind, lambda));
+        void normalize(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
+            sb.append(Bind.find(bind, this));
         }
 
         @Override
-        Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind) {
-            BoundVariable newVariable = Bind.find(lambdaBind, lambda);
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind) {
+            BoundVariable newVariable = Bind.find(lambdaBind, this);
             if (newVariable != null)
                 return newVariable;
-            Term newTerm = Bind.find(reductionBind, lambda);
+            Expression newTerm = Bind.find(reductionBind, this);
             if (newTerm != null)
                 return newTerm;
             return this;
         }
 
         @Override
-        Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind) {
-            return Bind.find(lambdaBind, lambda);
+        Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind) {
+            return Bind.find(lambdaBind, this);
         }
     }
 
     public static class FreeVariable extends Variable {
+
         static final Map<String, FreeVariable> all = new HashMap<>();
-        final String name;
 
         private FreeVariable(String name) {
-            this.name = name;
+            super(name);
         }
 
         static FreeVariable of(String name) {
@@ -173,38 +171,33 @@ public class LambdaCalculus {
         }
 
         @Override
-        public String toString() {
-            return name;
-        }
-
-        @Override
-        void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb) {
+        void normalize(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
             sb.append(name);
         }
 
         @Override
-        Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind) {
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind) {
             return this;
         }
 
         @Override
-        Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind) {
-            Term term = globals.get(name);
+        Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind) {
+            Expression term = globals.get(name);
             if (term != null)
                 return term.expand(globals);
             return this;
         }
     }
 
-    public static class Application extends Term {
-        final Term head, tail;
+    public static class Application extends Expression {
+        final Expression head, tail;
 
-        private Application(Term head, Term tail) {
+        private Application(Expression head, Expression tail) {
             this.head = head;
             this.tail = tail;
         }
 
-        static Application of(Term head, Term tail) {
+        static Application of(Expression head, Expression tail) {
             return new Application(head, tail);
         }
 
@@ -224,7 +217,7 @@ public class LambdaCalculus {
         }
 
         @Override
-        void normalize(Bind<Lambda, String> bind, IntHolder number, StringBuilder sb) {
+        void normalize(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
             boolean isHeadLambda = head instanceof Lambda;
             boolean isTailVariable = tail instanceof Variable;
             if (isHeadLambda)
@@ -241,22 +234,22 @@ public class LambdaCalculus {
         }
 
         @Override
-        Term reduce(Bind<Lambda, BoundVariable> lambdaBind, Bind<Lambda, Term> reductionBind) {
-            Term newHead = head.reduce(lambdaBind, reductionBind);
-            Term newTail = tail.reduce(lambdaBind, reductionBind);
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind) {
+            Expression newHead = head.reduce(lambdaBind, reductionBind);
+            Expression newTail = tail.reduce(lambdaBind, reductionBind);
             if (newHead instanceof Lambda) {
                 Lambda lambda = (Lambda)newHead;
                 // bodyが属するラムダの変数を参照していなければ単純にbodyをそのまま返します。
                 if (lambda.referenceCount <= 0)
                     return lambda.body;
-                Bind<Lambda, Term> newBind = new Bind<>(reductionBind, lambda, newTail);
+                Bind<BoundVariable, Expression> newBind = new Bind<>(reductionBind, lambda.variable, newTail);
                 return lambda.body.reduce(lambdaBind, newBind);
             } else
                 return Application.of(newHead, newTail);
         }
 
         @Override
-        Term expand(Map<String, Term> globals, Bind<Lambda, BoundVariable> lambdaBind) {
+        Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind) {
             return Application.of(head.expand(globals, lambdaBind), tail.expand(globals, lambdaBind));
         }
     }
@@ -267,12 +260,12 @@ public class LambdaCalculus {
      *              | 'λ' Variable { Variable } '.' Expression
      *              | '(' Expression ')'.
      */
-    public static Term parse(String source) {
+    public static Expression parse(String source) {
         return new Object() {
             int index = 0;
             int[] codePoints = source.codePoints().toArray();
             int ch = ' ';
-            Bind<String, Lambda> bind = null;
+            Bind<String, BoundVariable> bind = null;
 
             int get() {
                 return ch = index < codePoints.length ? codePoints[index++] : -1;
@@ -293,28 +286,28 @@ public class LambdaCalculus {
                     get();
             }
 
-            Term parseLambda() {
+            Expression parseLambda() {
                 skipSpaces();
                 if (!isVariableChar(ch))
                     throw new RuntimeException("variable expected");
                 String variableName = parseVariableName();
-                Lambda lambda = Lambda.of(variableName);
-                bind = new Bind<>(bind, variableName, lambda);
+                BoundVariable variable = BoundVariable.of(variableName);
+                bind = new Bind<>(bind, variableName, variable);
                 skipSpaces();
-                Term body;
+                Expression body;
                 if (ch == '.') {
                     get();  // skip '.'
                     body = parse();
                 } else
                     body = parseLambda();
-                lambda.setBody(body, bind.count);
+                Lambda lambda = Lambda.of(variable, body, bind.count);
                 bind = bind.previous;
                 return lambda;
             }
 
-            Term parseParen() {
+            Expression parseParen() {
                 skipSpaces();
-                Term term = parse();
+                Expression term = parse();
                 if (ch != ')')
                     throw new RuntimeException("')' expected");
                 get();  // skip ')'
@@ -328,15 +321,13 @@ public class LambdaCalculus {
                 return sb.toString();
             }
 
-            Term parseVariable() {
+            Expression parseVariable() {
                 String variableName = parseVariableName();
-                Lambda lambda = Bind.find(bind, variableName);
-                return lambda != null
-                    ? BoundVariable.of(lambda)
-                    : FreeVariable.of(variableName);
+                BoundVariable variable = Bind.find(bind, variableName);
+                return variable != null ? variable : FreeVariable.of(variableName);
             }
 
-            Term parseTerm() {
+            Expression parseTerm() {
                 skipSpaces();
                 switch (ch) {
                 case -1:
@@ -354,8 +345,8 @@ public class LambdaCalculus {
                 }
             }
 
-            Term parse() {
-                Term term = parseTerm();
+            Expression parse() {
+                Expression term = parseTerm();
                 while (true) {
                     skipSpaces();
                     if (ch != 'λ' && ch != '(' && !isVariableChar(ch))

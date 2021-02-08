@@ -2,13 +2,16 @@ package puzzle.lambda;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class LambdaCalculus {
 
-    private LambdaCalculus() {}
+    private LambdaCalculus() {
+    }
 
     static class Bind<K, V> {
-        final K key; final V value;
+        final K key;
+        final V value;
         final Bind<K, V> previous;
         int count = 0;
 
@@ -19,24 +22,60 @@ public class LambdaCalculus {
         }
 
         static <K, V> V find(Bind<K, V> bind, K key) {
-            for ( ; bind != null; bind = bind.previous)
+            for (; bind != null; bind = bind.previous)
                 if (key.equals(bind.key)) {
                     ++bind.count;
                     return bind.value;
                 }
             return null;
         }
-    }
 
+        static <K, V> String toString(Bind<K, V> bind) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            String sep = "";
+            for ( Bind<K, V> e = bind; e != null; e = e.previous, sep = " ")
+                sb.append(sep).append(e.key).append("=").append(e.value);
+            sb.append("}");
+            return sb.toString();
+        }
+    }
 
     static class IntHolder {
         public int value = 0;
     }
 
+    static class Tracer {
+        final Consumer<String> writer;
+        int level = 0;
+
+        private Tracer(Consumer<String> writer) {
+            this.writer = writer;
+        }
+
+        static Tracer of(Consumer<String> writer) {
+            return new Tracer(writer);
+        }
+
+        Expression enter(Expression e, Bind<BoundVariable, Expression> bind) {
+            if (writer != null)
+                writer.accept("  ".repeat(level) + e + " " + Bind.toString(bind));
+            ++level;
+            return e;
+        }
+
+        Expression exit(Expression e) {
+            --level;
+            if (writer != null)
+                writer.accept("  ".repeat(level) + "-> "+ e);
+            return e;
+        }
+    }
+
     static String excelColumnName(int columnNumber) {
         StringBuilder sb = new StringBuilder();
-        for ( ; columnNumber > 0; columnNumber /= 26)
-            sb.append((char)('A' + --columnNumber % 26));
+        for (; columnNumber > 0; columnNumber /= 26)
+            sb.append((char) ('A' + --columnNumber % 26));
         return sb.reverse().toString();
     }
 
@@ -50,10 +89,16 @@ public class LambdaCalculus {
             return sb.toString();
         }
 
-        abstract Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind);
+        abstract Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer);
 
         public Expression reduce() {
-            return reduce(null, null);
+            return reduce(null, null, Tracer.of(null));
+        }
+
+        public Expression reduce(Consumer<String> writer) {
+            Tracer tracer = Tracer.of(writer);
+            tracer.enter(this, null);
+            return tracer.exit(reduce(null, null, tracer));
         }
 
         abstract Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind);
@@ -83,21 +128,21 @@ public class LambdaCalculus {
             return String.format("λ%s.%s", variable, body);
         }
 
-        static String normalizedBoundVariableName(int n) {
+        static String normalizedVariableName(int n) {
             return excelColumnName(n + 1);
         }
 
         @Override
         void normalize(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
-            sb.append("λ").append(normalizedBoundVariableName(number.value)).append(".");
-            body.normalize(new Bind<>(bind, variable, normalizedBoundVariableName(number.value++)), number, sb);
+            sb.append("λ").append(normalizedVariableName(number.value)).append(".");
+            body.normalize(new Bind<>(bind, variable, normalizedVariableName(number.value++)), number, sb);
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind) {
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer) {
             BoundVariable newVariable = BoundVariable.of(variable.name);
             Bind<BoundVariable, BoundVariable> newBind = new Bind<>(lambdaBind, variable, newVariable);
-            Expression newBody = body.reduce(newBind, reductionBind);
+            Expression newBody = body.reduce(newBind, reductionBind, tracer);
             Lambda newLambda = Lambda.of(newVariable, newBody, newBind.count);
             return newLambda;
         }
@@ -142,7 +187,7 @@ public class LambdaCalculus {
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind) {
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer) {
             BoundVariable newVariable = Bind.find(lambdaBind, this);
             if (newVariable != null)
                 return newVariable;
@@ -153,7 +198,8 @@ public class LambdaCalculus {
         }
 
         @Override
-        Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind) {
+        Expression expand(Map<String, Expression> globals,
+            Bind<BoundVariable, BoundVariable> lambdaBind) {
             return Bind.find(lambdaBind, this);
         }
     }
@@ -176,7 +222,7 @@ public class LambdaCalculus {
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind) {
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer) {
             return this;
         }
 
@@ -234,31 +280,35 @@ public class LambdaCalculus {
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind) {
-            Expression newHead = head.reduce(lambdaBind, reductionBind);
-            Expression newTail = tail.reduce(lambdaBind, reductionBind);
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer) {
+            Expression newHead = head.reduce(lambdaBind, reductionBind, tracer);
+            Expression newTail = tail.reduce(lambdaBind, reductionBind, tracer);
             if (newHead instanceof Lambda) {
-                Lambda lambda = (Lambda)newHead;
+                Lambda lambda = (Lambda) newHead;
                 // bodyが属するラムダの変数を参照していなければ単純にbodyをそのまま返します。
                 if (lambda.referenceCount <= 0)
                     return lambda.body;
                 Bind<BoundVariable, Expression> newBind = new Bind<>(reductionBind, lambda.variable, newTail);
-                return lambda.body.reduce(lambdaBind, newBind);
+                tracer.enter(lambda.body, newBind);
+                return tracer.exit(lambda.body.reduce(lambdaBind, newBind, tracer));
             } else
                 return Application.of(newHead, newTail);
         }
 
         @Override
         Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind) {
-            return Application.of(head.expand(globals, lambdaBind), tail.expand(globals, lambdaBind));
+            return Application.of(head.expand(globals, lambdaBind),
+                tail.expand(globals, lambdaBind));
         }
     }
 
     /**
+     * <pre>
      * Expression ::= Term { Term }.
      * Term       ::= Variable
-     *              | 'λ' Variable { Variable } '.' Expression
+     *              | 'λ' Variable { Variable * } '.' Expression
      *              | '(' Expression ')'.
+     * </pre>
      */
     public static Expression parse(String source) {
         return new Object() {
@@ -273,8 +323,11 @@ public class LambdaCalculus {
 
             boolean isVariableChar(int ch) {
                 switch (ch) {
-                case -1: case 'λ': case '.':
-                case '(': case ')':
+                case -1:
+                case 'λ':
+                case '.':
+                case '(':
+                case ')':
                     return false;
                 default:
                     return !Character.isWhitespace(ch);
@@ -286,7 +339,7 @@ public class LambdaCalculus {
                     get();
             }
 
-            Expression parseLambda() {
+            Lambda parseLambda() {
                 skipSpaces();
                 if (!isVariableChar(ch))
                     throw new RuntimeException("variable expected");
@@ -296,7 +349,7 @@ public class LambdaCalculus {
                 skipSpaces();
                 Expression body;
                 if (ch == '.') {
-                    get();  // skip '.'
+                    get(); // skip '.'
                     body = parse();
                 } else
                     body = parseLambda();
@@ -310,18 +363,18 @@ public class LambdaCalculus {
                 Expression term = parse();
                 if (ch != ')')
                     throw new RuntimeException("')' expected");
-                get();  // skip ')'
+                get(); // skip ')'
                 return term;
             }
 
             String parseVariableName() {
                 StringBuilder sb = new StringBuilder();
-                for ( ; isVariableChar(ch); get())
+                for (; isVariableChar(ch); get())
                     sb.appendCodePoint(ch);
                 return sb.toString();
             }
 
-            Expression parseVariable() {
+            Variable parseVariable() {
                 String variableName = parseVariableName();
                 BoundVariable variable = Bind.find(bind, variableName);
                 return variable != null ? variable : FreeVariable.of(variableName);
@@ -333,14 +386,14 @@ public class LambdaCalculus {
                 case -1:
                     throw new RuntimeException("unexpected end of string");
                 case 'λ':
-                    get();  // skip 'λ'
+                    get(); // skip 'λ'
                     return parseLambda();
                 case '(':
-                    get();  // skip '('
+                    get(); // skip '('
                     return parseParen();
                 default:
                     if (!isVariableChar(ch))
-                        throw new RuntimeException("unexpected '" + ((char)ch) + "'");
+                        throw new RuntimeException("unexpected '" + ((char) ch) + "'");
                     return parseVariable();
                 }
             }

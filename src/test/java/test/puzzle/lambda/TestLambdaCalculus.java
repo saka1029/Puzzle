@@ -5,6 +5,7 @@ import static puzzle.lambda.LambdaCalculus.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
@@ -88,6 +89,17 @@ class TestLambdaCalculus {
     }
 
     @Test
+    void testTracer() {
+        Consumer<String> writer = logger::info;
+//        parse("(λp t f.p t f) (λt f.t) V W").reduce(writer);
+        parse("(λp q.p q (λt f.f)) (λt f.f) (λt f.f)").reduce(writer);
+//        define("true", "λt f.t");
+//        define("false", "λt f.f");
+//        define("test", "λp t f.p t f");
+//        define("and", "λp q.p q false");
+    }
+
+    @Test
     void testExceptions() {
         try {
             parse("λ.");
@@ -112,7 +124,7 @@ class TestLambdaCalculus {
     }
 
     /**
-     * https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E5%81%9C%E6%AD%A2%E6%80%A7
+     * @see <a href="https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E5%81%9C%E6%AD%A2%E6%80%A7">ラムダ計算#停止性 - Wikipedia</a>
      */
     @Test
     void testHaltingProblem() {
@@ -127,7 +139,7 @@ class TestLambdaCalculus {
 
     void define(String name, String body) {
         Expression reduced = parse(body).expand(globals).reduce();
-        logger.info("define: " + name + " = " + reduced);
+//        logger.info("define: " + name + " = " + reduced);
         globals.put(name, reduced);
     }
 
@@ -137,7 +149,7 @@ class TestLambdaCalculus {
     }
 
     /**
-     * https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E8%87%AA%E7%84%B6%E6%95%B0%E3%81%A8%E7%AE%97%E8%A1%93
+     * @see <a href="https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E8%87%AA%E7%84%B6%E6%95%B0%E3%81%A8%E7%AE%97%E8%A1%93">ラムダ計算#自然数と算術 - Wikipedia</a>
      */
     @Test
     void testChurchNumerals() {
@@ -172,7 +184,7 @@ class TestLambdaCalculus {
     }
 
     /**
-     * https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E8%AB%96%E7%90%86%E8%A8%98%E5%8F%B7%E3%81%A8%E8%BF%B0%E8%AA%9E
+     * @see <a href="https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E8%AB%96%E7%90%86%E8%A8%98%E5%8F%B7%E3%81%A8%E8%BF%B0%E8%AA%9E">ラムダ計算#論理記号と述語 - Wikipedia</a>
      */
     @Test
     void testCharchBooleans() {
@@ -205,7 +217,7 @@ class TestLambdaCalculus {
     }
 
     /**
-     * https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E5%AF%BE
+     * @see <a href="https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E5%AF%BE">ラムダ計算#対 - Wikipedia</a>
      */
     @Test
     void testChurchPairs() {
@@ -231,7 +243,7 @@ class TestLambdaCalculus {
     }
 
     /**
-     * https://en.wikipedia.org/wiki/Church_encoding#List_encodings
+     * @see <a href="https://en.wikipedia.org/wiki/Church_encoding#List_encodings">Church encoding#List encodings - Wikipedia</a>
      */
     @Test
     void testListEncodings() {
@@ -242,9 +254,9 @@ class TestLambdaCalculus {
         define("cons", "λh.λt.λc.λn.c h (t c n)");
         define("head", "λl.l (λh.λt.h) false");
         define("tail", "λl.λc.λn.l (λh.λt.λg.g h (t c)) (λt.n) (λh.λt.t)");
-        assertEquivalent("λh.λt.h A t", "cons A nil");
-        assertEquivalent("λh.λt.h A (h B t)", "cons A (cons B nil)");
-        assertEquivalent("λh.λt.h A (h B (h C t))", "cons A (cons B (cons C nil))");
+        assertEquivalent("λc.λn.c A n", "cons A nil");
+        assertEquivalent("λc.λn.c A (c B n)", "cons A (cons B nil)");
+        assertEquivalent("λc.λn.c A (c B (c C n))", "cons A (cons B (cons C nil))");
         define("[ABC]", "cons A (cons B (cons C nil))");
         assertEquivalent("A", "head [ABC]");
         assertEquivalent("B", "head(tail [ABC])");
@@ -258,7 +270,7 @@ class TestLambdaCalculus {
     }
 
     /**
-     * https://ja.wikipedia.org/wiki/SKI%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF%E8%A8%88%E7%AE%97
+     * @see <a href="https://ja.wikipedia.org/wiki/SKI%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF%E8%A8%88%E7%AE%97">SKIコンビネータ計算 - Wikipedia</a>
      */
     @Test
     void testSKICombinator() {
@@ -269,8 +281,9 @@ class TestLambdaCalculus {
         assertEquivalent("λx.x", "S K K");
         assertEquivalent("a a", "(S I I) a"); // 自己適用
         assertEquivalent("b a", "(S (K (S I)) K) a b"); // 式の逆転
-        define("T", "K");
-        define("F", "S K");
+        define("T", "K");   // true
+        define("F", "S K"); // false
+        assertEquivalent("λt f.f", "F");
         define("NOT", "S (S I (K F)) (K T)");
         assertEquivalent("F", "NOT T");
         assertEquivalent("T", "NOT F");

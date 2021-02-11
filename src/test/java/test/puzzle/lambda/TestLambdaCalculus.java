@@ -8,17 +8,29 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import puzzle.Common;
 import puzzle.lambda.LambdaCalculus.Expression;
 
 class TestLambdaCalculus {
 
-    static final Logger logger = Common.getLogger(TestLambdaCalculus.class);
+    static String LOG_FORMAT_KEY = "java.util.logging.SimpleFormatter.format";
+    static String LOG_FORMAT = "%1$tFT%1$tT.%1$tL %4$s %3$s %5$s %6$s%n";
+    static {
+        System.setProperty(LOG_FORMAT_KEY, LOG_FORMAT);
+    }
+
+    static final Logger logger = Logger.getLogger(TestLambdaCalculus.class.getSimpleName());
+
+    public static String methodName() {
+        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+        return elements[2].getMethodName();
+    }
 
     @Test
-    void testToString() {
+    void testToStringVerbose() {
+        logger.info("***** " + methodName());
         assertEquals("a", parse("a").toString());
         assertEquals("λx.λx.λx.x", parse("λx.λx.λx.x").toString());
         assertEquals("λx.λx.λx.x", parse("λx x x.x").toString());
@@ -26,13 +38,26 @@ class TestLambdaCalculus {
         assertEquals("a (λx.x)", parse("a λx.x").toString());
     }
 
+    @Disabled
     @Test
-    void testNormalize() {
+    void testToStringCompact() {
+        logger.info("***** " + methodName());
+        assertEquals("a", parse("a").toString());
+        assertEquals("λx x x.x", parse("λx.λx.λx.x").toString());
+        assertEquals("λx x x.x", parse("λx x x.x").toString());
+        assertEquals("(λx.(λx.(λx.x) x) x) x", parse("(λx.(λx.(λx.x) x) x) x").toString());
+        assertEquals("a (λx.x)", parse("a λx.x").toString());
+    }
+
+    @Test
+    void testNormalizeVerbose() {
+        logger.info("***** " + methodName());
         assertEquals("λA.A", parse("λx.x").normalize());
         assertEquals("λA.λB.B", parse("λx.λx.x").normalize());
-        assertEquals("λA.λB.λC.λD.λE.λF.F", parse("λx.λx.λx.λx.λx.λx.x").normalize());
+        assertEquals("(λA.(λB.(λC.C) B) A) x", parse("(λx.(λx.(λx.x) x) x) x").normalize());
         assertEquals("λA.λB.λC.λD.λE.λF.F", parse("λa.λb.λc.λd.λe.λf.f").normalize());
         assertEquals("λA.λB.λC.λD.λE.λF.F", parse("λa b c d e f.f").normalize());
+        assertEquals("λA.λB.λC.λD.λE.λF.F", parse("λx.λx.λx.λx.λx.λx.x").normalize());
         assertEquals("λA.λB.λC.λD.λE.λF.F", parse("λx x x x x x.x").normalize());
         assertEquals("λA.λB.λC.λD.λE.λF.C", parse("λa b c d e f.c").normalize());
         assertEquals("λA.(λB.B) A", parse("λx.(λx.x) x").normalize());
@@ -42,7 +67,28 @@ class TestLambdaCalculus {
         assertEquals("a (λA.A)", parse("a (λx.x)").normalize());
         assertEquals("a (λA.A)", parse("a λx.x").normalize());
         assertEquals("a (λA.A) b", parse("a (λx.x) b").normalize());
-        assertEquals("a (λA.A b)", parse("a λx.x b").normalize());
+        assertEquals("a (λA.A b)", parse("a λx.x b").normalize()); // 不要な括弧が付与されるケース
+    }
+
+    @Disabled
+    @Test
+    void testNormalizeCompact() {
+        logger.info("***** " + methodName());
+        assertEquals("λA.A", parse("λx.x").normalize());
+        assertEquals("λA B.B", parse("λx.λx.x").normalize());
+        assertEquals("λA B C D E F.F", parse("λx.λx.λx.λx.λx.λx.x").normalize());
+        assertEquals("λA B C D E F.F", parse("λa.λb.λc.λd.λe.λf.f").normalize());
+        assertEquals("λA B C D E F.F", parse("λa b c d e f.f").normalize());
+        assertEquals("λA B C D E F.F", parse("λx x x x x x.x").normalize());
+        assertEquals("λA B C D E F.C", parse("λa b c d e f.c").normalize());
+        assertEquals("λA.(λB.B) A", parse("λx.(λx.x) x").normalize());
+        assertEquals("a b c", parse("a b c").normalize());
+        assertEquals("a b c", parse("(a b) c").normalize());
+        assertEquals("a (b c)", parse("a (b c)").normalize());
+        assertEquals("a (λA.A)", parse("a (λx.x)").normalize());
+        assertEquals("a (λA.A)", parse("a λx.x").normalize());
+        assertEquals("a (λA.A) b", parse("a (λx.x) b").normalize());
+        assertEquals("a (λA.A b)", parse("a λx.x b").normalize()); // 不要な括弧が付与されるケース
     }
 
     static void assertNormalizeEquals(String expected, String actual) {
@@ -55,6 +101,7 @@ class TestLambdaCalculus {
 
     @Test
     void testNormalizeEquals() {
+        logger.info("***** " + methodName());
         assertNormalizeEquals("λx.x", "λa.a");
         assertNormalizeEquals("λx.x", "λa.(a)");
         assertNormalizeEquals("λx.x", "(λa.a)");
@@ -73,6 +120,7 @@ class TestLambdaCalculus {
 
     @Test
     void assertReduceEquals() {
+        logger.info("***** " + methodName());
         assertReduceEquals("a", "(λx.x) a");
         assertReduceEquals("λx.x", "(λx.λy.y) a");
         assertReduceEquals("λx.x", "(λx y.y) a");
@@ -90,17 +138,19 @@ class TestLambdaCalculus {
 
     @Test
     void testTracer() {
+        logger.info("***** " + methodName());
         Consumer<String> writer = logger::info;
-//        parse("(λp t f.p t f) (λt f.t) V W").reduce(writer);
+        // parse("(λp t f.p t f) (λt f.t) V W").reduce(writer);
         parse("(λp q.p q (λt f.f)) (λt f.f) (λt f.f)").reduce(writer);
-//        define("true", "λt f.t");
-//        define("false", "λt f.f");
-//        define("test", "λp t f.p t f");
-//        define("and", "λp q.p q false");
+        // define("true", "λt f.t");
+        // define("false", "λt f.f");
+        // define("test", "λp t f.p t f");
+        // define("and", "λp q.p q false");
     }
 
     @Test
     void testExceptions() {
+        logger.info("***** " + methodName());
         try {
             parse("λ.");
             fail();
@@ -124,10 +174,13 @@ class TestLambdaCalculus {
     }
 
     /**
-     * @see <a href="https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E5%81%9C%E6%AD%A2%E6%80%A7">ラムダ計算#停止性 - Wikipedia</a>
+     * @see <a href=
+     *      "https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E5%81%9C%E6%AD%A2%E6%80%A7">ラムダ計算#停止性
+     *      - Wikipedia</a>
      */
     @Test
     void testHaltingProblem() {
+        logger.info("***** " + methodName());
         try {
             parse("(λx.x x) (λx.x x)").reduce();
             fail();
@@ -139,20 +192,23 @@ class TestLambdaCalculus {
 
     void define(String name, String body) {
         Expression reduced = parse(body).expand(globals).reduce();
-//        logger.info("define: " + name + " = " + reduced);
+        // logger.info("define: " + name + " = " + reduced);
         globals.put(name, reduced);
     }
 
     void assertEquivalent(String expected, String actual) {
         assertEquals(parse(expected).expand(globals).normalize(),
-            parse(actual).expand(globals).reduce().normalize());
+            parse(actual).expand(globals).reduce(logger::info).normalize());
     }
 
     /**
-     * @see <a href="https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E8%87%AA%E7%84%B6%E6%95%B0%E3%81%A8%E7%AE%97%E8%A1%93">ラムダ計算#自然数と算術 - Wikipedia</a>
+     * @see <a href=
+     *      "https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E8%87%AA%E7%84%B6%E6%95%B0%E3%81%A8%E7%AE%97%E8%A1%93">ラムダ計算#自然数と算術
+     *      - Wikipedia</a>
      */
     @Test
     void testChurchNumerals() {
+        logger.info("***** " + methodName());
         define("0", "λf x.x");
         define("1", "λf x.f x");
         define("2", "λf x.f(f x)");
@@ -184,10 +240,13 @@ class TestLambdaCalculus {
     }
 
     /**
-     * @see <a href="https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E8%AB%96%E7%90%86%E8%A8%98%E5%8F%B7%E3%81%A8%E8%BF%B0%E8%AA%9E">ラムダ計算#論理記号と述語 - Wikipedia</a>
+     * @see <a href=
+     *      "https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E8%AB%96%E7%90%86%E8%A8%98%E5%8F%B7%E3%81%A8%E8%BF%B0%E8%AA%9E">ラムダ計算#論理記号と述語
+     *      - Wikipedia</a>
      */
     @Test
     void testCharchBooleans() {
+        logger.info("***** " + methodName());
         define("true", "λt f.t");
         define("false", "λt f.f");
         define("test", "λp t f.p t f");
@@ -217,10 +276,13 @@ class TestLambdaCalculus {
     }
 
     /**
-     * @see <a href="https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E5%AF%BE">ラムダ計算#対 - Wikipedia</a>
+     * @see <a href=
+     *      "https://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%A0%E3%83%80%E8%A8%88%E7%AE%97#%E5%AF%BE">ラムダ計算#対
+     *      - Wikipedia</a>
      */
     @Test
     void testChurchPairs() {
+        logger.info("***** " + methodName());
         define("true", "λt f.t");
         define("false", "λt f.f");
         define("cons", "λs b f.f s b");
@@ -243,10 +305,13 @@ class TestLambdaCalculus {
     }
 
     /**
-     * @see <a href="https://en.wikipedia.org/wiki/Church_encoding#List_encodings">Church encoding#List encodings - Wikipedia</a>
+     * @see <a href=
+     *      "https://en.wikipedia.org/wiki/Church_encoding#List_encodings">Church
+     *      encoding#List encodings - Wikipedia</a>
      */
     @Test
     void testListEncodings() {
+        logger.info("***** " + methodName());
         define("true", "λt f.t");
         define("false", "λt f.f");
         define("nil", "false");
@@ -270,18 +335,22 @@ class TestLambdaCalculus {
     }
 
     /**
-     * @see <a href="https://ja.wikipedia.org/wiki/SKI%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF%E8%A8%88%E7%AE%97">SKIコンビネータ計算 - Wikipedia</a>
+     * @see <a href=
+     *      "https://ja.wikipedia.org/wiki/SKI%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF%E8%A8%88%E7%AE%97">SKIコンビネータ計算
+     *      - Wikipedia</a>
      */
     @Test
     void testSKICombinator() {
+        logger.info("***** " + methodName());
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
         define("I", "λx.x");
         assertEquivalent("I", "S K K"); // IはS K Kで表現できる。
-        assertEquivalent("λx.x", "S K K");
+        assertEquivalent("λx.x", "S K K"); // IはS K Kで表現できる。
+        assertEquivalent("λx.x", "S K S"); // 3番目はなんでもよい。
         assertEquivalent("a a", "(S I I) a"); // 自己適用
         assertEquivalent("b a", "(S (K (S I)) K) a b"); // 式の逆転
-        define("T", "K");   // true
+        define("T", "K"); // true
         define("F", "S K"); // false
         assertEquivalent("λt f.f", "F");
         define("NOT", "S (S I (K F)) (K T)");
@@ -298,4 +367,101 @@ class TestLambdaCalculus {
         assertEquivalent("F", "AND F T");
         assertEquivalent("F", "AND F F");
     }
+
+    /**
+     * Iota and Jot#Universal iota - Wikipedia
+     * https://en.wikipedia.org/wiki/Iota_and_Jot#Universal_iota
+     */
+    @Test
+    void testUniversalIotaCombinator() {
+        logger.info("***** " + methodName());
+        define("S", "λx y z.x z (y z)");
+        define("K", "λx y.x");
+        define("I", "λx.x");
+        define("ι", "λf.f S K");
+        assertEquivalent("I", "ι ι");
+        assertEquivalent("K", "ι (ι (ι ι))");
+        assertEquivalent("S", "ι (ι (ι (ι ι)))");
+    }
+
+    /**
+     * iota = "1" | "0" iota iota
+     */
+    static String parseIota(String s) {
+        return new Object() {
+            int index = 0;
+            int ch = get();
+
+            int get() {
+                return ch = index < s.length() ? s.charAt(index++) : -1;
+            }
+
+            String parse() {
+                switch (ch) {
+                case '0':
+                    get();
+                    return "(" + parse() + " " + parse() + ")";
+                case '1':
+                    get();
+                    return "ι";
+                default:
+                    return "";
+                }
+            }
+        }.parse();
+    }
+
+    @Test
+    void testIotaParser() {
+        assertEquals("((ι ι) (ι ι))", parseIota("0011011"));
+        assertEquals("(ι (ι (ι ι)))", parseIota("0101011"));
+        assertEquals("(((ι ι) ι) ι)", parseIota("0001111"));
+    }
+
+    /**
+     * Iota and Jot#Iota - Wikipedia
+     * https://en.wikipedia.org/wiki/Iota_and_Jot#Iota
+     */
+    @Test
+    void testIotaCombinator() {
+        logger.info("***** " + methodName());
+        define("S", "λx y z.x z (y z)");
+        define("K", "λx y.x");
+        define("I", "λx.x");
+        define("ι", "λf.f S K");
+        assertEquivalent("I", parseIota("011"));
+        assertEquivalent("K", parseIota("0101011"));
+        assertEquivalent("S", parseIota("010101011"));
+    }
+
+    /**
+     * 不動点コンビネータ#Yコンビネータ - Wikipedia
+     * https://ja.wikipedia.org/wiki/%E4%B8%8D%E5%8B%95%E7%82%B9%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF#Y%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF
+     */
+    @Test
+    void testFixedPointCombinatorY() {
+        try {
+            define("Y", "(λf.(λx.f (x x)) (λx.f (x x)))");
+            assertEquivalent("g (Y g)", "Y g");
+            fail();
+        } catch (StackOverflowError e) {
+        }
+    }
+
+    /**
+     * 不動点コンビネータ#Zコンビネータ - Wikipedia
+     * https://ja.wikipedia.org/wiki/%E4%B8%8D%E5%8B%95%E7%82%B9%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF#Z%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF
+     */
+    @Test
+    void testFixedPointCombinatorZ() {
+        try {
+            define("Z", "λf.(λx.f (λy.x x y)) (λx.f (λy.x x y))");
+            // globals.put("Z", parse("λf.(λx.f (λy. x x y)) (λx.f (λy.x x
+            // y))"));
+            assertEquivalent("g (Z g)", "Z g");
+            fail();
+        } catch (StackOverflowError e) {
+        }
+    }
+
 }

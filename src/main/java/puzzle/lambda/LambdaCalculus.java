@@ -34,7 +34,7 @@ public class LambdaCalculus {
             StringBuilder sb = new StringBuilder();
             sb.append("{");
             String sep = "";
-            for ( Bind<K, V> e = bind; e != null; e = e.previous, sep = " ")
+            for (Bind<K, V> e = bind; e != null; e = e.previous, sep = " ")
                 sb.append(sep).append(e.key).append("=").append(e.value);
             sb.append("}");
             return sb.toString();
@@ -59,7 +59,7 @@ public class LambdaCalculus {
 
         Expression enter(Expression e, Bind<BoundVariable, Expression> bind) {
             if (writer != null)
-                writer.accept("  ".repeat(level) + e + " " + Bind.toString(bind));
+                writer.accept("  ".repeat(level) + "< " + e + " " + Bind.toString(bind));
             ++level;
             return e;
         }
@@ -67,7 +67,7 @@ public class LambdaCalculus {
         Expression exit(Expression e) {
             --level;
             if (writer != null)
-                writer.accept("  ".repeat(level) + "-> "+ e);
+                writer.accept("  ".repeat(level) + "> " + e);
             return e;
         }
     }
@@ -81,7 +81,8 @@ public class LambdaCalculus {
 
     public static abstract class Expression {
 
-        abstract void normalize(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb);
+        abstract void normalize(Bind<BoundVariable, String> bind, IntHolder number,
+            StringBuilder sb);
 
         public String normalize() {
             StringBuilder sb = new StringBuilder();
@@ -89,7 +90,8 @@ public class LambdaCalculus {
             return sb.toString();
         }
 
-        abstract Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer);
+        abstract Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind,
+            Bind<BoundVariable, Expression> reductionBind, Tracer tracer);
 
         public Expression reduce() {
             return reduce(null, null, Tracer.of(null));
@@ -101,7 +103,8 @@ public class LambdaCalculus {
             return tracer.exit(reduce(null, null, tracer));
         }
 
-        abstract Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind);
+        abstract Expression expand(Map<String, Expression> globals,
+            Bind<BoundVariable, BoundVariable> lambdaBind);
 
         public Expression expand(Map<String, Expression> globals) {
             return expand(globals, null);
@@ -125,7 +128,14 @@ public class LambdaCalculus {
 
         @Override
         public String toString() {
-            return String.format("λ%s.%s", variable, body);
+            return "λ" + variable + "." + body;
+            /*
+             * compact version StringBuilder sb = new StringBuilder();
+             * Expression e = this; String prefix = "λ"; while (e instanceof
+             * Lambda) { Lambda l = (Lambda)e;
+             * sb.append(prefix).append(l.variable); e = l.body; prefix = " "; }
+             * return sb.append(".").append(e).toString();
+             */
         }
 
         static String normalizedVariableName(int n) {
@@ -135,22 +145,36 @@ public class LambdaCalculus {
         @Override
         void normalize(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
             sb.append("λ").append(normalizedVariableName(number.value)).append(".");
-            body.normalize(new Bind<>(bind, variable, normalizedVariableName(number.value++)), number, sb);
+            body.normalize(new Bind<>(bind, variable, normalizedVariableName(number.value++)),
+                number, sb);
+            /*
+             * compact version Expression e = this; String prefix = "λ"; while
+             * (e instanceof Lambda) { Lambda l = (Lambda)e;
+             * sb.append(prefix).append(normalizedVariableName(number.value));
+             * bind = new Bind<>(bind, l.variable,
+             * normalizedVariableName(number.value++)); e = l.body; prefix =
+             * " "; } sb.append("."); e.normalize(bind, number, sb);
+             */
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer) {
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind,
+            Bind<BoundVariable, Expression> reductionBind,
+            Tracer tracer) {
             BoundVariable newVariable = BoundVariable.of(variable.name);
-            Bind<BoundVariable, BoundVariable> newBind = new Bind<>(lambdaBind, variable, newVariable);
+            Bind<BoundVariable, BoundVariable> newBind = new Bind<>(lambdaBind, variable,
+                newVariable);
             Expression newBody = body.reduce(newBind, reductionBind, tracer);
             Lambda newLambda = Lambda.of(newVariable, newBody, newBind.count);
             return newLambda;
         }
 
         @Override
-        Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind) {
+        Expression expand(Map<String, Expression> globals,
+            Bind<BoundVariable, BoundVariable> lambdaBind) {
             BoundVariable newVariable = BoundVariable.of(variable.name);
-            Bind<BoundVariable, BoundVariable> newBind = new Bind<>(lambdaBind, variable, newVariable);
+            Bind<BoundVariable, BoundVariable> newBind = new Bind<>(lambdaBind, variable,
+                newVariable);
             Expression newBody = body.expand(globals, newBind);
             Lambda newLambda = Lambda.of(newVariable, newBody, newBind.count);
             return newLambda;
@@ -187,7 +211,9 @@ public class LambdaCalculus {
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer) {
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind,
+            Bind<BoundVariable, Expression> reductionBind,
+            Tracer tracer) {
             BoundVariable newVariable = Bind.find(lambdaBind, this);
             if (newVariable != null)
                 return newVariable;
@@ -222,12 +248,15 @@ public class LambdaCalculus {
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer) {
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind,
+            Bind<BoundVariable, Expression> reductionBind,
+            Tracer tracer) {
             return this;
         }
 
         @Override
-        Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind) {
+        Expression expand(Map<String, Expression> globals,
+            Bind<BoundVariable, BoundVariable> lambdaBind) {
             Expression term = globals.get(name);
             if (term != null)
                 return term.expand(globals);
@@ -280,15 +309,18 @@ public class LambdaCalculus {
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind, Bind<BoundVariable, Expression> reductionBind, Tracer tracer) {
+        Expression reduce(Bind<BoundVariable, BoundVariable> lambdaBind,
+            Bind<BoundVariable, Expression> reductionBind,
+            Tracer tracer) {
             Expression newHead = head.reduce(lambdaBind, reductionBind, tracer);
             Expression newTail = tail.reduce(lambdaBind, reductionBind, tracer);
             if (newHead instanceof Lambda) {
                 Lambda lambda = (Lambda) newHead;
                 // bodyが属するラムダの変数を参照していなければ単純にbodyをそのまま返します。
-                if (lambda.referenceCount <= 0)
-                    return lambda.body;
-                Bind<BoundVariable, Expression> newBind = new Bind<>(reductionBind, lambda.variable, newTail);
+                // if (lambda.referenceCount <= 0)
+                // return lambda.body;
+                Bind<BoundVariable, Expression> newBind = new Bind<>(reductionBind, lambda.variable,
+                    newTail);
                 tracer.enter(lambda.body, newBind);
                 return tracer.exit(lambda.body.reduce(lambdaBind, newBind, tracer));
             } else
@@ -296,7 +328,8 @@ public class LambdaCalculus {
         }
 
         @Override
-        Expression expand(Map<String, Expression> globals, Bind<BoundVariable, BoundVariable> lambdaBind) {
+        Expression expand(Map<String, Expression> globals,
+            Bind<BoundVariable, BoundVariable> lambdaBind) {
             return Application.of(head.expand(globals, lambdaBind),
                 tail.expand(globals, lambdaBind));
         }
@@ -306,7 +339,7 @@ public class LambdaCalculus {
      * <pre>
      * Expression ::= Term { Term }.
      * Term       ::= Variable
-     *              | 'λ' Variable { Variable * } '.' Expression
+     *              | 'λ' Variable { Variable } '.' Expression
      *              | '(' Expression ')'.
      * </pre>
      */

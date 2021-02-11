@@ -24,19 +24,54 @@ class TestMemoizer {
 
     @Test
     public void testFibonacci() {
-        Memoizer<BigInteger, BigInteger> fibonacci = memoize(self -> n -> n.equals(ZERO) ? ZERO
-            : n.equals(ONE) ? ONE
+        Memoizer<Integer, Integer> fibonacci =
+            memoize(self -> n ->
+                n == 0 ? 0 :
+                n == 1 ? 1 :
+                self.apply(n - 1) + self.apply(n - 2));
+        assertEquals(0, fibonacci.apply(0));
+        assertEquals(1, fibonacci.apply(1));
+        assertEquals(1, fibonacci.apply(2));
+        assertEquals(2, fibonacci.apply(3));
+        assertEquals(3, fibonacci.apply(4));
+        assertEquals(5, fibonacci.apply(5));
+        assertEquals(8, fibonacci.apply(6));
+        assertEquals(13, fibonacci.apply(7));
+        assertEquals(21, fibonacci.apply(8));
+        assertEquals(34, fibonacci.apply(9));
+        System.out.println(fibonacci);
+        assertEquals(Map.of(
+            0, 0,
+            1, 1,
+            2, 1,
+            3, 2,
+            4, 3,
+            5, 5,
+            6, 8,
+            7, 13,
+            8, 21,
+            9, 34), fibonacci.cache());
+        for (int i = 0; i < 1000; ++i)
+            fibonacci.apply(i);
+    }
+
+    @Test
+    public void testFibonacciBigInteger() {
+        Memoizer<BigInteger, BigInteger> fibonacci =
+            memoize(self -> n ->
+                  n.equals(ZERO) ? ZERO
+                : n.equals(ONE) ? ONE
                 : self.apply(n.subtract(ONE)).add(self.apply(n.subtract(TWO))));
-        assertEquals(valueOf(0), fibonacci.apply(BigInteger.valueOf(0)));
-        assertEquals(valueOf(1), fibonacci.apply(BigInteger.valueOf(1)));
-        assertEquals(valueOf(1), fibonacci.apply(BigInteger.valueOf(2)));
-        assertEquals(valueOf(2), fibonacci.apply(BigInteger.valueOf(3)));
-        assertEquals(valueOf(3), fibonacci.apply(BigInteger.valueOf(4)));
-        assertEquals(valueOf(5), fibonacci.apply(BigInteger.valueOf(5)));
-        assertEquals(valueOf(8), fibonacci.apply(BigInteger.valueOf(6)));
-        assertEquals(valueOf(13), fibonacci.apply(BigInteger.valueOf(7)));
-        assertEquals(valueOf(21), fibonacci.apply(BigInteger.valueOf(8)));
-        assertEquals(valueOf(34), fibonacci.apply(BigInteger.valueOf(9)));
+        assertEquals(valueOf(0), fibonacci.apply(valueOf(0)));
+        assertEquals(valueOf(1), fibonacci.apply(valueOf(1)));
+        assertEquals(valueOf(1), fibonacci.apply(valueOf(2)));
+        assertEquals(valueOf(2), fibonacci.apply(valueOf(3)));
+        assertEquals(valueOf(3), fibonacci.apply(valueOf(4)));
+        assertEquals(valueOf(5), fibonacci.apply(valueOf(5)));
+        assertEquals(valueOf(8), fibonacci.apply(valueOf(6)));
+        assertEquals(valueOf(13), fibonacci.apply(valueOf(7)));
+        assertEquals(valueOf(21), fibonacci.apply(valueOf(8)));
+        assertEquals(valueOf(34), fibonacci.apply(valueOf(9)));
         System.out.println(fibonacci);
         assertEquals(Map.of(
             valueOf(0), valueOf(0),
@@ -55,25 +90,35 @@ class TestMemoizer {
 
     @Test
     public void testNestedMemoize() {
-        Memoizer<Integer, Memoizer<Integer, Memoizer<Integer, Integer>>> tarai = memoize(
-            self -> x -> memoize(selfY -> y -> memoize(selfZ -> z -> x <= y ? y
-                : self.apply(self.apply(x - 1).apply(y).apply(z))
-                    .apply(self.apply(y - 1).apply(z).apply(x))
-                    .apply(self.apply(z - 1).apply(x).apply(y)))));
+        Memoizer<Integer, Memoizer<Integer, Memoizer<Integer, Integer>>> tarai =
+            memoize(self -> x ->
+                memoize(selfY -> y ->
+                    memoize(selfZ -> z -> x <= y ? y
+                        : self.apply(self.apply(x - 1).apply(y).apply(z))
+                              .apply(self.apply(y - 1).apply(z).apply(x))
+                              .apply(self.apply(z - 1).apply(x).apply(y)))));
         assertEquals(3, tarai.apply(3).apply(2).apply(1));
         /*
-         * tarai(3, 2, 1) = tarai(tarai(2, 2, 1), tarai(1, 1, 3), tarai(0, 3,
-         * 2)) = tarai(2, 1, 3) = tarai(tarai(1, 1, 3), tarai(0, 3, 2), tarai(2,
-         * 2, 1)) = tarai(1, 3, 2) = 3 tarai(0, 3, 2) = 3 tarai(1, 1, 3) = 1
-         * tarai(1, 3, 2) = 3 tarai(2, 1, 3) = 3 tarai(2, 2, 1) = 2 tarai(3, 2,
-         * 1) = 3
+         * <pre>
+         * tarai(3, 2, 1)
+         *   = tarai(tarai(2, 2, 1), tarai(1, 1, 3), tarai(0, 3, 2))
+         *   = tarai(2, 1, 3)
+         *   = tarai(tarai(1, 1, 3), tarai(0, 3, 2), tarai(2, 2, 1))
+         *   = tarai(1, 3, 2)
+         *   = 3
+         * tarai(0, 3, 2) = 3
+         * tarai(1, 1, 3) = 1
+         * tarai(1, 3, 2) = 3
+         * tarai(2, 1, 3) = 3
+         * tarai(2, 2, 1) = 2
+         * tarai(3, 2, 1) = 3
+         * </pre>
          */
         System.out.println(tarai);
-        Map<Integer, Map<Integer, Map<Integer, Integer>>> expected = Map.of(0, Map.of(3, Map.of(2, 3)),
-            1, Map.of(1, Map.of(3, 1),
-                3, Map.of(2, 3)),
-            2, Map.of(1, Map.of(3, 3),
-                2, Map.of(1, 2)),
+        Map<Integer, Map<Integer, Map<Integer, Integer>>> expected = Map.of(
+            0, Map.of(3, Map.of(2, 3)),
+            1, Map.of(1, Map.of(3, 1), 3, Map.of(2, 3)),
+            2, Map.of(1, Map.of(3, 3), 2, Map.of(1, 2)),
             3, Map.of(2, Map.of(1, 3)));
         // for文でMapを取り出す。
         Map<Integer, Map<Integer, Map<Integer, Integer>>> xmap = new HashMap<>();
@@ -97,8 +142,7 @@ class TestMemoizer {
     /*
      * recordを使ってメモ化します。 recordを使うと、複数の引数を単一の引数に置き換えることができます。
      */
-    record Args(int x, int y, int z) {
-    }
+    record Args(int x, int y, int z) { }
 
     static Integer call(Function<Args, Integer> self, int x, int y, int z) {
         return self.apply(new Args(x, y, z));
@@ -106,18 +150,22 @@ class TestMemoizer {
 
     @Test
     public void testRecordMemoize() {
-        Memoizer<Args, Integer> tarai = memoize(self -> args -> args.x <= args.y ? args.y
-            : self.apply(new Args(self.apply(new Args(args.x - 1, args.y, args.z)),
-                self.apply(new Args(args.y - 1, args.z, args.x)),
-                self.apply(new Args(args.z - 1, args.x, args.y)))));
-        Memoizer<Args, Integer> tarai2 = memoize(self -> args -> args.x <= args.y ? args.y
-            : call(self, call(self, args.x - 1, args.y, args.z),
-                call(self, args.y - 1, args.z, args.x),
-                call(self, args.z - 1, args.x, args.y)));
+        Memoizer<Args, Integer> tarai =
+            memoize(self -> args -> args.x <= args.y ? args.y
+                : self.apply(new Args(
+                    self.apply(new Args(args.x - 1, args.y, args.z)),
+                    self.apply(new Args(args.y - 1, args.z, args.x)),
+                    self.apply(new Args(args.z - 1, args.x, args.y)))));
+        Memoizer<Args, Integer> tarai2 =
+            memoize(self -> args -> args.x <= args.y ? args.y
+                : call(self, call(self, args.x - 1, args.y, args.z),
+                  call(self, args.y - 1, args.z, args.x),
+                  call(self, args.z - 1, args.x, args.y)));
         assertEquals(3, tarai.apply(new Args(3, 2, 1)));
         for (Entry<Args, Integer> e : tarai.cache().entrySet())
             System.out.println(e);
-        Map<Args, Integer> expected = Map.of(new Args(0, 3, 2), 3,
+        Map<Args, Integer> expected = Map.of(
+            new Args(0, 3, 2), 3,
             new Args(1, 1, 3), 1,
             new Args(1, 3, 2), 3,
             new Args(2, 1, 3), 3,

@@ -16,4 +16,9 @@ public class Common {
         return Logger.getLogger(clas.getSimpleName());
     }
 
+    public static String methodName() {
+        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+        return elements[2].getMethodName();
+    }
+
 }

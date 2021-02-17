@@ -438,6 +438,7 @@ class TestLambdaCalculus {
      * 不動点コンビネータ#Yコンビネータ - Wikipedia
      * https://ja.wikipedia.org/wiki/%E4%B8%8D%E5%8B%95%E7%82%B9%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF#Y%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF
      */
+    @Disabled
     @Test
     void testFixedPointCombinatorY() {
         try {
@@ -452,12 +453,12 @@ class TestLambdaCalculus {
      * 不動点コンビネータ#Zコンビネータ - Wikipedia
      * https://ja.wikipedia.org/wiki/%E4%B8%8D%E5%8B%95%E7%82%B9%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF#Z%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF
      */
+    @Disabled
     @Test
     void testFixedPointCombinatorZ() {
         try {
             define("Z", "λf.(λx.f (λy.x x y)) (λx.f (λy.x x y))");
-            // globals.put("Z", parse("λf.(λx.f (λy. x x y)) (λx.f (λy.x x
-            // y))"));
+            // globals.put("Z", parse("λf.(λx.f (λy. x x y)) (λx.f (λy.x x y))"));
             assertEquivalent("g (Z g)", "Z g");
             fail();
         } catch (StackOverflowError e) {

@@ -2,6 +2,7 @@ package test.puzzle;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static puzzle.Iterables.*;
+import static puzzle.functions.FunctionFilter.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,14 +10,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 
-import puzzle.functions.ObjectArray;
-import puzzle.functions.VisualCache;
 
 class TestKaprekarNumber {
 
@@ -49,32 +50,27 @@ class TestKaprekarNumber {
         assertEquals(List.of(0, 495, 6174), list);
     }
 
-    static VisualCache<Integer> kaprekar = VisualCache
-        .forFunction("kaprekar", a -> kaprekar((int)a[0]))
-        .noOutput();
-
-    static int kaprekar(int n) {
-        kaprekar.enter(n);
-        return kaprekar.exit(max(n) - min(n));
-    }
+    static Function<Function<Integer, Integer>, Function<Integer, Integer>> kaprekar =
+        self -> n -> max(n) - min(n);
 
     @Test
     void testCache() throws IOException {
+        Map<Integer, Integer> cache = new HashMap<>();
+        Function<Integer, Integer> kaprekarFunction = function(memoize(cache, kaprekar));
         for (int i = 0; i < 1000; ++i)
-            kaprekar.call(i);
-        Map<ObjectArray, Integer> map = kaprekar.cache();
+            kaprekarFunction.apply(i);
         Path file = Paths.get("data", "kaprekar.gml");
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(file))) {
             out.println("graph [");
-            for (ObjectArray a : map.keySet()) {
+            for (int a : cache.keySet()) {
                 out.println("  node [");
-                out.println("    id " + a.get(0));
-                out.println("    label \"" + a.get(0) + "\"");
+                out.println("    id " + a);
+                out.println("    label \"" + a + "\"");
                 out.println("  ]");
             }
-            for (Entry<ObjectArray, Integer> e : map.entrySet()) {
+            for (Entry<Integer, Integer> e : cache.entrySet()) {
                 out.println("  edge [");
-                out.println("    source " + e.getKey().get(0));
+                out.println("    source " + e.getKey());
                 out.println("    target " + e.getValue());
                 out.println("  ]");
             }

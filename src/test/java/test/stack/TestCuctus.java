@@ -1,6 +1,7 @@
 package test.stack;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,7 +39,7 @@ class TestCuctus {
     static class Context {
         private final Map<String, Value> globals = new HashMap<>();
         private Cuctus stack = null;
-        final Consumer<String> trace;
+        public Consumer<String> trace;
 
         public Context(Consumer<String> trace) {
             this.trace = trace;
@@ -52,11 +53,12 @@ class TestCuctus {
             return stack == null;
         }
 
-        public void add(String name, Executable e) {
+        public Context put(String name, Executable e) {
             globals.put(name, new Value() {
                 @Override public void execute(Context c) { e.execute(c); }
                 @Override public String toString() { return name; }
             });
+            return this;
         }
 
         public Value get(String name) {
@@ -67,20 +69,28 @@ class TestCuctus {
             stack = new Cuctus(value, stack);
         }
 
+        public Value peek() {
+            return stack.value;
+        }
+
         public Value pop() {
             Value result = stack.value;
             stack = stack.previous;
             return result;
         }
 
+        int nest = 0;
         public void execute(Value v) {
-            if (trace == null)
+            if (trace == null) {
                 v.execute(this);
-            else {
-                String before = toString();
-                v.execute(this);
-                trace.accept(before + " : " + v + " -> " + this);
+                return;
             }
+            String indent = "  ".repeat(nest);
+            trace.accept(indent + "> " + v);
+            ++nest;
+            v.execute(this);
+            --nest;
+            trace.accept(indent + "< " + this);
         }
 
         private static void toString(Cuctus c, StringBuilder sb) {
@@ -201,8 +211,8 @@ class TestCuctus {
 
     static class Bool extends Value {
 
-        public static final Bool TRUE = of(true);
-        public static final Bool FALSE = of(false);
+        public static final Bool TRUE = new Bool(true);
+        public static final Bool FALSE = new Bool(false);
 
         public final boolean value;
 
@@ -234,18 +244,95 @@ class TestCuctus {
             return Boolean.toString(value);
         }
     }
+    
+    static class IndirectCall extends Value {
+        final String name;
+        
+        IndirectCall(String name) {
+            this.name = name;
+        }
+        
+        public static IndirectCall of (String name) {
+            return new IndirectCall(name);
+        }
+        
+        @Override
+        public void execute(Context c) {
+            c.get(name).execute(c);
+        }
+        
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+    
+    static void methodName() {
+        logger.info("*** " + Thread.currentThread().getStackTrace()[2].getMethodName());
+    }
+
+    Context context = new Context(logger::info)
+        .put("dup", c -> c.push(c.peek()))
+        .put("drop", c -> c.pop())
+        .put("execute", c -> c.pop().run(c))
+        .put("if", c -> {
+            Value elsePart = c.pop(), thenPart = c.pop(), condition = c.pop();
+            if (((Bool)condition).value)
+                thenPart.run(c);
+            else
+                elsePart.run(c);
+        })
+        .put("+", c -> { Value r = c.pop(); c.push(c.pop().add(r)); })
+        .put("==", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().equals(r))); })
+        .put("<", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().compareTo(r) < 0)); })
+    ;
 
     @Test
-    void test() {
-        Context context = new Context(logger::info);
-        context.add("+", c -> { Value r = c.pop(); c.push(c.pop().add(r)); });
-        context.add("==", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().equals(r))); });
-        context.add("<", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().compareTo(r) < 0)); });
+    void testDupDrop() {
+        methodName();
+        List block = List.of(Int.of(1), Int.of(2), context.get("drop"), context.get("dup"), context.get("drop"));
+        block.run(context);
+        assertEquals(Int.of(1), context.pop());
+        assertTrue(context.isEmpty());
+    }
+
+    @Test
+    void testPlus() {
+        methodName();
         List block = List.of(Int.of(1), Int.of(2), context.get("+"));
         block.run(context);
-        System.out.println(block);
-        System.out.println(context);
         assertEquals(Int.of(3), context.pop());
+        assertTrue(context.isEmpty());
+    }
+
+    @Test
+    void testIndirectCall() {
+        methodName();
+        List block = List.of(Int.of(1), Int.of(2), IndirectCall.of("+"));
+        block.run(context);
+        assertEquals(Int.of(3), context.pop());
+        assertTrue(context.isEmpty());
+    }
+
+    @Test
+    void testExecute() {
+        methodName();
+        List block = List.of(List.of(Int.of(1), Int.of(2), IndirectCall.of("+")), context.get("execute"));
+        block.run(context);
+        assertEquals(Int.of(3), context.pop());
+        assertTrue(context.isEmpty());
+    }
+
+    @Test
+    void testIf() {
+        methodName();
+        List block = List.of(Bool.TRUE, Int.of(1), Int.of(2), context.get("if"));
+        block.run(context);
+        assertEquals(Int.of(1), context.pop());
+        assertTrue(context.isEmpty());
+        block = List.of(Bool.FALSE, Int.of(1), Int.of(2), context.get("if"));
+        block.run(context);
+        assertEquals(Int.of(2), context.pop());
         assertTrue(context.isEmpty());
     }
 

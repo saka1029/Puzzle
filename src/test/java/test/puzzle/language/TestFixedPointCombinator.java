@@ -1,4 +1,4 @@
-package test.puzzle.lambda;
+package test.puzzle.language;
 
 import java.util.HashMap;
 import java.util.Map;

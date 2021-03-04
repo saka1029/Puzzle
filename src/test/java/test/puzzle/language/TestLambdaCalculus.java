@@ -1,7 +1,7 @@
-package test.puzzle.lambda;
+package test.puzzle.language;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static puzzle.lambda.LambdaCalculus.*;
+import static puzzle.language.LambdaCalculus.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import puzzle.lambda.LambdaCalculus.Expression;
+import puzzle.language.LambdaCalculus.Expression;
 
 class TestLambdaCalculus {
 

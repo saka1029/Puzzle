@@ -1,4 +1,4 @@
-package puzzle.lambda;
+package puzzle.language;
 
 import java.util.HashMap;
 import java.util.Map;

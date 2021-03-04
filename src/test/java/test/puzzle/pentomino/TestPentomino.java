@@ -16,7 +16,7 @@ import puzzle.pentomino.Solver;
 
 class TestPentomino {
 
-    @Test
+//    @Test
     void test10x6() {
         int[][] matrix = new int[10][6];
         for (int[] row : matrix)

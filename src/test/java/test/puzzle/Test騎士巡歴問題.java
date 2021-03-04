@@ -141,7 +141,7 @@ class Test騎士巡歴問題 {
             }
     }
 
-    @Test
+//    @Test
     void test() {
         int height = 6;
         int width = 6;

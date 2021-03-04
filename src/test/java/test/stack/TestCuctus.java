@@ -1,7 +1,6 @@
 package test.stack;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,6 +11,10 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * Cactus stack (Spaghetti stack) ベースのプログラミング言語
+ * Cactus stack を使うことで、クロージャを実現することが狙いです。
+ */
 class TestCuctus {
 
     static String LOG_FORMAT_KEY = "java.util.logging.SimpleFormatter.format";
@@ -53,8 +56,13 @@ class TestCuctus {
             return stack == null;
         }
 
+        public Context put(String name, Value v) {
+            globals.put(name, v);
+            return this;
+        }
+
         public Context put(String name, Executable e) {
-            globals.put(name, new Value() {
+            put(name, new Value() {
                 @Override public void execute(Context c) { e.execute(c); }
                 @Override public String toString() { return name; }
             });
@@ -62,15 +70,21 @@ class TestCuctus {
         }
 
         public Value get(String name) {
-            return globals.get(name);
+            Value result = globals.get(name);
+//            if (result == null)
+//                throw new RuntimeException("'" + name + "' not found in context");
+            return result;
         }
 
         public void push(Value value) {
             stack = new Cuctus(value, stack);
         }
 
-        public Value peek() {
-            return stack.value;
+        public Value peek(int n) {
+            Cuctus c = stack;
+            for ( ; n > 0; --n)
+                c = c.previous;
+            return c.value;
         }
 
         public Value pop() {
@@ -80,17 +94,21 @@ class TestCuctus {
         }
 
         int nest = 0;
+
+        public void trace(String s) {
+            trace.accept("  ".repeat(nest) + s);
+        }
+
         public void execute(Value v) {
             if (trace == null) {
                 v.execute(this);
                 return;
             }
-            String indent = "  ".repeat(nest);
-            trace.accept(indent + "> " + v);
+            trace("> " + v);
             ++nest;
             v.execute(this);
             --nest;
-            trace.accept(indent + "< " + this);
+            trace("< " + this);
         }
 
         private static void toString(Cuctus c, StringBuilder sb) {
@@ -137,6 +155,7 @@ class TestCuctus {
 
         @Override
         public void run(Context c) {
+            c.trace("< " + c);
             for (Value v : values)
                 c.execute(v);
         }
@@ -244,48 +263,62 @@ class TestCuctus {
             return Boolean.toString(value);
         }
     }
-    
+
     static class IndirectCall extends Value {
         final String name;
-        
+
         IndirectCall(String name) {
             this.name = name;
         }
-        
+
         public static IndirectCall of (String name) {
             return new IndirectCall(name);
         }
-        
+
         @Override
         public void execute(Context c) {
-            c.get(name).execute(c);
+            Value v = c.get(name);
+            if (v == null)
+                throw new RuntimeException("'" + name + "' not defined in context");
+            v.execute(c);
         }
-        
+
         @Override
         public String toString() {
             return name;
         }
     }
-    
+
     static void methodName() {
         logger.info("*** " + Thread.currentThread().getStackTrace()[2].getMethodName());
     }
 
-    Context context = new Context(logger::info)
-        .put("dup", c -> c.push(c.peek()))
-        .put("drop", c -> c.pop())
-        .put("execute", c -> c.pop().run(c))
-        .put("if", c -> {
-            Value elsePart = c.pop(), thenPart = c.pop(), condition = c.pop();
-            if (((Bool)condition).value)
-                thenPart.run(c);
-            else
-                elsePart.run(c);
-        })
-        .put("+", c -> { Value r = c.pop(); c.push(c.pop().add(r)); })
-        .put("==", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().equals(r))); })
-        .put("<", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().compareTo(r) < 0)); })
-    ;
+    public static Context context() {
+        return new Context(logger::info)
+            .put("dup", c -> c.push(c.peek(0)))
+            .put("over", c -> c.push(c.peek(1)))
+            .put("swap", c -> { Value a = c.pop(), b = c.pop(); c.push(a); c.push(b); })
+            .put("drop", c -> c.pop())
+            .put("execute", c -> c.pop().run(c))
+            .put("if", c -> {
+                Value elsePart = c.pop(), thenPart = c.pop(), condition = c.pop();
+                if (((Bool)condition).value)
+                    thenPart.run(c);
+                else
+                    elsePart.run(c);
+            })
+            .put("+", c -> { Value r = c.pop(); c.push(c.pop().add(r)); })
+            .put("-", c -> { Value r = c.pop(); c.push(c.pop().sub(r)); })
+            .put("==", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().equals(r))); })
+            .put("!=", c -> { Value r = c.pop(); c.push(Bool.of(!c.pop().equals(r))); })
+            .put("<", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().compareTo(r) < 0)); })
+            .put("<=", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().compareTo(r) <= 0)); })
+            .put(">", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().compareTo(r) > 0)); })
+            .put(">=", c -> { Value r = c.pop(); c.push(Bool.of(c.pop().compareTo(r) >= 0)); })
+        ;
+    }
+
+    Context context = context();
 
     @Test
     void testDupDrop() {
@@ -293,6 +326,27 @@ class TestCuctus {
         List block = List.of(Int.of(1), Int.of(2), context.get("drop"), context.get("dup"), context.get("drop"));
         block.run(context);
         assertEquals(Int.of(1), context.pop());
+        assertTrue(context.isEmpty());
+    }
+
+    @Test
+    void testOver() {
+        methodName();
+        List block = List.of(Int.of(1), Int.of(2), context.get("over"));
+        block.run(context);
+        assertEquals(Int.of(1), context.pop());
+        assertEquals(Int.of(2), context.pop());
+        assertEquals(Int.of(1), context.pop());
+        assertTrue(context.isEmpty());
+    }
+
+    @Test
+    void testSwap() {
+        methodName();
+        List block = List.of(Int.of(1), Int.of(2), context.get("swap"));
+        block.run(context);
+        assertEquals(Int.of(1), context.pop());
+        assertEquals(Int.of(2), context.pop());
         assertTrue(context.isEmpty());
     }
 
@@ -330,9 +384,26 @@ class TestCuctus {
         block.run(context);
         assertEquals(Int.of(1), context.pop());
         assertTrue(context.isEmpty());
+        logger.info("---");
         block = List.of(Bool.FALSE, Int.of(1), Int.of(2), context.get("if"));
         block.run(context);
         assertEquals(Int.of(2), context.pop());
+        assertTrue(context.isEmpty());
+    }
+
+    @Test
+    void testIfFunction() {
+        methodName();
+        List block = List.of( Int.of(1), Int.of(2),
+            Bool.TRUE, List.of(context.get("+")), List.of(context.get("-")), context.get("if"));
+        block.run(context);
+        assertEquals(Int.of(3), context.pop());
+        assertTrue(context.isEmpty());
+        logger.info("---");
+        block = List.of( Int.of(1), Int.of(2),
+            Bool.FALSE, List.of(context.get("+")), List.of(context.get("-")), context.get("if"));
+        block.run(context);
+        assertEquals(Int.of(-1), context.pop());
         assertTrue(context.isEmpty());
     }
 

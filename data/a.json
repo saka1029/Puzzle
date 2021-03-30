@@ -1,0 +1,64 @@
+[
+    {
+        "id": "1",
+        "createdAt": "2020-10-27T19:10:01.232Z",
+        "title": "title 1",
+        "sensitive": false,
+        "topics": [
+            "business",
+            "politics",
+            "technology"
+        ],
+        "image": null,
+        "priority": 89
+    },
+    {
+        "id": "2",
+        "createdAt": "2020-10-28T07:45:21.526Z",
+        "title": "title 2",
+        "sensitive": true,
+        "topics": [
+        ],
+        "image": {
+            "url": "https://imgur.com",
+            "fileType": ".jpg"
+        },
+        "priority": 45
+    },
+    {
+        "id": "3",
+        "createdAt": "2020-10-27T13:09:32.347Z",
+        "title": "£31 million pounds shortfall in economy",
+        "sensitive": false,
+        "topics": [
+        ],
+        "image": {
+            "url": "https://imgur.com",
+            "fileType": ".svg"
+        },
+        "priority": 25
+    },
+    {
+        "id": "4656364867443",
+        "createdAt": "2020-10-27T17:03:33.158Z",
+        "title": "title 4",
+        "sensitive": true,
+        "topics": [
+            "USA"
+        ],
+        "image": {
+        },
+        "priority": 0
+    },
+    {
+        "id": "5",
+        "createdAt": "2020-10-28T02:46:16.766Z",
+        "title": "title 5",
+        "sensitive": false,
+        "topics": [
+        ],
+        "image": {
+        },
+        "priority": 56
+    }
+]

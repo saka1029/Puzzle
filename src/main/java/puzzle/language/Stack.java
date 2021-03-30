@@ -45,20 +45,19 @@ public class Stack {
             return this;
         }
 
-
-        public void trace(String output) {
+        public void trace(Object output) {
             if (trace != null)
                 trace.accept("  ".repeat(nest) + output);
         }
 
         public void trace(Value v) {
             if (trace != null)
-                trace("exec : " + v);
+                trace(this + " : " + v);
         }
 
         public void trace() {
             if (trace != null)
-                trace("stack: " + this);
+                trace(this);
         }
 
         public void execute(Value v) {
@@ -66,7 +65,6 @@ public class Stack {
             ++nest;
             v.execute(this);
             --nest;
-            trace();
         }
 
         public boolean isEmpty() {
@@ -164,19 +162,27 @@ public class Stack {
         }
 
         default Value head() {
-            return ((Cons)this).head;
+            if (this instanceof Cons cons)
+                return cons.head;
+            if (this instanceof Str str)
+                return Int.of(str.value[0]);
+            throw new UnsupportedOperationException();
         }
 
-        default Cons tail() {
-            return ((Cons)this).tail;
+        default Value tail() {
+            if (this instanceof Cons cons)
+                return cons.tail;
+            if (this instanceof Str str)
+                return Str.of(Arrays.copyOfRange(str.value, 1, str.value.length));
+            throw new UnsupportedOperationException();
         }
 
-        default Value cons(Value cons) {
-            return Cons.of(this, (Cons)cons);
-        }
-
-        default Value append(Value cons) {
-            return Cons.append((Cons)this, (Cons)cons);
+        default Value cons(Value tail) {
+            if (tail instanceof Cons cons)
+                return Cons.of(this, cons);
+            if (tail instanceof Str str)
+                return Str.cons(((Int)this).value, str.value);
+            throw new UnsupportedOperationException();
         }
 
         default Bool eq(Value right) {
@@ -204,35 +210,41 @@ public class Stack {
         }
 
         default Value and(Value right) {
-            throw new UnsupportedOperationException();
+            return Bool.of(((Bool)this).value & ((Bool)right).value);
         }
 
         default Value or(Value right) {
-            throw new UnsupportedOperationException();
+            return Bool.of(((Bool)this).value | ((Bool)right).value);
         }
 
         default Value not() {
-            throw new UnsupportedOperationException();
+            return Bool.of(!((Bool)this).value);
         }
 
         default Value add(Value right) {
+            if (this instanceof Int i)
+                return Int.of(i.value + ((Int)right).value);
+            if (this instanceof Cons c)
+                return c.append((Cons)right);
+            if (this instanceof Str s)
+                return s.append((Str)right);
             throw new UnsupportedOperationException();
         }
 
         default Value sub(Value right) {
-            throw new UnsupportedOperationException();
+            return Int.of(((Int)this).value - ((Int)right).value);
         }
 
         default Value mul(Value right) {
-            throw new UnsupportedOperationException();
+            return Int.of(((Int)this).value * ((Int)right).value);
         }
 
         default Value div(Value right) {
-            throw new UnsupportedOperationException();
+            return Int.of(((Int)this).value / ((Int)right).value);
         }
 
         default Value mod(Value right) {
-            throw new UnsupportedOperationException();
+            return Int.of(((Int)this).value % ((Int)right).value);
         }
 
         default Value sqrt() {
@@ -299,26 +311,6 @@ public class Stack {
         public String toString() {
             return Boolean.toString(value);
         }
-
-        @Override
-        public Value and(Value right) {
-            if (right.getClass() == getClass())
-                return of(value & ((Bool)right).value);
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Value or(Value right) {
-            if (right.getClass() == getClass())
-                return of(value | ((Bool)right).value);
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Value not() {
-            return of(!value);
-        }
-
     }
 
     public static class Int implements Value {
@@ -364,41 +356,6 @@ public class Stack {
         public String toString() {
             return Integer.toString(value);
         }
-
-        @Override
-        public Value add(Value right) {
-            if (right.getClass() == getClass())
-                return of(value + ((Int)right).value);
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Value sub(Value right) {
-            if (right.getClass() == getClass())
-                return of(value - ((Int)right).value);
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Value mul(Value right) {
-            if (right.getClass() == getClass())
-                return of(value * ((Int)right).value);
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Value div(Value right) {
-            if (right.getClass() == getClass())
-                return of(value / ((Int)right).value);
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Value mod(Value right) {
-            if (right.getClass() == getClass())
-                return of(value % ((Int)right).value);
-            throw new UnsupportedOperationException();
-        }
     }
 
     public static class Cons implements Value {
@@ -423,11 +380,11 @@ public class Stack {
             return new Cons(head, tail);
         }
 
-        public static Cons append(Cons left, Cons right) {
-            if (left == END)
+        public Cons append(Cons right) {
+            if (this == END)
                 return right;
             else
-                return new Cons(left.head, append(left.tail, right));
+                return new Cons(head, tail.append(right));
         }
 
         public static Builder builder() {
@@ -453,9 +410,9 @@ public class Stack {
 
         @Override
         public void run(Context c) {
-            c.trace();
             for (Cons cons = this; cons != END; cons = cons.tail)
                 c.execute(cons.head);
+            c.trace();
         }
 
         @Override
@@ -519,6 +476,25 @@ public class Stack {
 
         public static Str of(String s) {
             return new Str(s.codePoints().toArray());
+        }
+
+        public static Str of(int[] value) {
+            return new Str(value.clone());
+        }
+
+        public static Str cons(int head, int[] value) {
+            int length = value.length;
+            int[] a = new int[length + 1];
+            a[0] = head;
+            System.arraycopy(value, 0, a, 1, length);
+            return new Str(a);
+        }
+
+        public Str append(Str right) {
+            int[] a = new int[value.length + right.value.length];
+            System.arraycopy(this.value, 0, a, 0, value.length);
+            System.arraycopy(right.value, 0, a, value.length, right.value.length);
+            return new Str(a);
         }
 
         public static Builder builder() {
@@ -665,13 +641,6 @@ public class Stack {
         };
     }
 
-    public static void ifThenElse(Context context, Value predicate, Value then, Value orElse) {
-        if (((Bool)predicate).value)
-            then.run(context);
-        else
-            orElse.run(context);
-    }
-
     public static final Value END_OF_STREAM = Context.code("End of stream", c -> { throw new RuntimeException(); });
     static final Pattern INTEGER_PAT = Pattern.compile("[-+]?(\\d+|0x[0-9a-f]+|0b[01]+)", Pattern.CASE_INSENSITIVE);
     static final Pattern DOUBLE_PAT = Pattern.compile("[-+]?\\d*\\.?\\d+([e][-+]?\\d+)?", Pattern.CASE_INSENSITIVE);
@@ -773,13 +742,13 @@ public class Stack {
     }
 
     public static void repl(Context context, Reader reader) {
-        context.trace();
         while (true) {
             Value element = read(context, reader);
             if (element == END_OF_STREAM)
                 break;
             context.execute(element);
         }
+        context.trace();
     }
 
     public static void repl(Context context, String source) {
@@ -824,7 +793,6 @@ public class Stack {
             .put("head", c -> c.push(c.pop().head()))
             .put("tail", c -> c.push(c.pop().tail()))
             .put("cons", c -> { Value t = c.pop(); c.push(c.pop().cons(t)); })
-            .put("append", c -> { Value t = c.pop(); c.push(c.pop().append(t)); })
             .put("&", c -> { Value r = c.pop(); c.push(c.pop().and(r)); })
             .put("|", c -> { Value r = c.pop(); c.push(c.pop().or(r)); })
             .put("!", c -> c.push(c.pop().not()))
@@ -843,7 +811,10 @@ public class Stack {
             .put("exec", c -> c.pop().run(c))
             .put("if", c -> {
                 Value orElse = c.pop(), then = c.pop(), predicate = c.pop();
-                ifThenElse(c, predicate, then, orElse);
+                if (((Bool)predicate).value)
+                    then.run(c);
+                else
+                    orElse.run(c);
             })
             .put("map", c -> { Value f = c.pop(); c.push(map(c.pop(), function(c, f))); })
             .put("filter", c -> { Value f = c.pop(); c.push(filter(c.pop(), function(c, f))); })

@@ -313,7 +313,6 @@ public class Iterables {
             public T next() {
                 throw new NoSuchElementException();
             }
-
         };
     }
 
@@ -381,7 +380,6 @@ public class Iterables {
                 hasNext = advance();
                 return result;
             }
-
         };
         // return () -> new FilterIterator<>(source.iterator(), predicate);
     }

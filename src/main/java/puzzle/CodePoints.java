@@ -18,12 +18,12 @@ public class CodePoints {
         return substring(s, start, length(s));
     }
 
-    public static int[] codePointsArray(String s) {
+    public static int[] codePoints(String s) {
         return s.codePoints().toArray();
     }
 
-    public static String[] split(String s) {
-        return s.split("?<=.");
+    public static String[] strings(String s) {
+        return s.split("(?<=.)");
     }
 
     public static Iterable<Integer> iterable(String s) {

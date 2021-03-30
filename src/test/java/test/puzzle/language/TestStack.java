@@ -85,7 +85,7 @@ class TestStack {
     @Test
     void testAppend() {
         methodName();
-        testEval("3", "[1 2] [+] append exec");
+        testEval("3", "[1 2] [+] + exec");
     }
 
     @Test
@@ -125,7 +125,7 @@ class TestStack {
     @Test
     void testFactRecursive() {
         methodName();
-        testEval("120", "\"fact\" [dup 0 <= [drop 1] [dup 1 - fact *] if] define 5 fact");
+        testEval("120", "\"fact\" [dup 1 <= [drop 1] [dup 1 - fact *] if] define 5 fact");
     }
 
     @Test
@@ -188,6 +188,7 @@ class TestStack {
         for (int i = 2; i <= maxSieve; ++i) {
             final int k = i;
             // ラムダ式は外部の変数kを参照しています。
+            // これはラムダ式を定義したときに静的に見えている変数です。
             stream = stream.filter(n -> n == k || n % k != 0);
         }
         assertArrayEquals(new int[] {
@@ -245,5 +246,9 @@ class TestStack {
     void testStr() {
         methodName();
         testEval("\"ABC\"", "\"abc\" [32 -] map str");
+        testEval("'A'", "\"ABC\" head");
+        testEval("\"BC\"", "\"ABC\" tail");
+        testEval("\"ABC\"", "'A' \"BC\" cons");
+        testEval("\"ABCDE\"", "\"ABC\" \"DE\" +");
     }
 }

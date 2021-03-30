@@ -48,6 +48,8 @@ import java.util.stream.Stream;
  */
 public class Json {
 
+    private Json() {}
+
     public static final String KEY_ESCAPE = "/";
     public static final String KEY_SEPARATOR = ".";
     static final Pattern DELIMITER = Pattern.compile("(?<!" + KEY_ESCAPE + ")[" + KEY_SEPARATOR + "]");

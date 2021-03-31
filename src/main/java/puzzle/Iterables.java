@@ -302,7 +302,7 @@ public class Iterables {
      * start operations
      */
     public static <T> Iterable<T> empty() {
-        return () -> new Iterator<T>() {
+        class Empty implements Iterator<T> {
 
             @Override
             public boolean hasNext() {
@@ -313,7 +313,8 @@ public class Iterables {
             public T next() {
                 throw new NoSuchElementException();
             }
-        };
+        }
+        return () -> new Empty();
     }
 
     public static Iterable<Integer> range(int from, int to) {
@@ -356,7 +357,7 @@ public class Iterables {
      * intermediate operations
      */
     public static <T> Iterable<T> filter(Predicate<T> predicate, Iterable<T> source) {
-        return () -> new Iterator<T>() {
+        class Filter implements Iterator<T> {
 
             final Iterator<T> iterator = source.iterator();
             boolean hasNext = advance();
@@ -381,6 +382,7 @@ public class Iterables {
                 return result;
             }
         };
+        return () -> new Filter();
         // return () -> new FilterIterator<>(source.iterator(), predicate);
     }
 
@@ -426,7 +428,7 @@ public class Iterables {
     // }
 
     public static <T, U> Iterable<U> flatMap(Function<T, Iterable<U>> flatter, Iterable<T> source) {
-        return () -> new Iterator<U>() {
+        class FlatMap implements Iterator<U> {
 
             final Iterator<T> parent = source.iterator();
             Iterator<U> child = null;
@@ -462,12 +464,13 @@ public class Iterables {
                 return result;
             }
 
-        };
+        }
+        return () -> new FlatMap();
     }
 
     @SafeVarargs
     public static <T> Iterable<T> concat(Iterable<T>... sources) {
-        return () -> new Iterator<T>() {
+        class Concat implements Iterator<T> {
 
             final List<Iterator<T>> iterators = list(map(Iterable::iterator, iterable(sources)));
             int index = 0;
@@ -494,6 +497,7 @@ public class Iterables {
                 return result;
             }
         };
+        return () -> new Concat();
     }
 
     public static <T> Iterable<T> peek(Consumer<T> consumer, Iterable<T> source) {
@@ -534,18 +538,36 @@ public class Iterables {
     }
 
     public static <T> Iterable<T> limit(int limit, Iterable<T> source) {
-        return () -> iterator(new Object() {
+        class Limit implements Iterator<T> {
             int index = 0;
             Iterator<T> iterator = source.iterator();
-        }, c -> c.iterator.hasNext() && c.index < limit,
-            c -> {
-                c.index++;
-                return c.iterator.next();
-            });
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext() && index < limit;
+            }
+
+            @Override
+            public T next() {
+                index++;
+                return iterator.next();
+            }
+
+        }
+        return () -> new Limit();
+//        return () -> iterator(new Object() {
+//            int index = 0;
+//            Iterator<T> iterator = source.iterator();
+//        },
+//        c -> c.iterator.hasNext() && c.index < limit,
+//            c -> {
+//                c.index++;
+//                return c.iterator.next();
+//            });
     }
 
     public static <T> Iterable<T> dropWhile(Predicate<? super T> predicate, Iterable<T> source) {
-        return () -> new Iterator<T>() {
+        class DropWhile implements Iterator<T> {
 
             final Iterator<T> iterator = source.iterator();
             boolean hasNext = init();
@@ -578,10 +600,11 @@ public class Iterables {
             }
 
         };
+        return () -> new DropWhile();
     }
 
     public static <T> Iterable<T> takeWhile(Predicate<? super T> predicate, Iterable<T> source) {
-        return () -> new Iterator<T>() {
+        class TakeWhile implements Iterator<T> {
 
             final Iterator<T> iterator = source.iterator();
             T next;
@@ -612,8 +635,8 @@ public class Iterables {
                 hasNext = advance();
                 return result;
             }
-
         };
+        return () -> new TakeWhile();
     }
 
     @SuppressWarnings("preview")
@@ -621,10 +644,21 @@ public class Iterables {
     }
 
     public static <T> Iterable<Indexed<T>> indexed(Iterable<T> source) {
-        return () -> iterator(new Object() {
+        class Ind implements Iterator<Indexed<T>> {
             Iterator<T> iterator = source.iterator();
             int index = 0;
-        }, c -> c.iterator.hasNext(), c -> new Indexed<>(c.index++, c.iterator.next()));
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public Indexed<T> next() {
+                return new Indexed<>(index++, iterator.next());
+            }
+        }
+        return () -> new Ind();
     }
 
     public static <T> Iterable<List<T>> combination(int r, Iterable<T> source) {
@@ -649,12 +683,22 @@ public class Iterables {
         }, permutation(list.size(), r));
     }
 
-    public static <T, U, R> Iterable<R> zip(BiFunction<T, U, R> zipper, Iterable<T> a,
-        Iterable<U> b) {
-        return () -> iterator(new Object() {
+    public static <T, U, R> Iterable<R> zip(BiFunction<T, U, R> zipper, Iterable<T> a, Iterable<U> b) {
+        class Zip implements Iterator<R> {
             Iterator<T> aa = a.iterator();
             Iterator<U> bb = b.iterator();
-        }, c -> c.aa.hasNext() && c.bb.hasNext(), c -> zipper.apply(c.aa.next(), c.bb.next()));
+
+            @Override
+            public boolean hasNext() {
+                return aa.hasNext() && bb.hasNext();
+            }
+
+            @Override
+            public R next() {
+                return zipper.apply(aa.next(), bb.next());
+            }
+        }
+        return () -> new Zip();
     }
 
     /*
@@ -809,9 +853,8 @@ public class Iterables {
         return unit;
     }
 
-    public static <T, U> Iterable<U> cumulative(U unit, BiFunction<U, T, U> function,
-        Iterable<T> source) {
-        return () -> new Iterator<U>() {
+    public static <T, U> Iterable<U> cumulative(U unit, BiFunction<U, T, U> function, Iterable<T> source) {
+        class Cumulative implements Iterator<U> {
 
             Iterator<T> iterator = source.iterator();
             U accumlator = unit;
@@ -828,7 +871,8 @@ public class Iterables {
                 return accumlator = function.apply(accumlator, iterator.next());
             }
 
-        };
+        }
+        return () -> new Cumulative();
     }
 
     public static <T> int count(Iterable<T> source) {

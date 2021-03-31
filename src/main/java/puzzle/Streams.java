@@ -16,8 +16,7 @@ public class Streams {
     public static <T1, T2, R> Stream<R> zip(Stream<T1> stream1, Stream<T2> stream2, BiFunction<T1, T2, R> zipper) {
         Iterator<T1> iterator1 = stream1.iterator();
         Iterator<T2> iterator2 = stream2.iterator();
-        Iterable<R> iterable = () -> new Iterator<R>() {
-
+        class It implements Iterator<R> {
             @Override
             public boolean hasNext() {
                 return iterator1.hasNext() && iterator2.hasNext();
@@ -28,6 +27,7 @@ public class Streams {
                 return zipper.apply(iterator1.next(), iterator2.next());
             }
         };
+        Iterable<R> iterable = () -> new It();
         return StreamSupport.stream(iterable.spliterator(), false);
     }
 

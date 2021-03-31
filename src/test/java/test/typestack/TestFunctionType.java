@@ -6,6 +6,7 @@ import static typestack.Type.*;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
 import typestack.FunctionType;
 
@@ -37,9 +38,8 @@ class TestFunctionType {
             assertEquals(functionType(types(), types(INTEGER)),
                 loadString.composite(loadString).composite(integerOperator));
             fail();
-        } catch (RuntimeException e) {
+        } catch (AssertionFailedError e) {
             logger.info(e.toString());
-            assertTrue(e.getMessage().toLowerCase().contains("cannot composite"));
         }
     }
 

@@ -26,7 +26,7 @@ class TestIterableAsStream {
     }
 
     public static <T, U> Iterable<U> map(Function<T, U> mapper, Iterable<T> source) {
-        return () -> new Iterator<U>() {
+        class Map implements Iterator<U> {
 
             final Iterator<T> iterator = source.iterator();
 
@@ -41,6 +41,7 @@ class TestIterableAsStream {
             }
 
         };
+        return () -> new Map();
     }
 
     public static <T> List<T> toList(Iterable<T> source) {
@@ -65,7 +66,7 @@ class TestIterableAsStream {
     }
 
     public static <T> Iterable<T> filter(Predicate<T> selector, Iterable<T> source) {
-        return () -> new Iterator<T>() {
+        class Filter implements Iterator<T> {
 
             final Iterator<T> iterator = source.iterator();
             boolean hasNext = advance();
@@ -89,7 +90,8 @@ class TestIterableAsStream {
                 hasNext = advance();
                 return result;
             }
-        };
+        }
+        return () -> new Filter();
     }
 
     @Test
@@ -179,7 +181,7 @@ class TestIterableAsStream {
     }
 
     public static <T, U> Iterable<U> flatMap(Function<T, Iterable<U>> flatter, Iterable<T> source) {
-        return () -> new Iterator<U>() {
+        class FlatMap implements Iterator<U> {
 
             final Iterator<T> parent = source.iterator();
             Iterator<U> child = null;
@@ -213,7 +215,8 @@ class TestIterableAsStream {
                 return result;
             }
 
-        };
+        }
+        return () -> new FlatMap();
     }
 
     @Test
@@ -230,9 +233,8 @@ class TestIterableAsStream {
         assertEquals(stream, actual);
     }
 
-    static <T, U, V> Iterable<V> zip(BiFunction<T, U, V> zipper, Iterable<T> source1,
-        Iterable<U> source2) {
-        return () -> new Iterator<V>() {
+    static <T, U, V> Iterable<V> zip(BiFunction<T, U, V> zipper, Iterable<T> source1, Iterable<U> source2) {
+        class Zip implements Iterator<V> {
 
             final Iterator<T> iterator1 = source1.iterator();
             final Iterator<U> iterator2 = source2.iterator();
@@ -246,8 +248,8 @@ class TestIterableAsStream {
             public V next() {
                 return zipper.apply(iterator1.next(), iterator2.next());
             }
-
-        };
+        }
+        return () -> new Zip();
     }
 
     @Test
@@ -260,9 +262,8 @@ class TestIterableAsStream {
         assertEquals(expected, actual);
     }
 
-    public static <T, U> Iterable<U> cumulative(U unit, BiFunction<U, T, U> function,
-        Iterable<T> source) {
-        return () -> new Iterator<U>() {
+    public static <T, U> Iterable<U> cumulative(U unit, BiFunction<U, T, U> function, Iterable<T> source) {
+        class Cumulative implements Iterator<U> {
 
             Iterator<T> iterator = source.iterator();
             U accumlator = unit;
@@ -276,8 +277,8 @@ class TestIterableAsStream {
             public U next() {
                 return accumlator = function.apply(accumlator, iterator.next());
             }
-
-        };
+        }
+        return () -> new Cumulative();
     }
 
     @Test

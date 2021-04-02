@@ -392,10 +392,10 @@ public class Json {
         }
     }
 
-    public static ParseHandler DEFAULT_HANDLER = new DefaultParseHandler();
+    public static ParseHandler DEFAULT_PARSE_HANDLER = new DefaultParseHandler();
 
     public static Object parse(File file) throws IOException {
-        return parse(DEFAULT_HANDLER, file);
+        return parse(DEFAULT_PARSE_HANDLER, file);
     }
 
     public static Object parse(ParseHandler handler, File file) throws IOException {
@@ -405,7 +405,7 @@ public class Json {
     }
 
     public static Object parse(File file, Charset encoding) throws IOException {
-        return parse(DEFAULT_HANDLER, file, encoding);
+        return parse(DEFAULT_PARSE_HANDLER, file, encoding);
     }
 
     public static Object parse(ParseHandler handler, File file, Charset encoding) throws IOException {
@@ -416,7 +416,7 @@ public class Json {
     }
 
     public static Object parse(Path path) throws IOException {
-        return parse(DEFAULT_HANDLER, path);
+        return parse(DEFAULT_PARSE_HANDLER, path);
     }
 
     public static Object parse(ParseHandler handler, Path path) throws IOException {
@@ -426,7 +426,7 @@ public class Json {
     }
 
     public static Object parse(Path path, Charset encoding) throws IOException {
-        return parse(DEFAULT_HANDLER, path, encoding);
+        return parse(DEFAULT_PARSE_HANDLER, path, encoding);
     }
 
     public static Object parse(ParseHandler handler, Path path, Charset encoding) throws IOException {
@@ -436,7 +436,7 @@ public class Json {
     }
 
     public static Object parse(String s) {
-        return parse(DEFAULT_HANDLER, s);
+        return parse(DEFAULT_PARSE_HANDLER, s);
     }
 
     public static Object parse(ParseHandler handler, String s) {
@@ -448,7 +448,7 @@ public class Json {
     }
 
     public static Object parse(Reader reader) throws IOException {
-        return parse(DEFAULT_HANDLER, reader);
+        return parse(DEFAULT_PARSE_HANDLER, reader);
     }
 
     public static Object parse(ParseHandler handler, Reader reader) throws IOException {

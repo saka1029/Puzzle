@@ -1,0 +1,5 @@
+package stackoverflow;
+
+class A {
+
+}

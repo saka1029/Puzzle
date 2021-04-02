@@ -85,6 +85,10 @@ public class Iterables {
                     : comparator.compare(a, b) >= 0 ? a : b;
     }
 
+    public interface TriFunction<T, U, V, R> {
+        R apply(T t, U u, V v);
+    }
+
     /*
      * Comparator
      */
@@ -394,6 +398,45 @@ public class Iterables {
         return () -> iterator(source.iterator(), s -> s.hasNext(), s -> mapper.apply(s.next()));
     }
 
+    public static <T, U, R> Iterable<R> map(BiFunction<T, U, R> mapper, Iterable<T> a, Iterable<U> b) {
+        class Zip implements Iterator<R> {
+            Iterator<T> aa = a.iterator();
+            Iterator<U> bb = b.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return aa.hasNext() && bb.hasNext();
+            }
+
+            @Override
+            public R next() {
+                return mapper.apply(aa.next(), bb.next());
+            }
+        }
+        return () -> new Zip();
+    }
+
+    public static <T, U, V, R> Iterable<R> map(TriFunction<T, U, V, R> mapper,
+        Iterable<T> a, Iterable<U> b, Iterable<V> c) {
+        class Zip3 implements Iterator<R> {
+            Iterator<T> aa = a.iterator();
+            Iterator<U> bb = b.iterator();
+            Iterator<V> cc = c.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return aa.hasNext() && bb.hasNext() && cc.hasNext();
+            }
+
+            @Override
+            public R next() {
+                return mapper.apply(aa.next(), bb.next(), cc.next());
+            }
+        }
+        return () -> new Zip3();
+    }
+
+
     // public static <T, U> Iterable<U> flatMap(Function<T, Iterable<U>> mapper,
     // Iterable<T> source) {
     // return () -> new Iterator<U>() {
@@ -639,7 +682,6 @@ public class Iterables {
         return () -> new TakeWhile();
     }
 
-    @SuppressWarnings("preview")
     public static record Indexed<T> (int index, T value) {
     }
 
@@ -681,24 +723,6 @@ public class Iterables {
                 result.add(list.get(i));
             return result;
         }, permutation(list.size(), r));
-    }
-
-    public static <T, U, R> Iterable<R> zip(BiFunction<T, U, R> zipper, Iterable<T> a, Iterable<U> b) {
-        class Zip implements Iterator<R> {
-            Iterator<T> aa = a.iterator();
-            Iterator<U> bb = b.iterator();
-
-            @Override
-            public boolean hasNext() {
-                return aa.hasNext() && bb.hasNext();
-            }
-
-            @Override
-            public R next() {
-                return zipper.apply(aa.next(), bb.next());
-            }
-        }
-        return () -> new Zip();
     }
 
     /*
@@ -853,7 +877,7 @@ public class Iterables {
         return unit;
     }
 
-    public static <T, U> Iterable<U> cumulative(U unit, BiFunction<U, T, U> function, Iterable<T> source) {
+    public static <T, U> Iterable<U> accumlate(U unit, BiFunction<U, T, U> function, Iterable<T> source) {
         class Cumulative implements Iterator<U> {
 
             Iterator<T> iterator = source.iterator();

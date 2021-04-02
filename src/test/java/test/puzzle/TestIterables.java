@@ -295,7 +295,7 @@ class TestIterables {
         assertEquals(List.of(List.of(9, 5, 6, 7, 1, 0, 8, 2)), answers);
         assertEquals("S=9, E=5, N=6, D=7, M=1, O=0, R=8, Y=2",
             join(", ",
-                zip((s, i) -> s + "=" + i,
+                map((s, i) -> s + "=" + i,
                     list(variables),
                     answers.get(0))));
     }
@@ -371,11 +371,11 @@ class TestIterables {
     @Test
     void testCumulative() {
         assertEquals(List.of(0, 1, 3, 6, 10, 15, 21, 28, 36, 45),
-            list(cumulative(0, (a, b) -> a + b, range(0, 10))));
+            list(accumlate(0, (a, b) -> a + b, range(0, 10))));
         assertEquals(
             list(map(i -> BigInteger.valueOf((long) i),
                 iterable(1, 2, 6, 24, 120, 720, 5040, 40320, 362880))),
-            list(cumulative(BigInteger.ONE, (a, b) -> a.multiply(BigInteger.valueOf((long) b)),
+            list(accumlate(BigInteger.ONE, (a, b) -> a.multiply(BigInteger.valueOf((long) b)),
                 range(1, 10))));
     }
 
@@ -436,7 +436,6 @@ class TestIterables {
         logger.info("" + results);
     }
 
-    @SuppressWarnings("preview")
     static record Foo(int i, String s) {}
 
     static List<Foo> foos = List.of(
@@ -515,5 +514,29 @@ class TestIterables {
                 .collect(Collectors.toList()));
     }
 
+    /**
+     * java - Why is the DP solution not working, Trapping Rain Water? - Stack Overflow
+     * https://stackoverflow.com/questions/66911147/why-is-the-dp-solution-not-working-trapping-rain-water
+     *
+     * Given n non-negative integers representing an elevation map where the width of each bar is 1,
+     * compute how much water it can trap after raining.
+     * example: Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]
+     *         Output: 6
+     *         Explanation: The above elevation map (black section) is represented
+     *         by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case,
+     *         6 units of rain water (blue section) are being trapped.
+     */
+    static int trap(int[] height) {
+        List<Integer> list = list(height);
+        return sum(map((h, l, r) -> Math.min(l, r) - h,
+                list,
+                accumlate(-1, Math::max, list),
+                reverse(accumlate(-1, Math::max, reverse(list)))));
+    }
 
+    @Test
+    void testTrappingRainWater() {
+        assertEquals(6, trap(new int[] {0,1,0,2,1,0,1,3,2,1,2,1}));
+        assertEquals(2, trap(new int[] {2,0,2}));
+    }
 }

@@ -10,12 +10,14 @@ public final class Rational extends Number implements Comparable<Rational> {
     public static final Rational POSITIVE_INFINITY = new Rational(1, 0);
     public static final Rational NEGATIVE_INFINITY = new Rational(-1, 0);
     public static final Rational ZERO = new Rational(0, 1);
+    public static final Rational ONE = new Rational(1, 1);
+    public static final Rational MINUS_ONE = new Rational(-1, 1);
     private static final long serialVersionUID = 1L;
 
     public final long numerator;
     public final long denominator;
 
-    public Rational(long numerator, long denominator) {
+    private Rational(long numerator, long denominator) {
         if (denominator < 0) {
             numerator = -numerator;
             denominator = -denominator;
@@ -40,6 +42,18 @@ public final class Rational extends Number implements Comparable<Rational> {
         }
     }
 
+    private Rational(long numerator) {
+        this(numerator, 1);
+    }
+
+    public static Rational of(long numerator, long denominator) {
+        return new Rational(numerator, denominator);
+    }
+
+    public static Rational of(long numerator) {
+        return new Rational(numerator);
+    }
+
     public Rational multiply(Rational r) {
         return new Rational(numerator * r.numerator, denominator * r.denominator);
     }
@@ -50,6 +64,10 @@ public final class Rational extends Number implements Comparable<Rational> {
 
     public Rational add(Rational r) {
         return new Rational(numerator * r.denominator + r.numerator * denominator, denominator * r.denominator);
+    }
+
+    public Rational subtract(Rational r) {
+        return new Rational(numerator * r.denominator - r.numerator * denominator, denominator * r.denominator);
     }
 
     public boolean isNaN() { return denominator == 0 && numerator == 0; }
@@ -75,6 +93,8 @@ public final class Rational extends Number implements Comparable<Rational> {
             return "Infinity";
         else if (isNegInf())
             return "-Infinity";
+        else if (denominator == 1)
+            return numerator + "";
         else
             return numerator + "/" + denominator;
     }
@@ -234,8 +254,7 @@ public final class Rational extends Number implements Comparable<Rational> {
         throw new NumberFormatException("Invalid Rational: \"" + s + "\"");
     }
 
-    public static Rational parseRational(String string)
-            throws NumberFormatException {
+    public static Rational parseRational(String string) throws NumberFormatException {
         Objects.requireNonNull(string, "string must not be null");
         if (string.equals("NaN"))
             return NaN;
@@ -246,11 +265,12 @@ public final class Rational extends Number implements Comparable<Rational> {
         int sep_ix = string.indexOf(':');
         if (sep_ix < 0)
             sep_ix = string.indexOf('/');
-        if (sep_ix < 0)
-            throw invalidRational(string);
         try {
-            return new Rational(Integer.parseInt(string.substring(0, sep_ix)),
-                    Integer.parseInt(string.substring(sep_ix + 1)));
+            if (sep_ix < 0)
+                return new Rational(Long.parseLong(string));
+            else
+                return new Rational(Long.parseLong(string.substring(0, sep_ix)),
+                    Long.parseLong(string.substring(sep_ix + 1)));
         } catch (NumberFormatException e) {
             throw invalidRational(string);
         }

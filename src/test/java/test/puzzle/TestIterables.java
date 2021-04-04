@@ -274,7 +274,7 @@ class TestIterables {
     }
 
     static int number(int... digits) {
-        return reduce(0, (a, b) -> a * 10 + b, list(digits));
+        return reduce(0, (a, b) -> a * 10 + b, iterable(digits));
     }
 
     static boolean checkSendMoreMoney(int s, int e, int n, int d, int m, int o, int r, int y) {

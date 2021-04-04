@@ -85,6 +85,7 @@ public class Iterables {
                     : comparator.compare(a, b) >= 0 ? a : b;
     }
 
+    @FunctionalInterface
     public interface TriFunction<T, U, V, R> {
         R apply(T t, U u, V v);
     }
@@ -327,6 +328,10 @@ public class Iterables {
 
     public static Iterable<Integer> range(int from, int to, int step) {
         return () -> new IntRangeIterator(from, to, step);
+    }
+
+    public static Iterable<Integer> rangeClosed(int from, int to) {
+        return () -> new IntRangeIterator(from, to + 1);
     }
 
     public static Iterable<int[]> combination(int n, int r) {
@@ -723,6 +728,11 @@ public class Iterables {
                 result.add(list.get(i));
             return result;
         }, permutation(list.size(), r));
+    }
+
+    public static <T> Iterable<List<T>> permutation(Iterable<T> source) {
+        List<T> list = arrayList(source);
+        return permutation(list.size(), list);
     }
 
     /*

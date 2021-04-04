@@ -10,7 +10,7 @@ class TestRational {
     void test() {
         Rational r = Rational.ZERO;
         for (int i = 1; i <= 10; ++i)
-            r = r.add(new Rational(1, i));
+            r = r.add(Rational.of(1, i));
         System.out.println(r);
         System.out.println(r.numerator % 11);
     }

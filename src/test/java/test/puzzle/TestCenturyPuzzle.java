@@ -220,17 +220,13 @@ import org.junit.jupiter.api.Test;
  */
 class TestCenturyPuzzle {
 
-    static long number(List<Integer> digits) {
-        if (digits.get(0) == 0)
-            return -1;
-        return reduce(0L, (a, b) -> a * 10 + b, digits);
-    }
-
     static long number(List<Integer> digits, int start, int end) {
         if (digits.size() == 0 || end - start == 0)
             throw new IllegalArgumentException(
                 "digits.size=" + digits.size() + " start=" + start + " end=" + end);
-        return number(digits.subList(start, end));
+        if (digits.get(start) == 0)
+            return -1;
+        return reduce(0L, (a, b) -> a * 10 + b, digits.subList(start, end));
     }
 
     static record Answer(long goal, long a, long b, long c) implements Comparable<Answer> {

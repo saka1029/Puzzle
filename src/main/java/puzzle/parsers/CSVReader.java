@@ -38,7 +38,7 @@ import java.util.List;
  * </pre>
  *
  */
-public class CSVReader extends CharParser {
+public class CSVReader extends Parser {
 
     public CSVReader(BufferedReader reader) throws IOException {
         super(reader);
@@ -78,6 +78,15 @@ public class CSVReader extends CharParser {
         line.add(field.toString());
     }
 
+    void eol() throws IOException {
+        boolean eolFound = false;
+        // skip CR, CRLF or LF
+        if (eat(CR)) eolFound = true;
+        if (eat(LF)) eolFound = true;
+        if (!eolFound && ch != EOF)
+            throw new RuntimeException("CR, LF, CRLF or EOF expected");
+    }
+
     public List<String> readLine() throws IOException {
         if (ch == -1)
             return null;
@@ -85,9 +94,7 @@ public class CSVReader extends CharParser {
         field();
         while (eat(COMMA))
             field();
-        // skip CR, CRLF or LF
-        eat(CR);
-        eat(LF);
+        eol();
         return line;
     }
 }

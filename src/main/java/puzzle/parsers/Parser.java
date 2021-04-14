@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
-public class CharParser {
+public class Parser {
 
     public static final int EOF = -1;
     public static final int LP = '(', RP = ')';
@@ -38,7 +38,7 @@ public class CharParser {
     protected final BufferedReader reader;
     protected int ch;
 
-    protected CharParser(BufferedReader reader) throws IOException {
+    protected Parser(BufferedReader reader) throws IOException {
         this.reader = reader;
         this.ch = get();
     }
@@ -77,6 +77,10 @@ public class CharParser {
     protected int appendGet(StringBuilder sb, int c) throws IOException {
         sb.append((char)c);
         return get();
+    }
+
+    protected void error(String format, Object... args) {
+        throw new RuntimeException(String.format(format, args));
     }
 
     @FunctionalInterface

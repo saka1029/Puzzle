@@ -26,7 +26,7 @@ import java.util.List;
  * </pre>
  *
  */
-public class RFC4180CSVReader extends CharParser {
+public class RFC4180CSVReader extends Parser {
 
     public RFC4180CSVReader(BufferedReader reader) throws IOException {
         super(reader);
@@ -37,7 +37,7 @@ public class RFC4180CSVReader extends CharParser {
 
     void quoted() throws IOException {
         while (true) {
-            if (ch == EOF)  // 引用符が開いたままEOFとなるケース（あえてエラーとしない）
+            if (ch == EOF)  // 引用符が開いたままEOFとなるケース
                 throw new RuntimeException("unexpected EOF");
             else if (eat(QUOTE))
                 if (eat(QUOTE)) // 引用符自体の指定
@@ -63,6 +63,14 @@ public class RFC4180CSVReader extends CharParser {
         line.add(field.toString());
     }
 
+    void eol() throws IOException {
+        if (eat(CR) && eat(LF))
+            return;
+        else if (ch == EOF)
+            return;
+        throw new RuntimeException("CRLF or EOF expected");
+    }
+
     public List<String> readLine() throws IOException {
         if (ch == -1)
             return null;
@@ -70,9 +78,7 @@ public class RFC4180CSVReader extends CharParser {
         field();
         while (eat(COMMA))
             field();
-        // skip CR, CRLF or LF
-        eat(CR);
-        eat(LF);
+        eol();
         return line;
     }
 }

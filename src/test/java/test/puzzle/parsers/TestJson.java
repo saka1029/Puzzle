@@ -29,6 +29,18 @@ import puzzle.parsers.Json.ParseHandler;
 class TestJson {
 
     @Test
+    void testKeyword() {
+        assertTrue(Character.isLetter('a'));
+        assertTrue(Character.isLetter('漢'));
+        assertTrue(Character.isLetter('二'));
+        assertFalse(Character.isLetter('_'));
+        assertFalse(Character.isLetter('&'));
+        assertFalse(Character.isLetter('0'));
+        assertFalse(Character.isLetter('【'));
+        assertFalse(Character.isLetter('０'));
+    }
+
+    @Test
     void testParse() throws IOException {
         String json = "{\n"
             + "    \"glossary\": {\n"
@@ -232,7 +244,7 @@ class TestJson {
                 super.objectMember(path, object, key, value);
             }
         };
-        parse(Files.readString(file), handler);
+        parse(Files.newBufferedReader(file), handler);
         List<Tweet> selected = list.stream()
             .filter(t -> !t.text.contains("閉鎖") && !t.text.contains("elonmusk"))
             .sorted(Comparator.comparing(Tweet::date).reversed())

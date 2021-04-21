@@ -4,13 +4,25 @@ import static org.junit.jupiter.api.Assertions.*;
 import static puzzle.parsers.Json.*;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.jupiter.api.Test;
 
+import puzzle.parsers.Json.DefaultParseHandler;
 import puzzle.parsers.Json.NullParseHandler;
 import puzzle.parsers.Json.ParseHandler;
 
@@ -44,36 +56,43 @@ class TestJson {
             + "    }\n"
             + "}\n"
             + "";
-//        Object parsed = parse(json);
-//        System.out.println(parsed);
+
         record GlossDef(String para, List<String> GlossSeeAlso) {}
+
         List<GlossDef> glossDefs = new ArrayList<>();
-        ParseHandler handler = new NullParseHandler() {
-            String para;
-            List<String> GlossSeeAlso;
-            List<Object> select = List.of("GlossDef");
-            @Override
-            public void objectMember(List<Object> path, Object object, String key, Object value) {
-                if (match(path, select)) {
-                    if (key.equals("para")) para = (String)value;
-                    else if (key.equals("GlossSeeAlso")) GlossSeeAlso = (List<String>)value;
-                }
-            }
+        ParseHandler handler = new DefaultParseHandler() {
+            List<Object> criterial = List.of("GlossDef");
+
             @Override
             public Object objectEnd(List<Object> path, Object object) {
-                if (match(path, select))
-                    glossDefs.add(new GlossDef(para, GlossSeeAlso));
+                if (match(path, criterial)) {
+                    Map<String, Object> map = (Map<String, Object>)object;
+                    glossDefs.add(new GlossDef(
+                        (String)map.get("para"), (List<String>)map.get("GlossSeeAlso")));
+                }
                 return super.objectEnd(path, object);
             }
         };
-        Object parsed = parse(json, handler);
+        parse(json, handler);
+        assertEquals(List.of(new GlossDef(
+            "A meta-markup language, used to create markup languages such as DocBook.",
+            List.of("GML", "XML"))), glossDefs);
         System.out.println(glossDefs);
+    }
+
+    @Test
+    void testSpace() throws IOException {
+        Object parsed = parse("\"a b  c\"");
+        assertEquals("a b  c", parsed);
     }
 
     @Test
     void testEscape() throws IOException {
         Object parsed = parse("\"a\\r\\nb\\nc\\fd\\be\"");
         assertEquals("a\r\nb\nc\fd\be", parsed);
+        String str = "\"{\\\"name\\\":\\\"Gerson Beahan\\\",\\\"age\\\":70,\\\"balance\\\":424695.03332155856}\"";
+        System.out.println(str);
+        System.out.println(parse(str));
     }
 
     @Test
@@ -121,24 +140,33 @@ class TestJson {
     void testNullParseHandler() throws IOException {
         Map<String, Integer> count = new LinkedHashMap<>();
         ParseHandler h = new NullParseHandler() {
-            List<Object> select = List.of("selection", "*");
+            List<Object> criterial = List.of("selection");
             @Override
             public void objectMember(List<Object> path, Object object, String key, Object value) {
-                if (match(path, select) && value instanceof String sv)
+                if (match(path, criterial) && value instanceof String sv)
                     count.compute(sv, (k, v) -> v == null ? 1 : v + 1);
             }
         };
-        Object parsed = parse(JSON, h);
-        System.out.println(parsed);
-        System.out.println(count);
+        parse(JSON, h);
+        assertEquals(Map.of("0", 1, "65535", 1, "7173", 1, "5", 2, "2", 1, "-3", 1, "173", 1), count);
     }
 
     @Test
     public void testSelect() throws IOException {
-        List<Object> search = List.of("selection");
-        List<Object> found = select(parse(JSON), search);
+        List<Object> criterial = List.of("selection");
+        List<Object> found = select(parse(JSON), criterial);
         System.out.println(found);
         assertEquals(2, found.size());
+        assertEquals(Map.of(
+            "selected.Speed", "0",
+            "selected.Low", "65535",
+            "selected.Fast", "7173",
+            "selected.medium", "5"), found.get(0));
+        assertEquals(Map.of(
+            "selected.Speed", "2",
+            "selected.Low", "-3",
+            "selected.Fast", "173",
+            "selected.medium", "5"), found.get(1));
     }
 
     @Test
@@ -152,5 +180,67 @@ class TestJson {
         assertTrue(match(path, List.of("a", "b", "c", "d")));
         assertFalse(match(path, List.of("x", "a", "b", "c", "d")));
         assertFalse(match(path, List.of("c")));
+    }
+
+    @Test
+    public void testGet() {
+        Object map = map("a", 1, "b", list("c", "d", 4), "e", true);
+        assertEquals(1, get(map, "a"));
+        assertEquals(list("c", "d", 4), get(map, "b"));
+        assertEquals("c", get(map, "b", 0));
+        assertEquals("d", get(map, "b", 1));
+        assertEquals(4, get(map, "b", 2));
+        assertEquals(true, get(map, "e"));
+        assertEquals(null, get(map, "f"));
+    }
+
+    @Test
+    public void testTraverse() {
+        Object map = map("a", 1, "b", list("c", "d", 4), "e", 2);
+        Iterator<Entry<List<Object>, Object>> it = traverse(map).iterator();
+        assertEquals(Map.entry(list(), map), it.next());
+        assertEquals(Map.entry(list("a"), get(map, "a")), it.next());
+        assertEquals(Map.entry(list("b"), get(map, "b")), it.next());
+        assertEquals(Map.entry(list("b", 0), get(map, "b", 0)), it.next());
+        assertEquals(Map.entry(list("b", 1), get(map, "b", 1)), it.next());
+        assertEquals(Map.entry(list("b", 2), get(map, "b", 2)), it.next());
+        assertEquals(Map.entry(list("e"), get(map, "e")), it.next());
+        assertFalse(it.hasNext());
+        for (Entry<List<Object>, Object> e : traverse(map))
+            System.out.println(e);
+    }
+
+    @Test
+    public void testTwitter() throws IOException {
+        record Tweet(ZonedDateTime date, String text) {}
+        List<Tweet> list = new ArrayList<>();
+        Path file = Paths.get("data/tweet.js.txt");
+        ZoneId zone = ZoneId.of("Japan");
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH);
+        ParseHandler handler = new NullParseHandler() {
+            ZonedDateTime date;
+            @Override
+            public void objectMember(List<Object> path, Object object, String key, Object value) {
+                switch (key) {
+                case "created_at":
+                    date = ZonedDateTime.of(LocalDateTime.parse(String.valueOf(value), f), zone);
+                    break;
+                case "full_text":
+                    list.add(new Tweet(date, String.valueOf(value)));
+                    break;
+                }
+                super.objectMember(path, object, key, value);
+            }
+        };
+        parse(Files.readString(file), handler);
+        List<Tweet> selected = list.stream()
+            .filter(t -> !t.text.contains("閉鎖") && !t.text.contains("elonmusk"))
+            .sorted(Comparator.comparing(Tweet::date).reversed())
+            .toList();
+        DateTimeFormatter d = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        for (Tweet e : selected)
+            System.out.printf("<dt class='history'>%s</dt>%n"
+                + "<dd>%s</dd>%n",
+                e.date.plusHours(9).format(d), e.text.replaceAll("http[-:/._a-zA-Z0-9]+", "<a href='$0'>$0</a>"));
     }
 }

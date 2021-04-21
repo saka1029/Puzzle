@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -90,7 +91,7 @@ public class Json {
     public static Object parse(Reader reader, ParseHandler handler) throws IOException {
         return new Object() {
             int ch = get();
-            List<Object> path0 = new ArrayList<>();
+            LinkedList<Object> path0 = new LinkedList<>();
             List<Object> path = Collections.unmodifiableList(path0);
 
             int get() throws IOException {
@@ -133,6 +134,7 @@ public class Json {
 
             Object object() throws IOException {
                 Object object = handler.objectStart(path);
+                spaces();
                 while (ch != -1 && ch != '}') {
                     Object key;
                     if (eat('"')) key = string();
@@ -140,10 +142,10 @@ public class Json {
                     else throw new RuntimeException("string expected but '" + ((char)ch) + "'");
                     if (!eat(':')) throw new RuntimeException("':' expected");
                     String keyString = Objects.toString(key);
-                    path0.add(keyString);
+                    path0.addLast(keyString);
                     Object value = value();
+                    path0.removeLast();
                     handler.objectMember(path, object, Objects.toString(key), value);
-                    path0.remove(path0.size() - 1);
                     if (!eat(',')) break;
                 }
                 if (!eat('}')) throw new RuntimeException("'}' expected");
@@ -152,11 +154,12 @@ public class Json {
 
             Object array() throws IOException {
                 Object array = handler.arrayStart(path);
+                spaces();
                 for (int index = 0; ch != -1 && ch != ']'; ++index) {
-                    path0.add(index);
+                    path0.addLast(index);
                     Object value = value();
+                    path0.removeLast();
                     handler.arrayMember(path, array, index, value);
-                    path0.remove(path0.size() - 1);
                     if (!eat(',')) break;
                 }
                 if (!eat(']')) throw new RuntimeException("']' expected");
@@ -186,7 +189,8 @@ public class Json {
             Object string() throws IOException {
                 StringBuilder sb = new StringBuilder();
                 while (ch != -1 && ch != '"')
-                    if (eat('\\'))
+                    if (ch == '\\') {
+                        get();
                         switch (ch) {
                         case '"': appendGet(sb, '"'); break;
                         case '\\': appendGet(sb, '\\'); break;
@@ -199,9 +203,10 @@ public class Json {
                         case 'u': unicode(sb); break;
                         default: appendGet(sb, ch); break;
                         }
-                    else
+                    } else
                         appendGet(sb, ch);
-                if (!eat('"')) throw new RuntimeException("'\"' expected");
+                if (ch != '"') throw new RuntimeException("'\"' expected");
+                get();
                 return handler.string(path, sb.toString());
             }
 
@@ -281,7 +286,7 @@ public class Json {
         return search.equals(path) || search.equals("*");
     }
 
-    public static boolean match(List<?> path, List<?> search) {
+    public static boolean match(List<Object> path, List<Object> search) {
         int p = path.size() - 1;
         int s = search.size() - 1, start = s;
         for ( ; p >= 0 && s >= 0; --p)
@@ -323,6 +328,99 @@ public class Json {
             }
         }.select(target);
         return result;
+    }
+
+    static class IndexedIterator implements Iterator<Entry<Integer, Object>> {
+
+        final Iterator<?> iterator;
+        int index = 0;
+
+        public IndexedIterator(List<?> list) {
+            this.iterator = list.iterator();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public Entry<Integer, Object> next() {
+            return Map.entry(index++, iterator.next());
+        }
+    }
+
+    @SafeVarargs
+    public static <T> List<T> list(T... elements) {
+        List<T> list = new ArrayList<>(elements.length);
+        for (T e : elements)
+            list.add(e);
+        return list;
+    }
+
+    public static Map<Object, Object> map(Object... elements) {
+        int size = elements.length;
+        if (size % 2 == 1)
+            throw new IllegalArgumentException("elements");
+        Map<Object, Object> map = new LinkedHashMap<>(size / 2);
+        for (int i = 0; i < size; i += 2)
+            map.put(elements[i], elements[i + 1]);
+        return map;
+    }
+
+    public static Object get(Object object, Object... indexes) {
+        for (Object index : indexes)
+            if (object instanceof Map map)
+                object = map.get(index);
+            else if (object instanceof List list)
+                object = list.get((int)index);
+            else
+                return null;
+        return object;
+    }
+
+    public static Iterable<Entry<List<Object>, Object>> traverse(Object target) {
+        return () -> new Iterator<Entry<List<Object>, Object>>() {
+
+            LinkedList<Iterator<? extends Entry<?, ?>>> iterators = new LinkedList<>();
+            LinkedList<Object> path = new LinkedList<>();
+
+            boolean hasNext = true;
+            Object next = target;
+
+            boolean advance() {
+                if (next instanceof List<?> list)
+                    iterators.addLast(new IndexedIterator(list));
+                else if (next instanceof Map<?, ?> map)
+                    iterators.addLast(map.entrySet().iterator());
+                else if (!path.isEmpty())
+                    path.removeLast();
+                while (!iterators.getLast().hasNext()) {
+                    if (!path.isEmpty())
+                        path.removeLast();
+                    iterators.removeLast();
+                    if (iterators.isEmpty())
+                        return false;
+                }
+                Entry<?, ?> e = iterators.getLast().next();
+                path.add(e.getKey());
+                next = e.getValue();
+                return true;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public Entry<List<Object>, Object> next() {
+                List<Object> key = new ArrayList<>(path);
+                Entry<List<Object>, Object> result = Map.entry(key, next);
+                hasNext = advance();
+                return result;
+            }
+        };
     }
 
 }

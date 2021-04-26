@@ -2,7 +2,6 @@ package puzzle;
 
 import java.util.function.Function;
 import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Regexes {
@@ -15,11 +14,12 @@ public class Regexes {
     }
 
     public static String replaceAll(String source, Pattern pattern, Function<MatchResult, String> mapper) {
-        StringBuilder sb = new StringBuilder();
-        Matcher matcher = pattern.matcher(source);
-        while (matcher.find())
-            matcher.appendReplacement(sb, mapper.apply(matcher));
-        matcher.appendTail(sb);
-        return sb.toString();
+        return pattern.matcher(source).replaceAll(mapper);
+//        StringBuilder sb = new StringBuilder();
+//        Matcher matcher = pattern.matcher(source);
+//        while (matcher.find())
+//            matcher.appendReplacement(sb, mapper.apply(matcher));
+//        matcher.appendTail(sb);
+//        return sb.toString();
     }
 }

@@ -286,6 +286,17 @@ public class Json {
         return search.equals(path) || search.equals("*");
     }
 
+    public static boolean match(List<Object> path, Object... search) {
+        int p = path.size() - 1;
+        int s = search.length - 1, start = s;
+        for ( ; p >= 0 && s >= 0; --p)
+            if (match(path.get(p), search[s]))
+                --s;
+            else if (s == start)
+                return false;
+        return s < 0;
+
+    }
     public static boolean match(List<Object> path, List<Object> search) {
         int p = path.size() - 1;
         int s = search.size() - 1, start = s;

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -805,12 +806,16 @@ public class Iterables {
         return result;
     }
 
+    public static <T> Set<T> hashSet(Iterable<T> source) {
+        return set(HashSet::new, source);
+    }
+
     public static <T> Set<T> linkedHashSet(Iterable<T> source) {
-        return set(() -> new LinkedHashSet<>(), source);
+        return set(LinkedHashSet::new, source);
     }
 
     public static <T> Set<T> treeSet(Iterable<T> source) {
-        return set(() -> new TreeSet<>(), source);
+        return set(TreeSet::new, source);
     }
 
     public static <T> T[] array(IntFunction<T[]> supplier, Iterable<T> source) {

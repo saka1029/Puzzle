@@ -255,4 +255,18 @@ class TestJson {
                 + "<dd>%s</dd>%n",
                 e.date.plusHours(9).format(d), e.text.replaceAll("http[-:/._a-zA-Z0-9]+", "<a href='$0'>$0</a>"));
     }
+
+    @Test
+    void testStackoverflowJsonRegex() throws IOException {
+        String content = "{ \"values\" : [\"AnyValue1\", \"TestValue\", \"Dummy\", \"SomeValue\"], \"key\" : \"value\" }";
+        Object result = parse(content, new DefaultParseHandler() {
+            @Override
+            public Object string(List<Object> path, String s) {
+                if (match(path, "values", "*"))
+                    s = s + "_val";
+                return super.string(path, s);
+            }
+        });
+        System.out.println(result);
+    }
 }

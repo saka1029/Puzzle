@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
@@ -113,8 +114,22 @@ class TestIterables {
 
     @Test
     void testPrimes() {
+        List<Integer> primes = list(primes(100));
+        assertEquals(25, count(primes));
         assertEquals(list(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
-            47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97), list(primes(100)));
+            47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97), primes);
+    }
+
+    @Test
+    void test上2桁と下2桁の差が素数であるナンバーの数() {
+        // 上2桁と下2桁の差が素数であるような4桁の数の個数
+        Set<Integer> primes = hashSet(primes(100));
+        int primeDiff = count(
+            flatMap(a -> map(b -> a * 100 + b,
+                filter(b -> primes.contains(Math.abs(a - b)),
+                    range(0, 100))),
+                range(0, 100)));
+        assertEquals(2880, primeDiff);
     }
 
     @Test

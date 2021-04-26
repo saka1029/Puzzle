@@ -1,7 +1,7 @@
 package test.puzzle.parsers;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static puzzle.parsers.Json.*;
+import static puzzle.parsers.Json0.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,9 +22,9 @@ import java.util.Map.Entry;
 
 import org.junit.jupiter.api.Test;
 
-import puzzle.parsers.Json.DefaultParseHandler;
-import puzzle.parsers.Json.NullParseHandler;
-import puzzle.parsers.Json.ParseHandler;
+import puzzle.parsers.Json0.DefaultParseHandler;
+import puzzle.parsers.Json0.NullParseHandler;
+import puzzle.parsers.Json0.ParseHandler;
 
 class TestJson {
 

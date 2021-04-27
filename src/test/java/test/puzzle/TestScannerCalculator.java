@@ -26,4 +26,9 @@ class TestScannerCalculator {
         assertEquals(10, calculator.calculate("c"));
     }
 
+    @Test
+    void testYouTube1() {
+        assertEquals(100, calculator.calculate("2015 * 98 - 2014 * 99 + 2016"));
+    }
+
 }

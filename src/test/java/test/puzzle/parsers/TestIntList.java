@@ -13,7 +13,7 @@ class TestIntList {
 
     /**
      * <pre>
-     * list    = '[' [ integer { ',' integer } ] ']'
+     * list    = '[' [ element { ',' element } ] ']'
      * list    = '[' ( ']' | element { ',' element } ']' )
      * element = integer | list;
      * integer =  [ '-' ] digit { digit }
@@ -45,6 +45,7 @@ class TestIntList {
                 return true;
             }
 
+<<<<<<< Updated upstream
 //            boolean match(IntPredicate... predicates) {
 //                for (IntPredicate predicate : predicates)
 //                    if (predicate.test(get())) {
@@ -77,6 +78,20 @@ class TestIntList {
             }
 
             boolean match(Object... expects) {
+=======
+            boolean matchGet(IntPredicate... predicates) {
+                spaces();
+                for (IntPredicate predicate : predicates)
+                    if (predicate.test(get())) {
+                        token.append((char) get());
+                        ++index;
+                        return true;
+                    }
+                return false;
+            }
+
+            boolean matchGet(int... expects) {
+>>>>>>> Stashed changes
                 spaces();
                 return imatch(expects);
             }
@@ -90,12 +105,19 @@ class TestIntList {
 
             Integer integer() {
                 clear();
+<<<<<<< Updated upstream
                 match('-');
                 if (imatch(DIGITS))
                     while (imatch(DIGITS))
                     /* do nothing */;
+=======
+                matchGet('-');
+                if (matchGet(digit))
+                    while (matchGet(digit))
+                        /* do nothing */;
+>>>>>>> Stashed changes
                 else
-                    throw error("digit expected but '" + ((char) get()) + "'");
+                    throw error("digit expected but found '%s'", source.substring(index));
                 return Integer.parseInt(token.toString());
             }
 
@@ -117,7 +139,7 @@ class TestIntList {
             }
 
             Object element() {
-                if (match('['))
+                if (matchGet('['))
                     return list();
                 else if (match('"'))
                     return string();
@@ -127,20 +149,20 @@ class TestIntList {
 
             List<Object> list() {
                 List<Object> list = new ArrayList<>();
-                if (match(']'))
+                if (matchGet(']'))
                     /* do nothing */;
                 else {
                     list.add(element());
-                    while (match(','))
+                    while (matchGet(','))
                         list.add(element());
-                    if (!match(']'))
+                    if (!matchGet(']'))
                         throw error("']' expected");
                 }
                 return list;
             }
 
             List<Object> parse() {
-                if (match('['))
+                if (matchGet('['))
                     return list();
                 else
                     throw error("'[' expected");
@@ -186,4 +208,30 @@ class TestIntList {
             assertEquals("']' expected", e.getMessage());
         }
     }
+<<<<<<< Updated upstream
+=======
+    
+    @Test
+    void testError() {
+        try {
+            parse("1, 2, x");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("'[' expected", e.getMessage());
+        }
+        try {
+            parse("[1, 2");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("']' expected", e.getMessage());
+        }
+        try {
+            parse("[1, 2, x]");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("digit expected but found 'x]'", e.getMessage());
+        }
+    }
+
+>>>>>>> Stashed changes
 }

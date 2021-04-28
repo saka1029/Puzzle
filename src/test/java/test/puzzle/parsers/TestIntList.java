@@ -1,7 +1,6 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +44,6 @@ class TestIntList {
                 return true;
             }
 
-<<<<<<< Updated upstream
 //            boolean match(IntPredicate... predicates) {
 //                for (IntPredicate predicate : predicates)
 //                    if (predicate.test(get())) {
@@ -78,20 +76,6 @@ class TestIntList {
             }
 
             boolean match(Object... expects) {
-=======
-            boolean matchGet(IntPredicate... predicates) {
-                spaces();
-                for (IntPredicate predicate : predicates)
-                    if (predicate.test(get())) {
-                        token.append((char) get());
-                        ++index;
-                        return true;
-                    }
-                return false;
-            }
-
-            boolean matchGet(int... expects) {
->>>>>>> Stashed changes
                 spaces();
                 return imatch(expects);
             }
@@ -105,17 +89,10 @@ class TestIntList {
 
             Integer integer() {
                 clear();
-<<<<<<< Updated upstream
                 match('-');
                 if (imatch(DIGITS))
                     while (imatch(DIGITS))
                     /* do nothing */;
-=======
-                matchGet('-');
-                if (matchGet(digit))
-                    while (matchGet(digit))
-                        /* do nothing */;
->>>>>>> Stashed changes
                 else
                     throw error("digit expected but found '%s'", source.substring(index));
                 return Integer.parseInt(token.toString());
@@ -139,7 +116,7 @@ class TestIntList {
             }
 
             Object element() {
-                if (matchGet('['))
+                if (match('['))
                     return list();
                 else if (match('"'))
                     return string();
@@ -149,20 +126,20 @@ class TestIntList {
 
             List<Object> list() {
                 List<Object> list = new ArrayList<>();
-                if (matchGet(']'))
+                if (match(']'))
                     /* do nothing */;
                 else {
                     list.add(element());
-                    while (matchGet(','))
+                    while (match(','))
                         list.add(element());
-                    if (!matchGet(']'))
+                    if (!match(']'))
                         throw error("']' expected");
                 }
                 return list;
             }
 
             List<Object> parse() {
-                if (matchGet('['))
+                if (match('['))
                     return list();
                 else
                     throw error("'[' expected");
@@ -180,37 +157,7 @@ class TestIntList {
         assertEquals(List.of("zero", 1, 2), parse("[  \"zero\" , 1, 2]"));
         assertEquals(List.of("ze\r\nro", 1, 2), parse("[  \"ze\\r\\nro\" , 1, 2]"));
     }
-    
-    @Test
-    void testError() {
-        try {
-            parse("1, 2, x");
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("'[' expected", e.getMessage());
-        }
-        try {
-            parse("[1, 2");
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("']' expected", e.getMessage());
-        }
-        try {
-            parse("[1, 2, x]");
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("digit expected but 'x'", e.getMessage());
-        }
-        try {
-            parse("[12  2]");
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("']' expected", e.getMessage());
-        }
-    }
-<<<<<<< Updated upstream
-=======
-    
+
     @Test
     void testError() {
         try {
@@ -231,7 +178,11 @@ class TestIntList {
         } catch (RuntimeException e) {
             assertEquals("digit expected but found 'x]'", e.getMessage());
         }
+        try {
+            parse("[12  2]");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("']' expected", e.getMessage());
+        }
     }
-
->>>>>>> Stashed changes
 }

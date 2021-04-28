@@ -1,6 +1,7 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +61,9 @@ class TestIntList {
                 return true;
             }
 
-            boolean match(Object... expects) {
+            boolean imatch(Object... expects) {
+                if (get() == -1)
+                    return false;
                 for (Object expect : expects)
                     if (expect instanceof Character ch) {
                         if (get() == ch)
@@ -73,6 +76,11 @@ class TestIntList {
                 return false;
             }
 
+            boolean match(Object... expects) {
+                spaces();
+                return imatch(expects);
+            }
+
             RuntimeException error(String format, Object... args) {
                 return new RuntimeException(String.format(format, args));
             }
@@ -82,35 +90,48 @@ class TestIntList {
 
             Integer integer() {
                 clear();
-                spaces();
                 match('-');
-                if (match(DIGITS))
-                    while (match(DIGITS))
+                if (imatch(DIGITS))
+                    while (imatch(DIGITS))
                     /* do nothing */;
                 else
                     throw error("digit expected but '" + ((char) get()) + "'");
                 return Integer.parseInt(token.toString());
             }
 
-//            String string() {
-//                clear();
-//
-//            }
+            String string() {
+                clear();
+                L: while (true)
+                    switch (get()) {
+                    case -1: throw error("'\"' expected");
+                    case '"': ++index; break L;
+                    case '\\': ++index;
+                        switch (get()) {
+                        case 'r': append('\r'); break;
+                        case 'n': append('\n'); break;
+                        }
+                        break;
+                    default: append(get()); break;
+                    }
+                return token.toString();
+            }
 
             Object element() {
-                if (spaces() && match('['))
+                if (match('['))
                     return list();
+                else if (match('"'))
+                    return string();
                 else
                     return integer();
             }
 
             List<Object> list() {
                 List<Object> list = new ArrayList<>();
-                if (spaces() && match(']'))
+                if (match(']'))
                     /* do nothing */;
                 else {
                     list.add(element());
-                    while (spaces() && match(','))
+                    while (match(','))
                         list.add(element());
                     if (!match(']'))
                         throw error("']' expected");
@@ -119,7 +140,7 @@ class TestIntList {
             }
 
             List<Object> parse() {
-                if (spaces() && match('['))
+                if (match('['))
                     return list();
                 else
                     throw error("'[' expected");
@@ -134,5 +155,35 @@ class TestIntList {
         assertEquals(List.of(), parse("[]"));
         assertEquals(List.of(1, List.of(2, 3), 4), parse("[1, [2, 3], 4]"));
         assertEquals(List.of(1, List.of(), 2), parse("[  1 , [  ] , 2 ]"));
+        assertEquals(List.of("zero", 1, 2), parse("[  \"zero\" , 1, 2]"));
+        assertEquals(List.of("ze\r\nro", 1, 2), parse("[  \"ze\\r\\nro\" , 1, 2]"));
+    }
+    
+    @Test
+    void testError() {
+        try {
+            parse("1, 2, x");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("'[' expected", e.getMessage());
+        }
+        try {
+            parse("[1, 2");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("']' expected", e.getMessage());
+        }
+        try {
+            parse("[1, 2, x]");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("digit expected but 'x'", e.getMessage());
+        }
+        try {
+            parse("[12  2]");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("']' expected", e.getMessage());
+        }
     }
 }

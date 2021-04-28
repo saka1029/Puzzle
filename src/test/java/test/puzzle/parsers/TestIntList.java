@@ -31,9 +31,10 @@ class TestIntList {
                 return Character.isWhitespace(ch);
             }
 
-            void spaces() {
+            boolean spaces() {
                 while (isSpace(get()))
                     ++index;
+                return true;
             }
 
             StringBuilder token = new StringBuilder();
@@ -43,25 +44,32 @@ class TestIntList {
                 return true;
             }
 
-            boolean match(IntPredicate... predicates) {
-                spaces();
-                for (IntPredicate predicate : predicates)
-                    if (predicate.test(get())) {
-                        token.append((char) get());
-                        ++index;
-                        return true;
-                    }
-                return false;
+//            boolean match(IntPredicate... predicates) {
+//                for (IntPredicate predicate : predicates)
+//                    if (predicate.test(get())) {
+//                        token.append((char) get());
+//                        ++index;
+//                        return true;
+//                    }
+//                return false;
+//            }
+
+            boolean append(int ch) {
+                token.append((char)ch);
+                ++index;
+                return true;
             }
 
-            boolean match(int... expects) {
-                spaces();
-                for (int expect : expects)
-                    if (get() == expect) {
-                        token.append((char) get());
-                        ++index;
-                        return true;
-                    }
+            boolean match(Object... expects) {
+                for (Object expect : expects)
+                    if (expect instanceof Character ch) {
+                        if (get() == ch)
+                            return append(get());
+                    } else if (expect instanceof IntPredicate p) {
+                        if (p.test(get()))
+                            return append(get());
+                    } else
+                        throw new IllegalArgumentException("expects: " + expect);
                 return false;
             }
 
@@ -69,22 +77,28 @@ class TestIntList {
                 return new RuntimeException(String.format(format, args));
             }
 
-            IntPredicate digit = c -> c >= '0' && c <= '9';
-//            int[] digit = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+            IntPredicate DIGITS = c -> c >= '0' && c <= '9';
+//            int[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
             Integer integer() {
                 clear();
+                spaces();
                 match('-');
-                if (match(digit))
-                    while (match(digit))
+                if (match(DIGITS))
+                    while (match(DIGITS))
                     /* do nothing */;
                 else
                     throw error("digit expected but '" + ((char) get()) + "'");
                 return Integer.parseInt(token.toString());
             }
 
+//            String string() {
+//                clear();
+//
+//            }
+
             Object element() {
-                if (match('['))
+                if (spaces() && match('['))
                     return list();
                 else
                     return integer();
@@ -92,11 +106,11 @@ class TestIntList {
 
             List<Object> list() {
                 List<Object> list = new ArrayList<>();
-                if (match(']'))
+                if (spaces() && match(']'))
                     /* do nothing */;
                 else {
                     list.add(element());
-                    while (match(','))
+                    while (spaces() && match(','))
                         list.add(element());
                     if (!match(']'))
                         throw error("']' expected");
@@ -105,7 +119,7 @@ class TestIntList {
             }
 
             List<Object> parse() {
-                if (match('['))
+                if (spaces() && match('['))
                     return list();
                 else
                     throw error("'[' expected");
@@ -116,9 +130,9 @@ class TestIntList {
     @Test
     void test() {
         assertEquals(List.of(1, 2, 3), parse("[1, 2, 3]"));
+        assertEquals(List.of(-123), parse("[ -123 ]"));
         assertEquals(List.of(), parse("[]"));
         assertEquals(List.of(1, List.of(2, 3), 4), parse("[1, [2, 3], 4]"));
         assertEquals(List.of(1, List.of(), 2), parse("[  1 , [  ] , 2 ]"));
     }
-
 }

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import puzzle.parsers.Calculator;
 
-class TestCalculator {
+public class TestCalculator {
 
     Map<String, Double> context = new HashMap<>();
 
@@ -18,7 +18,7 @@ class TestCalculator {
     }
 
     @Test
-    void test() {
+    public void test() {
         assertEquals(14, calculate("1 * 2 + 3 * 4"));
         assertEquals(21, calculate("(1 + 2) * (3 + 4)"));
         assertEquals(-21, calculate("(1 + 2) * -(3 + 4)"));
@@ -37,7 +37,7 @@ class TestCalculator {
      * power operator is right associative.
      */
     @Test
-    void testPower() {
+    public void testPower() {
         assertEquals(256, calculate("2 ** 2 ** 3"));
         assertEquals(256, calculate("2 ^ 2 ** 3"));
         assertEquals(256, calculate("2 ^ (2 ** 3)"));
@@ -48,7 +48,7 @@ class TestCalculator {
     }
 
     @Test
-    void testSyntaxError() {
+    public void testSyntaxError() {
         try {
             calculate("2 + 3) ");
             fail();

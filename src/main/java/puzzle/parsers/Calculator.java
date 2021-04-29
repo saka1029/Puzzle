@@ -34,7 +34,14 @@ public class Calculator {
         "e", Math.E
     );
 
-    static record FuncDef(int numberOfArguments, Function<List<Double>, Double> function) {}
+    static record FuncDef(int numberOfArguments, Function<List<Double>, Double> function) {
+        public Double apply(String name, List<Double> args) {
+            if (args.size() != numberOfArguments)
+                throw new RuntimeException(
+                    "'" + name + "' takes " + numberOfArguments + " arguments but " + args.size());
+            return function.apply(args);
+        }
+    }
     static final Map<String, FuncDef> FUNCTION_MAP = new HashMap<>();
     static {
         FUNCTION_MAP.put("floor", new FuncDef(1, args -> Math.floor(args.get(0))));
@@ -106,10 +113,7 @@ public class Calculator {
                             arguments.add(expression());
                         if (!eat(")")) throw error("')' expected");
                     }
-                    if (arguments.size() != funcDef.numberOfArguments)
-                        throw error("'%s' takes %d arguments but %d",
-                            identifier, funcDef.numberOfArguments, arguments.size());
-                    return funcDef.function().apply(arguments);
+                    return funcDef.apply(identifier, arguments);
                 } else {
                     Double value = CONSTANT_MAP.get(identifier);
                     if (value != null)

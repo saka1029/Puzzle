@@ -14,8 +14,9 @@ class TestIntList {
      * <pre>
      * list    = '[' [ element { ',' element } ] ']'
      * list    = '[' ( ']' | element { ',' element } ']' )
-     * element = integer | list;
-     * integer =  [ '-' ] digit { digit }
+     * element = number | list;
+     * number  = [ '-' ] digits [ '.' digits ] [ ( 'e' | 'E' ) [ '+' | '-' ] digits ]
+     * digits  = digit { digit }
      * </pre>
      */
     static List<Object> parse(String source) {
@@ -47,16 +48,6 @@ class TestIntList {
                 token.setLength(0);
                 return true;
             }
-
-//            boolean match(IntPredicate... predicates) {
-//                for (IntPredicate predicate : predicates)
-//                    if (predicate.test(get())) {
-//                        token.append((char) get());
-//                        ++index;
-//                        return true;
-//                    }
-//                return false;
-//            }
 
             boolean append(int ch) {
                 token.append((char)ch);

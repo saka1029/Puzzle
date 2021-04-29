@@ -31,9 +31,13 @@ class TestIntList {
                 return Character.isWhitespace(ch);
             }
 
+            void skip() {
+                ++index;
+            }
+
             boolean spaces() {
                 while (isSpace(get()))
-                    ++index;
+                    skip();
                 return true;
             }
 
@@ -56,7 +60,7 @@ class TestIntList {
 
             boolean append(int ch) {
                 token.append((char)ch);
-                ++index;
+                skip();
                 return true;
             }
 
@@ -87,15 +91,25 @@ class TestIntList {
             IntPredicate DIGITS = c -> c >= '0' && c <= '9';
 //            int[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
-            Integer integer() {
-                clear();
-                match('-');
+            void digits() {
                 if (imatch(DIGITS))
                     while (imatch(DIGITS))
-                    /* do nothing */;
+                        ;
                 else
-                    throw error("digit expected but found '%s'", source.substring(index));
-                return Integer.parseInt(token.toString());
+                    throw error("[0-9] expected");
+            }
+
+            Double number() {
+                clear();
+                match('-');
+                digits();
+                if (imatch('.'))
+                    digits();
+                if (imatch('e', 'E')) {
+                    imatch('+', '-');
+                    digits();
+                }
+                return Double.parseDouble(token.toString());
             }
 
             String string() {
@@ -103,11 +117,13 @@ class TestIntList {
                 L: while (true)
                     switch (get()) {
                     case -1: throw error("'\"' expected");
-                    case '"': ++index; break L;
-                    case '\\': ++index;
+                    case '"': skip(); break L;
+                    case '\\': skip();
                         switch (get()) {
+                        case '\\': append('\\'); break;
                         case 'r': append('\r'); break;
                         case 'n': append('\n'); break;
+                        case 't': append('\t'); break;
                         }
                         break;
                     default: append(get()); break;
@@ -121,7 +137,7 @@ class TestIntList {
                 else if (match('"'))
                     return string();
                 else
-                    return integer();
+                    return number();
             }
 
             List<Object> list() {
@@ -149,17 +165,49 @@ class TestIntList {
 
     @Test
     void test() {
-        assertEquals(List.of(1, 2, 3), parse("[1, 2, 3]"));
-        assertEquals(List.of(-123), parse("[ -123 ]"));
+        assertEquals(List.of(1.0, 2.0, 3.0), parse("[1, 2, 3]"));
+        assertEquals(List.of(-123.0), parse("[ -123 ]"));
         assertEquals(List.of(), parse("[]"));
-        assertEquals(List.of(1, List.of(2, 3), 4), parse("[1, [2, 3], 4]"));
-        assertEquals(List.of(1, List.of(), 2), parse("[  1 , [  ] , 2 ]"));
-        assertEquals(List.of("zero", 1, 2), parse("[  \"zero\" , 1, 2]"));
-        assertEquals(List.of("ze\r\nro", 1, 2), parse("[  \"ze\\r\\nro\" , 1, 2]"));
+        assertEquals(List.of(1.0, List.of(2.0, 3.0), 4.0), parse("[1, [2, 3], 4]"));
+        assertEquals(List.of(1.0, List.of(), 2.0), parse("[  1 , [  ] , 2 ]"));
+        assertEquals(List.of("zero", 1.0, 2.0), parse("[  \"zero\" , 1, 2]"));
+        assertEquals(List.of("ze\r\nro", 1.0, 2.0), parse("[  \"ze\\r\\nro\" , 1, 2]"));
+        assertEquals(List.of("ze\tro"), parse("[  \"ze\\tro\" ]"));
     }
 
     @Test
-    void testError() {
+    void testNumber() {
+        assertEquals(List.of(12.0), parse("[ 12 ]"));
+        assertEquals(List.of(12.345), parse("[ 12.345 ]"));
+        assertEquals(List.of(12e3), parse("[ 12e3 ]"));
+        assertEquals(List.of(12e3), parse("[ 12e+3 ]"));
+        assertEquals(List.of(12e-3), parse("[ 12e-3 ]"));
+    }
+
+    @Test
+    void testNumberError() {
+        try {
+            parse("[1.]");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("[0-9] expected", e.getMessage());
+        }
+        try {
+            parse("[-.2]");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("[0-9] expected", e.getMessage());
+        }
+        try {
+            parse("[-2e]");
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("[0-9] expected", e.getMessage());
+        }
+    }
+
+    @Test
+    void testSyntaxError() {
         try {
             parse("1, 2, x");
             fail();
@@ -176,7 +224,7 @@ class TestIntList {
             parse("[1, 2, x]");
             fail();
         } catch (RuntimeException e) {
-            assertEquals("digit expected but found 'x]'", e.getMessage());
+            assertEquals("[0-9] expected", e.getMessage());
         }
         try {
             parse("[12  2]");

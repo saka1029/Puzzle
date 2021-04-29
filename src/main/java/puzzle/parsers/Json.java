@@ -92,6 +92,10 @@ public class Json {
             LinkedList<Object> path0 = new LinkedList<>();
             List<Object> path = Collections.unmodifiableList(path0);
 
+            RuntimeException error(String format, Object... args) {
+                return new RuntimeException(String.format(format, args));
+            }
+
             int get() throws IOException {
                 return ch = reader.read();
             }
@@ -125,8 +129,14 @@ public class Json {
                 return true;
             }
 
-            void appendGet(StringBuilder sb, int ch) throws IOException {
-                sb.append((char)ch);
+            final StringBuilder token = new StringBuilder();
+
+            void clear() {
+                token.setLength(0);
+            }
+
+            void appendGet(int ch) throws IOException {
+                token.append((char)ch);
                 get();
             }
 
@@ -137,8 +147,8 @@ public class Json {
                     Object key;
                     if (match('"')) key = string();
                     else if (isKeywordFirst(ch)) key = keyword();
-                    else throw new RuntimeException("string expected but '" + ((char)ch) + "'");
-                    if (!match(':')) throw new RuntimeException("':' expected");
+                    else throw error("string expected but '%c'", ch);
+                    if (!match(':')) throw error("':' expected");
                     String keyString = Objects.toString(key);
                     path0.addLast(keyString);
                     Object value = value();
@@ -146,7 +156,7 @@ public class Json {
                     handler.objectMember(path, object, Objects.toString(key), value);
                     if (!match(',')) break;
                 }
-                if (!match('}')) throw new RuntimeException("'}' expected");
+                if (!match('}')) throw error("'}' expected");
                 return handler.objectEnd(path, object);
             }
 
@@ -160,21 +170,21 @@ public class Json {
                     handler.arrayMember(path, array, index, value);
                     if (!match(',')) break;
                 }
-                if (!match(']')) throw new RuntimeException("']' expected");
+                if (!match(']')) throw error("']' expected");
                 return handler.arrayEnd(path, array);
             }
 
-            void unicode(StringBuilder sb) throws IOException {
-                int start = sb.length();
+            void unicode() throws IOException {
+                int start = token.length();
                 get(); // skip 'u'
                 for (int i = 0; i < 4; ++i) {
                     if (!isHex(ch))
-                        throw new RuntimeException("malformed unicode escape '" + ((char)ch) + "'");
-                    appendGet(sb, ch);
+                        throw error("malformed unicode escape '%c'", ch);
+                    appendGet(ch);
                 }
-                int unicode = Integer.parseInt(sb.substring(start), 16);
-                sb.setLength(start);
-                sb.append((char)unicode);
+                int unicode = Integer.parseInt(token.substring(start), 16);
+                token.setLength(start);
+                token.append((char)unicode);
             }
 
             /**
@@ -185,46 +195,53 @@ public class Json {
              *  hex = digit | 'A' ... 'F' | 'a' ... 'f'.
              */
             Object string() throws IOException {
-                StringBuilder sb = new StringBuilder();
+                clear();
                 while (ch != -1 && ch != '"')
                     if (ch == '\\') {
                         get();
                         switch (ch) {
-                        case '"': appendGet(sb, '"'); break;
-                        case '\\': appendGet(sb, '\\'); break;
-                        case '/': appendGet(sb, '/'); break;
-                        case 'b': appendGet(sb, '\b'); break;
-                        case 'f': appendGet(sb, '\f'); break;
-                        case 'n': appendGet(sb, '\n'); break;
-                        case 'r': appendGet(sb, '\r'); break;
-                        case 't': appendGet(sb, '\t'); break;
-                        case 'u': unicode(sb); break;
-                        default: appendGet(sb, ch); break;
+                        case '"': appendGet('"'); break;
+                        case '\\': appendGet('\\'); break;
+                        case '/': appendGet('/'); break;
+                        case 'b': appendGet('\b'); break;
+                        case 'f': appendGet('\f'); break;
+                        case 'n': appendGet('\n'); break;
+                        case 'r': appendGet('\r'); break;
+                        case 't': appendGet('\t'); break;
+                        case 'u': unicode(); break;
+                        default: appendGet(ch); break;
                         }
                     } else
-                        appendGet(sb, ch);
-                if (ch != '"') throw new RuntimeException("'\"' expected");
+                        appendGet(ch);
+                if (ch != '"') throw error("'\"' expected");
                 get();
-                return handler.string(path, sb.toString());
+                return handler.string(path, token.toString());
+            }
+
+            void digits() throws IOException {
+                if (!isDigit(ch))
+                    throw error("[0-9] expected");
+                appendGet(ch);
+                while (isDigit(ch))
+                    appendGet(ch);
             }
 
             Object number() throws IOException {
-                StringBuilder sb = new StringBuilder();
-                do {
-                    appendGet(sb, ch);
-                } while (isDigit(ch));
-                if (ch == '.')
-                    do {
-                        appendGet(sb, ch);
-                    } while (isDigit(ch));
-                if (ch == 'e' || ch == 'E') {
-                    appendGet(sb, ch);
-                    if (ch == '+' || ch == '-')
-                        appendGet(sb, ch);
-                    while (isDigit(ch))
-                        appendGet(sb, ch);
+                clear();
+                if (ch == '-')
+                    appendGet(ch);
+                digits();
+                if (ch == '.') {
+                    appendGet(ch);
+                    digits();
                 }
-                return handler.number(path, sb.toString());
+                if (ch == 'e' || ch == 'E') {
+                    appendGet(ch);
+                    if (ch == '+' || ch == '-')
+                        appendGet(ch);
+                    digits();
+                }
+                return handler.number(path, token.toString());
             }
 
             Object keyword() throws IOException {
@@ -243,11 +260,10 @@ public class Json {
                     return array();
                 else if (match('"'))
                     return string();
-                else if (ch == '-' || Character.isDigit(ch))
-                    return number();
                 else if (isKeywordFirst(ch))
                     return keyword();
-                throw new RuntimeException("unknown character '" + ((char)ch) + "'");
+                else
+                    return number();
             }
 
             Object parse() throws IOException {

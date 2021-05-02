@@ -34,14 +34,18 @@ public class Calculator {
         "e", Math.E
     );
 
+    static RuntimeException error(String format, Object... args) {
+        return new RuntimeException(String.format(format, args));
+    }
+
     static record FuncDef(int numberOfArguments, Function<List<Double>, Double> function) {
         public Double apply(String name, List<Double> args) {
             if (args.size() != numberOfArguments)
-                throw new RuntimeException(
-                    "'" + name + "' takes " + numberOfArguments + " arguments but " + args.size());
+                throw error("'%s' takes %d arguments but %d", name, numberOfArguments, args.size());
             return function.apply(args);
         }
     }
+
     static final Map<String, FuncDef> FUNCTION_MAP = new HashMap<>();
     static {
         FUNCTION_MAP.put("floor", new FuncDef(1, args -> Math.floor(args.get(0))));
@@ -94,10 +98,6 @@ public class Calculator {
                 double result = expression();
                 if (!eat(")")) throw new RuntimeException("')' expected");
                 return result;
-            }
-
-            RuntimeException error(String format, Object... args) {
-                return new RuntimeException(String.format(format, args));
             }
 
             double constantOrFunction() {

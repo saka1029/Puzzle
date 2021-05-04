@@ -1,15 +1,23 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
 class Base64 {
 
-    static final byte[] BASE64_TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    static final byte[] ENCODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
         .getBytes(StandardCharsets.ISO_8859_1);
+    static final byte[] DECODE = new byte[128];
+    static {
+        Arrays.fill(DECODE, (byte)-1);
+        for (int i = 0, max = ENCODE.length; i < max; ++i)
+            DECODE[ENCODE[i]] = (byte)i;
+    }
 
     /**
      * m : 入力の長さ n : 出力の長さ n = (m + 2) / 3 * 4;
@@ -24,10 +32,10 @@ class Base64 {
             int b0 = in[i];
             int b1 = i + 1 < inSize ? in[i + 1] : 0;
             int b2 = i + 2 < inSize ? in[i + 2] : 0;
-            out[j] = BASE64_TABLE[b0 >>> 2 & 0b111111];
-            out[j + 1] = BASE64_TABLE[b0 << 4 & 0b110000 | b1 >>> 4 & 0b001111];
-            out[j + 2] = BASE64_TABLE[b1 << 2 & 0b111100 | b2 >>> 6 & 0b000011];
-            out[j + 3] = BASE64_TABLE[b2 & 0b111111];
+            out[j] = ENCODE[b0 >>> 2 & 0b111111];
+            out[j + 1] = ENCODE[b0 << 4 & 0b110000 | b1 >>> 4 & 0b001111];
+            out[j + 2] = ENCODE[b1 << 2 & 0b111100 | b2 >>> 6 & 0b000011];
+            out[j + 3] = ENCODE[b2 & 0b111111];
         }
         // パディング部分が'A'にエンコードされているので'='に置換します。
         for (int j = inSize + chunkSize; j < outSize; ++j)
@@ -82,6 +90,11 @@ class Base64 {
         assertEquals(12, encode(new byte[8]).length);
         assertEquals(12, encode(new byte[9]).length);
         assertEquals(16, encode(new byte[10]).length);
+    }
+    
+    @Test
+    void testDecode() {
+        System.out.println(Arrays.toString(DECODE));
     }
 
 }

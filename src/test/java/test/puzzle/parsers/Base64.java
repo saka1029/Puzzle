@@ -2,6 +2,10 @@ package test.puzzle.parsers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
@@ -271,5 +275,121 @@ class Base64 {
         byte[] array2 = new byte[3];
         unpackBits(array2, 0, 3, 8, 0b000001_000010_000011_000100);
         assertArrayEquals(new byte[] {0b00000100, 0b00100000, (byte)0b11000100}, array2);
+    }
+
+    public static class Base64OutputStream extends FilterOutputStream {
+
+        static class LineSeparateOutputStream extends FilterOutputStream {
+
+            final int lineSize;
+            final byte[] lineSeparator;
+            int outSize = 0;
+
+            public LineSeparateOutputStream(OutputStream out, int lineSize, byte[] lineSeparator) {
+                super(out);
+                this.lineSize = lineSize;
+                this.lineSeparator = lineSeparator;
+            }
+
+            void writeLineSeparator() throws IOException {
+                out.write(lineSeparator);
+                outSize = 0;
+            }
+
+            @Override
+            public void write(int b) throws IOException {
+                out.write(b);
+                if (lineSize > 0 && ++outSize >= lineSize)
+                    writeLineSeparator();
+            }
+
+            @Override
+            public void close() throws IOException {
+                if (lineSize > 0 && outSize > 0)
+                    writeLineSeparator();
+                super.close();
+            }
+        }
+
+        static final int MAX_IN = 3;
+        static final int DEFAULT_LINE_SIZE = 76;
+        static final byte[] DEFAULT_LINE_SEPARATOR = {'\r', '\n'};
+        static final byte[] ENCODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+            .getBytes(StandardCharsets.ISO_8859_1);
+
+        final byte[] outBuffer = new byte[4];
+        int inBuffer = 0, inSize = 0, outSize = 0;
+
+        public Base64OutputStream(OutputStream out, int lineSize, byte[] lineSeparator) {
+            super(lineSize > 0 ? new LineSeparateOutputStream(out, lineSize, lineSeparator) : out);
+        }
+
+        public Base64OutputStream(OutputStream out) {
+            this(out, DEFAULT_LINE_SIZE, DEFAULT_LINE_SEPARATOR);
+        }
+
+        public Base64OutputStream(OutputStream out, int lineSize) {
+            this(out, lineSize, DEFAULT_LINE_SEPARATOR);
+        }
+
+        void add(int b) {
+            inBuffer |= (b & 0xFF) << ((MAX_IN - 1 - inSize++) * 8);
+        }
+
+        void writeBuffer() throws IOException {
+            for (int i = outBuffer.length - 1; i >= 0; --i, inBuffer >>>= 6)
+                outBuffer[i] = ENCODE[inBuffer & 0b111111];
+            out.write(outBuffer, 0, inSize + 1);
+            for (int i = inSize; i < MAX_IN; ++i)
+                out.write('=');
+            inSize = 0;
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            if (inSize >= MAX_IN)
+                writeBuffer();
+            add(b);
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (inSize > 0)
+                writeBuffer();
+            super.close();
+        }
+
+    }
+
+    static byte[] encode(byte[] in, int lineSize, byte[] lineSeparator) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try (Base64OutputStream os = new Base64OutputStream(bos, lineSize, lineSeparator)) {
+            os.write(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return bos.toByteArray();
+    }
+
+    static byte[] encode(byte[] in, int lineSize) {
+        return encode(in, lineSize, Base64OutputStream.DEFAULT_LINE_SEPARATOR);
+    }
+
+    String text = "Base64は、データを64種類の印字可能な英数字のみを用いて、\r\n"
+        + "それ以外の文字を扱うことの出来ない通信環境にてマルチバイト文字や\r\n"
+        + "バイナリデータを扱うためのエンコード方式である。MIMEによって規定\r\n"
+        + "されていて、7ビットのデータしか扱うことの出来ない電子メールにて\r\n"
+        + "広く利用されている。具体的には、A–Z, a–z, 0–9 までの62文字と、\r\n"
+        + "記号2つ (+, /)、さらにパディング（余った部分を詰める）のための\r\n"
+        + "記号として = が用いられる。この変換によって、データ量は4/3（約133%）\r\n"
+        + "になる。また、MIMEの基準では76文字ごとに改行コードが入るため、\r\n"
+        + "この分の2バイトを計算に入れるとデータ量は約137%となる。\r\n";
+
+    @Test
+    public void testBase64OutputStream() throws IOException {
+//        try (OutputStream os = new Base64OutputStream(System.out)) {
+//            os.write(text.getBytes(StandardCharsets.UTF_8));
+//        }
+        System.out.println(new String(encode(text.getBytes(StandardCharsets.UTF_8), 72), StandardCharsets.UTF_8));
     }
 }

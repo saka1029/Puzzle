@@ -3,8 +3,10 @@ package test.puzzle.parsers;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -79,16 +81,6 @@ class Base64 {
             unpackBits(out, j, 4, 6, packBits(in, i, 3, 8));
             for (int k = j, kmax = j + 4; k < kmax; ++k)
                 out[k] = ENCODE[out[k]];
-
-//            int b0 = in[i];
-//            int b1 = i + 1 < inSize ? in[i + 1] : 0;
-//            int b2 = i + 2 < inSize ? in[i + 2] : 0;
-//            // in : 000000001111111122222222
-//            // out: aaaaaabbbbbbccccccdddddd
-//            out[j] = ENCODE[b0 >>> 2 & 0b111111];
-//            out[j + 1] = ENCODE[b0 << 4 & 0b110000 | b1 >>> 4 & 0b001111];
-//            out[j + 2] = ENCODE[b1 << 2 & 0b111100 | b2 >>> 6 & 0b000011];
-//            out[j + 3] = ENCODE[b2 & 0b111111];
         }
         // パディング部分が'A'にエンコードされているので'='に置換します。
         for (int j = inSize + blockCount; j < outSize; ++j)
@@ -120,16 +112,6 @@ class Base64 {
             for (int k = 0, kk = i; k < 4; ++k, ++kk)
                 block[k] = decode(in[kk]);
             unpackBits(out, j, 3, 8, packBits(block, 0, 4, 6));
-
-//            byte b0 = decode(in[i]);
-//            byte b1 = decode(in[i + 1]);
-//            byte b2 = decode(in[i + 2]);
-//            byte b3 = decode(in[i + 3]);
-//            // in : 000000111111222222333333
-//            // out: AAAAAAAABBBBBBBBCCCCCCCC
-//            out[j] = (byte) (b0 << 2 & 0b11111100 | b1 >>> 4 & 0b00000011);
-//            if (j + 1 < outSize) out[j + 1] = (byte) (b1 << 4 & 0b11110000 | b2 >>> 2 & 0b00001111);
-//            if (j + 2 < outSize) out[j + 2] = (byte) (b2 << 6 & 0b11000000 | b3 & 0b00111111);
         }
         return out;
     }
@@ -391,5 +373,58 @@ class Base64 {
 //            os.write(text.getBytes(StandardCharsets.UTF_8));
 //        }
         System.out.println(new String(encode(text.getBytes(StandardCharsets.UTF_8), 72), StandardCharsets.UTF_8));
+    }
+    
+    public static class Base64InputStream extends FilterInputStream {
+        
+        static final int MAX_IN_SIZE = 4, MAX_OUT_SIZE = 3;
+        static final byte[] DECODE = new byte[128];
+        static {
+            Arrays.fill(DECODE, (byte)-1);
+            for (int i = 0, max = ENCODE.length; i < max; ++i)
+                DECODE[ENCODE[i]] = (byte)i;
+//            DECODE['='] = 0;    // パディングは0にデコードします。
+        }
+
+        boolean isReadable = true;
+        int ch = 0, inBuffer = 0;
+        int inSize = 0, outSize = 0;
+
+        public Base64InputStream(InputStream in) {
+            super(in);
+        }
+        
+        int get() throws IOException {
+            if (ch == -1) return -1;
+            while ((ch = in.read()) != -1)
+                if (ch < 128) {
+                    ch = DECODE[ch];
+                    if (ch != -1)
+                        return ch;
+                }
+            return ch;
+        }
+
+        void fill() throws IOException {
+            inBuffer = 0;
+            if (ch == -1) return;
+            for (int i = 0; i < MAX_IN_SIZE; ++i) {
+                int b = get();
+                if (b == -1)
+                    b = 0;
+                else
+                    ++inSize;
+                inBuffer = inBuffer << 6 | b & 0b111111;
+            }
+        }
+        
+        @Override
+        public int read() throws IOException {
+            if (ch == -1) return -1;
+            if (outSize < inSize - 1)
+
+            
+        }
+        
     }
 }

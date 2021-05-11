@@ -2,6 +2,7 @@ package test.puzzle.parsers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
@@ -20,19 +21,23 @@ class Base64 {
         .getBytes(StandardCharsets.ISO_8859_1);
     static final byte[] DECODE = new byte[128];
     static {
-        Arrays.fill(DECODE, (byte)-1);
+        Arrays.fill(DECODE, (byte) -1);
         for (int i = 0, max = ENCODE.length; i < max; ++i)
-            DECODE[ENCODE[i]] = (byte)i;
-        DECODE['='] = 0;    // パディングは0にデコードします。
+            DECODE[ENCODE[i]] = (byte) i;
+        DECODE['='] = 0; // パディングは0にデコードします。
     }
 
     /**
      * バイト列をintにパックします。
      *
-     * @param array パックする対象となるbyte配列です。
-     * @param start 対象データを取り出すbyte配列の開始位置です。
-     * @param size パックする対象データのbyte数です。
-     * @param bits byte値から取り出す右端のビット数です。
+     * @param array
+     *            パックする対象となるbyte配列です。
+     * @param start
+     *            対象データを取り出すbyte配列の開始位置です。
+     * @param size
+     *            パックする対象データのbyte数です。
+     * @param bits
+     *            byte値から取り出す右端のビット数です。
      * @return
      */
     static int packBits(byte[] array, int start, int size, int bits) {
@@ -49,11 +54,16 @@ class Base64 {
     /**
      * パックされたint値をbyte配列に展開します。
      *
-     * @param array 展開先のbyte配列です。
-     * @param start 展開先の開始位置です。
-     * @param size 展開するbyte数です。
-     * @param bits パックされたデータから単一の値を取り出す右端のビット数です。
-     * @param packed パックされたint値です。
+     * @param array
+     *            展開先のbyte配列です。
+     * @param start
+     *            展開先の開始位置です。
+     * @param size
+     *            展開するbyte数です。
+     * @param bits
+     *            パックされたデータから単一の値を取り出す右端のビット数です。
+     * @param packed
+     *            パックされたint値です。
      */
     static void unpackBits(byte[] array, int start, int size, int bits, int packed) {
         int len = array.length;
@@ -72,7 +82,7 @@ class Base64 {
      * outSize    : blockCount * 4 (パディングも含むサイズ）
      * </pre>
      */
-    public static byte[] encode(byte[] in) {
+    public static byte[] encode0(byte[] in) {
         int inSize = in.length;
         int blockCount = (inSize + 2) / 3;
         int outSize = blockCount * 4;
@@ -88,29 +98,31 @@ class Base64 {
         return out;
     }
 
-    static byte decode(byte b) {
+    static byte decode0(byte b) {
         if (b < 0)
-            throw new IllegalArgumentException("unknown input character '" + (char)b + "'");
+            throw new IllegalArgumentException("unknown input character '" + (char) b + "'");
         byte decode = DECODE[b];
         if (decode < 0)
-            throw new IllegalArgumentException("unknown input character '" + (char)b + "'");
+            throw new IllegalArgumentException("unknown input character '" + (char) b + "'");
         return decode;
     }
 
-    public static byte[] decode(byte[] in) {
+    public static byte[] decode0(byte[] in) {
         int inSize = in.length;
         if (inSize % 4 != 0)
             throw new IllegalArgumentException("input size != 4 * n");
         int blockCount = inSize / 4;
         int paddingSize = 0;
-        if (inSize >= 1 && in[inSize - 1] == '=') ++paddingSize;
-        if (inSize >= 2 && in[inSize - 2] == '=') ++paddingSize;
+        if (inSize >= 1 && in[inSize - 1] == '=')
+            ++paddingSize;
+        if (inSize >= 2 && in[inSize - 2] == '=')
+            ++paddingSize;
         int outSize = blockCount * 3 - paddingSize;
         byte[] out = new byte[outSize];
         byte[] block = new byte[4];
         for (int i = 0, j = 0; i < inSize; i += 4, j += 3) {
             for (int k = 0, kk = i; k < 4; ++k, ++kk)
-                block[k] = decode(in[kk]);
+                block[k] = decode0(in[kk]);
             unpackBits(out, j, 3, 8, packBits(block, 0, 4, 6));
         }
         return out;
@@ -121,48 +133,50 @@ class Base64 {
     }
 
     static Random random = new Random(1);
+
     static byte[] randomBytes(int size) {
         byte[] out = new byte[size];
         for (int i = 0; i < size; ++i)
-            out[i] = (byte)random.nextInt(256);
+            out[i] = (byte) random.nextInt(256);
         return out;
     }
 
     @Test
     public void testEncode() {
-        assertArrayEquals(bytes("QUJDREVGRw=="), encode(bytes("ABCDEFG")));
-        assertArrayEquals(bytes("QUJDREVG"), encode(bytes("ABCDEF")));
-        assertArrayEquals(bytes("QUJDREU="), encode(bytes("ABCDE")));
-        assertArrayEquals(bytes("QUJDRA=="), encode(bytes("ABCD")));
-        assertArrayEquals(bytes("QUJD"), encode(bytes("ABC")));
-        assertArrayEquals(bytes("QUI="), encode(bytes("AB")));
-        assertArrayEquals(bytes("QQ=="), encode(bytes("A")));
+        assertArrayEquals(bytes("QUJDREVGRw=="), encode0(bytes("ABCDEFG")));
+        assertArrayEquals(bytes("QUJDREVG"), encode0(bytes("ABCDEF")));
+        assertArrayEquals(bytes("QUJDREU="), encode0(bytes("ABCDE")));
+        assertArrayEquals(bytes("QUJDRA=="), encode0(bytes("ABCD")));
+        assertArrayEquals(bytes("QUJD"), encode0(bytes("ABC")));
+        assertArrayEquals(bytes("QUI="), encode0(bytes("AB")));
+        assertArrayEquals(bytes("QQ=="), encode0(bytes("A")));
     }
 
     @Test
     public void testDecode() {
-        assertArrayEquals(bytes("ABCDEFG"), decode(bytes("QUJDREVGRw==")));
-        assertArrayEquals(bytes("ABCDEF"), decode(bytes("QUJDREVG")));
-        assertArrayEquals(bytes("ABCDE"), decode(bytes("QUJDREU=")));
-        assertArrayEquals(bytes("ABCD"), decode(bytes("QUJDRA==")));
-        assertArrayEquals(bytes("ABC"), decode(bytes("QUJD")));
-        assertArrayEquals(bytes("AB"), decode(bytes("QUI=")));
-        assertArrayEquals(bytes("A"), decode(bytes("QQ==")));
+        assertArrayEquals(bytes("ABCDEFG"), decode0(bytes("QUJDREVGRw==")));
+        assertArrayEquals(bytes("ABCDEF"), decode0(bytes("QUJDREVG")));
+        assertArrayEquals(bytes("ABCDE"), decode0(bytes("QUJDREU=")));
+        assertArrayEquals(bytes("ABCD"), decode0(bytes("QUJDRA==")));
+        assertArrayEquals(bytes("ABC"), decode0(bytes("QUJD")));
+        assertArrayEquals(bytes("AB"), decode0(bytes("QUI=")));
+        assertArrayEquals(bytes("A"), decode0(bytes("QQ==")));
     }
 
     @Test
     public void testEncodeDecode() {
         byte[] random = randomBytes(4001);
-//        System.out.println(Arrays.toString(random));
-//        System.out.println(new String(encode(random), StandardCharsets.ISO_8859_1));
-        assertArrayEquals(random, decode(encode(random)));
+        // System.out.println(Arrays.toString(random));
+        // System.out.println(new String(encode(random),
+        // StandardCharsets.ISO_8859_1));
+        assertArrayEquals(random, decode0(encode0(random)));
     }
 
     static java.util.Base64.Encoder javaEncoder = java.util.Base64.getEncoder();
 
     static void testStandardEncode(String s) {
         byte[] input = s.getBytes(StandardCharsets.UTF_8);
-        assertArrayEquals(javaEncoder.encode(input), encode(input));
+        assertArrayEquals(javaEncoder.encode(input), encode0(input));
     }
 
     @Test
@@ -183,7 +197,7 @@ class Base64 {
     static void testStandardDecode(String s) {
         byte[] input = s.getBytes(StandardCharsets.UTF_8);
         byte[] encoded = javaEncoder.encode(input);
-        assertArrayEquals(javaDecoder.decode(encoded), decode(encoded));
+        assertArrayEquals(javaDecoder.decode(encoded), decode0(encoded));
     }
 
     @Test
@@ -199,30 +213,29 @@ class Base64 {
         testStandardDecode("日本語をエンコード");
     }
 
-
     @Test
     void testEncodeLength() {
-        assertEquals(4, encode(new byte[1]).length);
-        assertEquals(4, encode(new byte[2]).length);
-        assertEquals(4, encode(new byte[3]).length);
-        assertEquals(8, encode(new byte[4]).length);
-        assertEquals(8, encode(new byte[5]).length);
-        assertEquals(8, encode(new byte[6]).length);
-        assertEquals(12, encode(new byte[7]).length);
-        assertEquals(12, encode(new byte[8]).length);
-        assertEquals(12, encode(new byte[9]).length);
-        assertEquals(16, encode(new byte[10]).length);
+        assertEquals(4, encode0(new byte[1]).length);
+        assertEquals(4, encode0(new byte[2]).length);
+        assertEquals(4, encode0(new byte[3]).length);
+        assertEquals(8, encode0(new byte[4]).length);
+        assertEquals(8, encode0(new byte[5]).length);
+        assertEquals(8, encode0(new byte[6]).length);
+        assertEquals(12, encode0(new byte[7]).length);
+        assertEquals(12, encode0(new byte[8]).length);
+        assertEquals(12, encode0(new byte[9]).length);
+        assertEquals(16, encode0(new byte[10]).length);
     }
 
     @Test
     void testDecodeLength() {
-        assertEquals(7, decode(bytes("QUJDREVGRw==")).length);
-        assertEquals(6, decode(bytes("QUJDREVG")).length);
-        assertEquals(5, decode(bytes("QUJDREU=")).length);
-        assertEquals(4, decode(bytes("QUJDRA==")).length);
-        assertEquals(3, decode(bytes("QUJD")).length);
-        assertEquals(2, decode(bytes("QUI=")).length);
-        assertEquals(1, decode(bytes("QQ==")).length);
+        assertEquals(7, decode0(bytes("QUJDREVGRw==")).length);
+        assertEquals(6, decode0(bytes("QUJDREVG")).length);
+        assertEquals(5, decode0(bytes("QUJDREU=")).length);
+        assertEquals(4, decode0(bytes("QUJDRA==")).length);
+        assertEquals(3, decode0(bytes("QUJD")).length);
+        assertEquals(2, decode0(bytes("QUI=")).length);
+        assertEquals(1, decode0(bytes("QQ==")).length);
     }
 
     @Test
@@ -256,7 +269,7 @@ class Base64 {
         assertArrayEquals(new byte[] {1, 2, 3, 4}, array);
         byte[] array2 = new byte[3];
         unpackBits(array2, 0, 3, 8, 0b000001_000010_000011_000100);
-        assertArrayEquals(new byte[] {0b00000100, 0b00100000, (byte)0b11000100}, array2);
+        assertArrayEquals(new byte[] {0b00000100, 0b00100000, (byte) 0b11000100}, array2);
     }
 
     public static class Base64OutputStream extends FilterOutputStream {
@@ -369,33 +382,33 @@ class Base64 {
 
     @Test
     public void testBase64OutputStream() throws IOException {
-//        try (OutputStream os = new Base64OutputStream(System.out)) {
-//            os.write(text.getBytes(StandardCharsets.UTF_8));
-//        }
-        System.out.println(new String(encode(text.getBytes(StandardCharsets.UTF_8), 72), StandardCharsets.UTF_8));
+        // try (OutputStream os = new Base64OutputStream(System.out)) {
+        // os.write(text.getBytes(StandardCharsets.UTF_8));
+        // }
+        System.out.println(
+            new String(encode(text.getBytes(StandardCharsets.UTF_8), 72), StandardCharsets.UTF_8));
     }
-    
+
     public static class Base64InputStream extends FilterInputStream {
-        
+
         static final int MAX_IN_SIZE = 4, MAX_OUT_SIZE = 3;
         static final byte[] DECODE = new byte[128];
         static {
-            Arrays.fill(DECODE, (byte)-1);
+            Arrays.fill(DECODE, (byte) -1);
             for (int i = 0, max = ENCODE.length; i < max; ++i)
-                DECODE[ENCODE[i]] = (byte)i;
-//            DECODE['='] = 0;    // パディングは0にデコードします。
+                DECODE[ENCODE[i]] = (byte) i;
         }
 
-        boolean isReadable = true;
         int ch = 0, inBuffer = 0;
         int inSize = 0, outSize = 0;
 
         public Base64InputStream(InputStream in) {
             super(in);
         }
-        
+
         int get() throws IOException {
-            if (ch == -1) return -1;
+            if (ch == -1)
+                return -1;
             while ((ch = in.read()) != -1)
                 if (ch < 128) {
                     ch = DECODE[ch];
@@ -406,8 +419,9 @@ class Base64 {
         }
 
         void fill() throws IOException {
-            inBuffer = 0;
-            if (ch == -1) return;
+            inSize = outSize = inBuffer = 0;
+            if (ch == -1)
+                return;
             for (int i = 0; i < MAX_IN_SIZE; ++i) {
                 int b = get();
                 if (b == -1)
@@ -417,14 +431,55 @@ class Base64 {
                 inBuffer = inBuffer << 6 | b & 0b111111;
             }
         }
-        
+
         @Override
         public int read() throws IOException {
-            if (ch == -1) return -1;
-            if (outSize < inSize - 1)
-
-            
+            if (outSize >= inSize - 1)
+                fill();
+            if (outSize >= inSize - 1)
+                return -1;
+            return inBuffer >>> (MAX_OUT_SIZE - outSize++ - 1) * 8 & 0xFF;
         }
-        
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            int size = 0;
+            int r;
+            for (int i = off; i < len && (r = read()) != -1; ++i, ++size)
+                b[i] = (byte) r;
+            return size == 0 ? -1 : size;
+        }
+    }
+
+    static byte[] decode(byte[] input) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            try (ByteArrayInputStream bis = new ByteArrayInputStream(input);
+                Base64InputStream is = new Base64InputStream(bis)) {
+                byte[] buffer = new byte[4096];
+                while (true) {
+                    int size = is.read(buffer);
+                    if (size == -1)
+                        break;
+                    bos.write(buffer, 0, size);
+                }
+            }
+            return bos.toByteArray();
+        }
+    }
+
+    static void testBase64InputStream(String expected, String actual) throws IOException {
+        assertArrayEquals(expected.getBytes(StandardCharsets.UTF_8), decode(actual.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void testBase64InputStream() throws IOException {
+        testBase64InputStream("ABCDEFG", "QUJ\r\nDREVGRw==");
+        testBase64InputStream("ABCDEFG", "QUJDREVGRw==");
+        testBase64InputStream("ABCDEF", "QUJDREVG");
+        testBase64InputStream("ABCDE", "QUJDREU=");
+        testBase64InputStream("ABCD", "QUJDRA==");
+        testBase64InputStream("ABC", "QUJD");
+        testBase64InputStream("AB", "QUI=");
+        testBase64InputStream("A", "QQ==");
     }
 }

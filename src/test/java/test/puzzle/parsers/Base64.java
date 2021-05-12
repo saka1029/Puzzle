@@ -1,6 +1,7 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -166,9 +167,6 @@ class Base64 {
     @Test
     public void testEncodeDecode() {
         byte[] random = randomBytes(4001);
-        // System.out.println(Arrays.toString(random));
-        // System.out.println(new String(encode(random),
-        // StandardCharsets.ISO_8859_1));
         assertArrayEquals(random, decode0(encode0(random)));
     }
 
@@ -370,6 +368,10 @@ class Base64 {
         return encode(in, lineSize, Base64OutputStream.DEFAULT_LINE_SEPARATOR);
     }
 
+    static byte[] encode(byte[] in) {
+        return encode(in, 0, Base64OutputStream.DEFAULT_LINE_SEPARATOR);
+    }
+
     String text = "Base64は、データを64種類の印字可能な英数字のみを用いて、\r\n"
         + "それ以外の文字を扱うことの出来ない通信環境にてマルチバイト文字や\r\n"
         + "バイナリデータを扱うためのエンコード方式である。MIMEによって規定\r\n"
@@ -380,14 +382,11 @@ class Base64 {
         + "になる。また、MIMEの基準では76文字ごとに改行コードが入るため、\r\n"
         + "この分の2バイトを計算に入れるとデータ量は約137%となる。\r\n";
 
-    @Test
-    public void testBase64OutputStream() throws IOException {
-        // try (OutputStream os = new Base64OutputStream(System.out)) {
-        // os.write(text.getBytes(StandardCharsets.UTF_8));
-        // }
-        System.out.println(
-            new String(encode(text.getBytes(StandardCharsets.UTF_8), 72), StandardCharsets.UTF_8));
-    }
+//    @Test
+//    public void testBase64OutputStream() throws IOException {
+//        System.out.println(
+//            new String(encode(text.getBytes(StandardCharsets.UTF_8), 72), StandardCharsets.UTF_8));
+//    }
 
     public static class Base64InputStream extends FilterInputStream {
 
@@ -445,7 +444,7 @@ class Base64 {
         public int read(byte[] b, int off, int len) throws IOException {
             int size = 0;
             int r;
-            for (int i = off; i < len && (r = read()) != -1; ++i, ++size)
+            for (int i = off, max = off + len; i < max && (r = read()) != -1; ++i, ++size)
                 b[i] = (byte) r;
             return size == 0 ? -1 : size;
         }
@@ -473,7 +472,6 @@ class Base64 {
 
     @Test
     public void testBase64InputStream() throws IOException {
-        testBase64InputStream("ABCDEFG", "QUJ\r\nDREVGRw==");
         testBase64InputStream("ABCDEFG", "QUJDREVGRw==");
         testBase64InputStream("ABCDEF", "QUJDREVG");
         testBase64InputStream("ABCDE", "QUJDREU=");
@@ -481,5 +479,6 @@ class Base64 {
         testBase64InputStream("ABC", "QUJD");
         testBase64InputStream("AB", "QUI=");
         testBase64InputStream("A", "QQ==");
+        testBase64InputStream("ABCDEFG", "QUJ\r\nDREVGRw==");
     }
 }

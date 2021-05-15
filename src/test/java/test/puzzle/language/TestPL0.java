@@ -357,10 +357,12 @@ class TestPL0 {
             void program() {
                 Symbol main = new Symbol("#main#", SymbolType.proc, 0, 0);
                 symbols.add(main);
-                Instruction start = new Instruction(InstType.jmp, 0, 0);
-                codes.add(start);
+                // 先頭にメインプログラムへのjmp命令を生成します。
+                Instruction jmp = new Instruction(InstType.jmp, 0, 0);
+                codes.add(jmp);
                 block(symbols.getLast(), 0);
-                start.a = main.adr;
+                // メインプログラムの先頭アドレスをjmp命令のオペランドにセットします。
+                jmp.a = main.adr;
                 expect(".");
             }
 

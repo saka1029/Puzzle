@@ -10,6 +10,9 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 /**
+ * PL/0 – Pascal for small machines
+ * http://pascal.hansotten.com/niklaus-wirth/pl0/
+ *
  * 文法上は文として以下が定義されているが、コード上は実装されていない。
  * <ul>
  * <li>'?' ident</li>

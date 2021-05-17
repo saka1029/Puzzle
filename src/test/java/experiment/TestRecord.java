@@ -1,6 +1,7 @@
 package experiment;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.io.Serializable;
 import java.lang.reflect.RecordComponent;
@@ -132,6 +133,18 @@ class TestRecord {
         System.out.println(Arrays.toString(r.getClass().getRecordComponents()));
         RecordComponent[] comps = r.getClass().getRecordComponents();
         System.out.println(comps[0].getAccessor());
+    }
+    
+    @Test
+    public void testNonStatic() {
+        int local = 100;
+        record R() {
+            // recordはメソッド内部で宣言してもstaticなのでローカル変数は参照できない。
+//            int foo() {
+//                return local;  // Cannot make a static reference to the non-static variable local
+//            }
+        };
+        R r = new R();
     }
 
 }

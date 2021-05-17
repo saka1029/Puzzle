@@ -71,4 +71,20 @@ class TestRational {
         assertEquals(29, Rational.gcd(493, 667));
     }
 
+    /**
+     * いい感じの難易度に仕上げた(?)大小比較パズル - YouTube
+     * https://www.youtube.com/watch?v=LjQeOP-nZr4
+     */
+    @Test
+    public void testYoutube() {
+        Rational left = Rational.ONE;
+        for (int n = 1; n < 24; n += 2) {
+            Rational t = Rational.of(n, n + 1);
+            Rational m = left.multiply(Rational.of(n, n + 1));
+            System.out.printf("%s = %s * %s = %s%n", m, left, t, m.doubleValue());
+            left = m;
+        }
+        System.out.printf("left = %s = %s%n", left, left.doubleValue());
+    }
+
 }

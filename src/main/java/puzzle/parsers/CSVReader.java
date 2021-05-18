@@ -38,63 +38,92 @@ import java.util.List;
  * </pre>
  *
  */
-public class CSVReader extends Parser {
+public class CSVReader {
+
+    final BufferedReader reader;
+    int ch;
+    List<String> line;
+    final StringBuilder field = new StringBuilder();
 
     public CSVReader(BufferedReader reader) throws IOException {
-        super(reader);
+        this.reader = reader;
+        this.ch = get();
     }
 
-    private List<String> line;
-    private StringBuilder field = new StringBuilder();
+    int get() throws IOException {
+        return ch = reader.read();
+    }
+
+    void put(int c) {
+        field.append((char) c);
+    }
+
+    void putGet(int c) throws IOException {
+        put(c);
+        get();
+    }
+
+    boolean is(int... cs) {
+        for (int c : cs)
+            if (c == ch)
+                return true;
+        return false;
+    }
+
+    boolean match(int c) throws IOException {
+        if (ch != c)
+            return false;
+        if (ch != -1)
+            get();
+        return true;
+    }
 
     void quoted() throws IOException {
-        while (true) {
-            if (ch == EOF)  // 引用符が開いたままEOFとなるケース（あえてエラーとしない）
+        get(); // skip '"'
+        while (true)
+            if (match(-1))  // 引用符が開いたままEOFとなるケース（あえてエラーとしない）
                 break;
-            else if (eat(QUOTE) || eat(BACKSLASH))
-                if (eat(QUOTE)) // 引用符自体の指定
-                    append(field, QUOTE);
+            else if (match('"'))
+                if (match('"')) // 引用符自体の指定
+                    put('"');
                 else
                     break;      // 単独の引用符
+            else if (match('\\'))
+                putGet(ch);
             else
-                appendGet(field, ch);
-        }
+                putGet(ch);
     }
 
     void unquoted() throws IOException {
-        while (ch != EOF && ch != COMMA && ch != QUOTE && ch != CR && ch != LF)
-            appendGet(field, ch);
+        while (!is(-1, ',', '"', '\r', '\n'))
+            putGet(ch);
     }
 
     void field() throws IOException {
         field.setLength(0);
         while (true)
-            if (eat(QUOTE))
+            if (is('"'))
                 quoted();
-            else  if (ch != EOF && ch != COMMA && ch != CR && ch != LF)
+            else  if (!is(-1, ',', '\r', '\n'))
                 unquoted();
             else
                 break;
         line.add(field.toString());
     }
 
-    void eol() throws IOException {
-        boolean eolFound = false;
-        // skip CR, CRLF or LF
-        if (eat(CR)) eolFound = true;
-        if (eat(LF)) eolFound = true;
-        if (!eolFound && ch != EOF)
-            throw new RuntimeException("CR, LF, CRLF or EOF expected");
-    }
-
     public List<String> readLine() throws IOException {
-        if (ch == -1)
+        if (match(-1))
             return null;
         line = new ArrayList<>();
         field();
-        while (eat(COMMA))
+        while (match(','))
             field();
-        eol();
+        if (match(-1) || match('\n'))
+            /* OK */ ;
+        else if (match('\r'))
+            match('\n');
+        else
+            throw new RuntimeException("CR, LF, CRLF or EOF expected but '" + (char)ch + "'");
         return line;
     }
 }

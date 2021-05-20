@@ -13,7 +13,7 @@ import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
-class TestArrayLisp {
+class TestListLisp {
 
     public static final Object NIL = Collections.emptyList();
     public static final Object T = "T";
@@ -155,15 +155,15 @@ class TestArrayLisp {
             else if (eq(fn, "cons"))
                 return cons(car(x), cadr(x));
             else if (eq(fn, "atom"))
-                return atom(car(x)) ? T : NIL;
+                return atom(car(x)) ? T : NIL;  // booleanをオブジェクトに変換
             else if (eq(fn, "eq"))
-                return eq(car(x), cadr(x)) ? T : NIL;
+                return eq(car(x), cadr(x)) ? T : NIL;  // booleanをオブジェクトに変換
             else
                 return apply(eval(fn, a), x, a);
         else if (eq(car(fn), "lambda"))
             return eval(caddr(fn), pairlis(cadr(fn), x, a));
         else if (eq(car(fn), "label"))
-            // 点対がないのでcons(cons(VAR, VAL), a)をcons(list(VAR, VAL), a)に変更
+            // 点対がないのでcons(cadr(fn), caddr(fn))をlist(cadr(fn), caddr(fn))に変更
             return apply(caddr(fn), x, cons(list(cadr(fn), caddr(fn)), a)); // cons->list
         else
             throw new RuntimeException("cannot apply " + fn + " to " + x + " in " + a);
@@ -258,9 +258,9 @@ class TestArrayLisp {
 
         public Object read() {
             spaces();
-            if (ch == -1)
+            if (ch == -1) {
                 return null;
-            else if (ch == '(') {
+            } else if (ch == '(') {
                 get();
                 return paren();
             } else if (ch == '\'') {
@@ -465,9 +465,19 @@ class TestArrayLisp {
         assertEquals("(x '(a b) y)", print(list("x", list("quote", list("a", "b")), "y")));
     }
 
+    static Object define(String... values) {
+        List<Object> result = new ArrayList<>();
+        for (int i = 0, max = values.length; i < max; i += 2)
+            result.add(List.of(values[i], read(values[i + 1])));
+        return result;
+    }
+
     @Test
     public void testAppend() {
-        Object env = read("((append (lambda (x y) (cond (x (cons (car x) (append (cdr x) y))) (T y)))) (T T))");
+        Object env = define(
+            "append", "(lambda (x y) (cond (x (cons (car x) (append (cdr x) y))) (T y)))",
+            "T",  "T"
+        );
         assertEquals(read("(a b c d e)"), eval(read("(append '() '(a b c d e))"), env));
         assertEquals(read("(a b c d e)"), eval(read("(append '(a) '(b c d e))"), env));
         assertEquals(read("(a b c d e)"), eval(read("(append '(a b) '(c d e))"), env));
@@ -478,10 +488,11 @@ class TestArrayLisp {
 
     @Test
     public void testAppendWithNull() {
-        Object env = read(
-            "((append (lambda (x y) (cond ((null x) y) (T (cons (car x) (append (cdr x) y))))))"
-            + "(null (lambda (x) (eq x '())))"
-            + "(T T))");
+        Object env = define(
+            "append", "(lambda (x y) (cond ((null x) y) (T (cons (car x) (append (cdr x) y)))))",
+            "null", "(lambda (x) (eq x '()))",
+            "T", "T"
+        );
         assertEquals(read("(a b c d e)"), eval(read("(append '() '(a b c d e))"), env));
         assertEquals(read("(a b c d e)"), eval(read("(append '(a) '(b c d e))"), env));
         assertEquals(read("(a b c d e)"), eval(read("(append '(a b) '(c d e))"), env));

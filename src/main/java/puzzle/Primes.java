@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.IntFunction;
 import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -71,10 +72,10 @@ public class Primes {
 
     public static int[] primes(int max) {
         IntStream stream = IntStream.rangeClosed(2, max);
-        for (int i = 2, n = (int)Math.sqrt(max); i <= n; ++i) {
-            final int fi = i;
-            stream = stream.filter(k -> k == fi || k % fi != 0);
-        }
+        IntFunction<IntPredicate> sieve = n -> k -> k == n || k % n != 0;
+        stream = stream.filter(sieve.apply(2));
+        for (int i = 3, n = (int)Math.sqrt(max); i <= n; i += 2)
+            stream = stream.filter(sieve.apply(i));
         return stream.toArray();
     }
 

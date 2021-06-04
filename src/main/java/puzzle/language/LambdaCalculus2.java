@@ -422,8 +422,12 @@ public class LambdaCalculus2 {
                 continue;
             if (line.equals("exit"))
                 break;
-            Expression result = parse(line).reduce(context);
-            output.println(result);
+            try {
+                Expression result = parse(line).reduce(context);
+                output.println(result);
+            } catch (LambdaCalculusException e) {
+                output.println(e.getMessage());
+            }
             if (prompt) {
                 output.write(promptStr);
                 output.flush();

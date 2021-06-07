@@ -14,7 +14,9 @@ public static void solve(Consumer<int[]> callback) {
             .mapToObj(n -> "" + n)
             .collect(Collectors.joining(",")));
     public static void main(String[] args) throws Exception {
+        long start = System.currentTimeMillis();
         System.out.println(#VARIABLES#);
         solve(CALLBACK);
+        System.err.printf("elapse: %d msec.%n", System.currentTimeMillis() - start);
     }
 }

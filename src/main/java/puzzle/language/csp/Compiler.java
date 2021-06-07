@@ -1,11 +1,13 @@
 package puzzle.language.csp;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -15,6 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import puzzle.language.JavaCompiler;
 
 public class Compiler {
 
@@ -31,7 +35,11 @@ public class Compiler {
         }
     }
     static final String NAME = "\\p{L}[\\p{L}\\p{IsDigit}]*";
-    static final Pattern MACRO_VAR = Pattern .compile("#" + NAME + "#(\r\n)*");
+    static final Pattern MACRO_VAR = Pattern.compile("#" + NAME + "#(\r\n)*");
+
+    static RuntimeException error(String format, Object... arguments) {
+        return new RuntimeException(String.format(format, arguments));
+    }
 
     public static class Problem {
         final Map<String, Variable> variables = new LinkedHashMap<>();
@@ -69,7 +77,6 @@ public class Compiler {
                         variables[i], variables[j]);
         }
 
-
         static void append(StringBuilder sb, String format,
             Object... arguments) {
             sb.append(String.format(format, arguments));
@@ -95,7 +102,7 @@ public class Compiler {
                         .collect(Collectors.joining(", ")));
             map.put("#DECLARE#", sb.toString());
             sb.setLength(0);
-            Set<Constraint> remains = new HashSet<>(constraints);
+            Set<Constraint> remains = new LinkedHashSet<>(constraints);
             List<Variable> generated = new ArrayList<>();
             for (Variable v : variables.values()) {
                 append(sb, "for (int %s : _%s_domain)%n", v.name, v.name);
@@ -108,6 +115,8 @@ public class Compiler {
                     remains.removeAll(gen);
                 }
             }
+            if (!remains.isEmpty())
+                throw error("illegal constraints: " + remains);
             append(sb, "callback.accept(new int[] {%s});%n", variables.values()
                 .stream().map(v -> v.name).collect(Collectors.joining(", ")));
             map.put("#FOR#", sb.toString());
@@ -130,6 +139,17 @@ public class Compiler {
             m.appendTail(sb);
             return sb.toString();
         }
+
+        public void compile(File dest) {
+            JavaCompiler.compile(dest, null,
+                List.of(new JavaCompiler.Source(fqcn, generate())));
+        }
+
+        public void compileGo(File dest) {
+            JavaCompiler.compileGo(dest, null,
+                new JavaCompiler.Source(fqcn, generate()),
+                new String[0]);
+        }
     }
 
     public static class Variable {
@@ -141,7 +161,7 @@ public class Compiler {
             this.name = name;
             this.domain = domain.clone();
         }
-        
+
         @Override
         public String toString() {
             return name;
@@ -158,7 +178,7 @@ public class Compiler {
             for (Variable v : variables)
                 v.constraints.add(this);
         }
-        
+
         @Override
         public String toString() {
             return "制約(" + expression + variables + ")";
@@ -166,22 +186,20 @@ public class Compiler {
     }
 
     static Pattern FQCN = Pattern.compile("^" + NAME + "(\\." + NAME + ")*");
-    static Pattern IMPORT = Pattern.compile("^(static\\s+)?" + NAME + "(\\." + NAME + ")*(\\.\\*)?");
+    static Pattern IMPORT = Pattern
+        .compile("^(static\\s+)?" + NAME + "(\\." + NAME + ")*(\\.\\*)?");
     static Pattern VARIABLE = Pattern.compile("^" + NAME);
     static Pattern CVARIABLE = Pattern.compile(NAME);
-    static Pattern INT = Pattern.compile("-?\\d+");
+    static Pattern INT = Pattern.compile("^-?\\d+");
 
-    static record VAR(String name, int[] domain) {};
-    
+    static record VAR(String name, int[] domain) {
+    };
+
     public static Problem parse(String source) {
         return new Object() {
             int length = source.length();
             int index = 0;
             String token;
-            
-            RuntimeException error(String format, Object... arguments) {
-                return new RuntimeException(String.format(format, arguments));
-            }
 
             void spaces() {
                 while (index < length) {
@@ -194,7 +212,7 @@ public class Compiler {
                         } while (index < length && ch != '\r' && ch != '\n');
                     else
                         break;
-                }                       
+                }
             }
 
             boolean match(String e) {
@@ -205,7 +223,7 @@ public class Compiler {
                 index += token.length();
                 return true;
             }
-            
+
             boolean match(Pattern e) {
                 spaces();
                 Matcher m = e.matcher(source.substring(index));
@@ -215,7 +233,7 @@ public class Compiler {
                 index += token.length();
                 return true;
             }
-            
+
             void semicolon() {
                 if (!match(";"))
                     throw error("';' expeced after " + token);
@@ -233,7 +251,7 @@ public class Compiler {
                     throw error("'problem' expected");
                 return fqcn;
             }
-            
+
             List<String> imports() {
                 List<String> imports = new ArrayList<>();
                 while (match("import"))
@@ -244,7 +262,7 @@ public class Compiler {
                         throw error("FQCN expected after 'import'");
                 return imports;
             }
-            
+
             int[] domain() {
                 List<Integer> d = new ArrayList<>();
                 if (match("[")) {
@@ -265,7 +283,7 @@ public class Compiler {
                     throw error("'[' expected");
                 return d.stream().mapToInt(i -> i).toArray();
             }
-            
+
             void variables(Problem problem) {
                 int count = 0;
                 while (match("variable")) {
@@ -278,24 +296,38 @@ public class Compiler {
                 if (count <= 0)
                     throw error("no 'variable' statements");
             }
-            
+
             void constraint(Problem problem) {
-                while (match("constraint")) {
-                    spaces();
-                    StringBuilder sb = new StringBuilder();
-                    while (index < length && source.charAt(index) != ';')
-                        sb.append(source.charAt(index++));
-                    semicolon();
-                    String expression = sb.toString();
-                    Set<Variable> variables = new LinkedHashSet<>();
-                    Matcher m = CVARIABLE.matcher(expression);
-                    while (m.find()) {
-                        String name = m.group();
-                        Variable v = problem.variables.get(name);
-                        if (v != null)
-                            variables.add(v);
-                    }
-                    problem.constraint(expression, variables.toArray(Variable[]::new));
+                while (index < length) {
+                    if (match("constraint")) {
+                        spaces();
+                        StringBuilder sb = new StringBuilder();
+                        while (index < length && source.charAt(index) != ';')
+                            sb.append(source.charAt(index++));
+                        semicolon();
+                        String expression = sb.toString();
+                        Set<Variable> variables = new LinkedHashSet<>();
+                        Matcher m = CVARIABLE.matcher(expression);
+                        while (m.find()) {
+                            String name = m.group();
+                            Variable v = problem.variables.get(name);
+                            if (v != null)
+                                variables.add(v);
+                        }
+                        problem.constraint(expression, variables.toArray(Variable[]::new));
+                    } else if (match("different")) {
+                        List<Variable> variables = new ArrayList<>();
+                        while (match(VARIABLE)) {
+                            Variable v = problem.variables.get(token);
+                            if (v != null)
+                                variables.add(v);
+                            else
+                                throw error("variable '%s' is not defined", token);
+                        }
+                        problem.allDifferent(variables.toArray(Variable[]::new));
+                        semicolon();
+                    } else
+                        break;
                 }
             }
 
@@ -310,5 +342,31 @@ public class Compiler {
                 return problem;
             }
         }.parse();
+    }
+
+    static IllegalArgumentException usage() {
+        System.err.println("usage: java " + Compiler.class.getName() + " [-d DESTINATION] CSP_FILE");
+        return new IllegalArgumentException();
+    }
+
+    public static void main(String[] args) throws IOException {
+        File destination = new File(".");
+        int i = 0;
+        L: for (int max = args.length; i < max; ++i)
+            switch (args[i]) {
+            case "-d":
+                destination = new File(args[++i]);
+                break;
+            default:
+                if (args[i].startsWith("-"))
+                    throw usage();
+                else
+                    break L;
+            }
+        if (i >= args.length)
+            throw usage();
+        String source = Files.readString(Path.of(args[i]));
+        Problem problem = parse(source);
+        problem.compileGo(destination);
     }
 }

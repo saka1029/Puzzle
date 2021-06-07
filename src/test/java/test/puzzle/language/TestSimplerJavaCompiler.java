@@ -4,32 +4,32 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
-import puzzle.language.SimplerJavaCompiler;
-import puzzle.language.SimplerJavaCompiler.SimplerJavaCompileError;
-import puzzle.language.SimplerJavaCompiler.Source;
+import puzzle.language.JavaCompiler;
+import puzzle.language.JavaCompiler.Source;
 
 public class TestSimplerJavaCompiler {
 
     File destination = new File("temp");
 
     @Test
-    void testCompile() throws SimplerJavaCompileError, IllegalAccessException,
-        IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
-        SecurityException, ClassNotFoundException, MalformedURLException {
+    void testCompile()
+        throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, ClassNotFoundException {
         String className = "HelloWorld";
         String source = "public class HelloWorld {\r\n" +
             "    public static void main(String args[]) {\r\n" +
             "        System.out.println(\"Hello \" + args[0]);\r\n" +
             "    }" +
             "}\r\n";
-        ClassLoader loader = SimplerJavaCompiler.compile(destination, null, new Source(className, source));
+        ClassLoader loader = JavaCompiler.compile(destination, null,
+            List.of(new Source(className, source)));
         loader.loadClass(className).getMethod("main", new Class<?>[] {String[].class})
             .invoke(null, new Object[] {new String[] {"John"}});
     }
@@ -39,16 +39,13 @@ public class TestSimplerJavaCompiler {
     }
 
     @Test
-    void testInterfaceReference() throws SimplerJavaCompileError,
-        ClassNotFoundException, InstantiationException,
-        IllegalAccessException, IllegalArgumentException,
-        InvocationTargetException, NoSuchMethodException, SecurityException, MalformedURLException {
-        ClassLoader loader = SimplerJavaCompiler.compile(destination, null,
-            new Source("CalculateImpl",
+    void testInterfaceReference() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+        ClassLoader loader = JavaCompiler.compile(destination, null,
+            List.of(new Source("CalculateImpl",
                 "import " + getClass().getName() + ".Calculate;\r\n" +
-                "public class CalculateImpl implements Calculate {\r\n" +
-                "     @Override public int calc(int a, int b) { return a + b; }\r\n" +
-                "}\r\n"));
+                    "public class CalculateImpl implements Calculate {\r\n" +
+                    "     @Override public int calc(int a, int b) { return a + b; }\r\n" +
+                    "}\r\n")));
         @SuppressWarnings("unchecked")
         Class<Calculate> clazz = (Class<Calculate>) loader.loadClass("CalculateImpl");
         Calculate obj = clazz.getDeclaredConstructor().newInstance();
@@ -61,12 +58,9 @@ public class TestSimplerJavaCompiler {
     }
 
     @Test
-    void testCompileSendMoreMoney() throws MalformedURLException, SimplerJavaCompileError,
-        ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
-        InvocationTargetException, NoSuchMethodException, SecurityException {
+    void testCompileSendMoreMoney() throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         String className = "SendMoreMoney";
-        String source =
-            "import java.util.Map;\n"
+        String source = "import java.util.Map;\n"
             + "import java.util.function.Consumer;\n"
             + "\n"
             + "public class SendMoreMoney {\n"
@@ -115,8 +109,8 @@ public class TestSimplerJavaCompiler {
             + "    }\n"
             + "}\n"
             + "";
-        ClassLoader loader = SimplerJavaCompiler.compile(destination, null,
-            new Source(className, source));
+        ClassLoader loader = JavaCompiler.compile(destination, null,
+            List.of(new Source(className, source)));
         Class<?> clazz = loader.loadClass(className);
         Consumer<Map<String, Integer>> found = a -> {
             assertEquals(Map.of("s", 9, "e", 5, "n", 6, "d", 7, "m", 1, "o", 0, "r", 8, "y", 2), a);

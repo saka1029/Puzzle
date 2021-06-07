@@ -1,8 +1,8 @@
 package test.puzzle.language.csp;
 
-import static puzzle.language.csp.Compiler.parse;
+import static puzzle.language.csp.Compiler.*;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -16,8 +16,8 @@ class TestCompiler {
 
     static final Logger logger = Common.getLogger(TestCompiler.class);
 
-    @Test
-    void testGenerate() throws IOException {
+//    @Test
+    void testGenerate() {
         Problem p = new Problem("test.puzzle.language.csp.TestGenerate");
         int[] domain = IntStream.rangeClosed(1, 20).toArray();
         Variable a = p.variable("a", domain);
@@ -28,7 +28,7 @@ class TestCompiler {
         p.constraint("a*a + b*b == c*c", a, b, c);
         System.out.println(p.generate());
     }
-    
+
     @Test
     void testParse() {
         String source =
@@ -39,6 +39,31 @@ class TestCompiler {
             + "constraint a*a + b*b == c*c;\n";
         Problem problem = parse(source);
         System.out.println(problem.generate());
+    }
+
+    static File dest = new File("temp");
+
+    @Test
+    void testCompileGo() {
+        String source = "problem SendMoreMoney;\r\n"
+            + "\r\n"
+            + "# SEND + MORE = MONEY\r\n"
+            + "\r\n"
+            + "variable [1..9] s;\r\n"
+            + "variable [0..9] e n d;\r\n"
+            + "variable [1..9] m;\r\n"
+            + "variable [0..9] o r y;\r\n"
+            + "\r\n"
+            + "different s e n d m o r y;\r\n"
+            + "constraint\r\n"
+            + "            number(s, e, n, d)\r\n"
+            + "          + number(m, o, r, e)\r\n"
+            + "         == number(m, o, n, e, y);\r\n"
+            + "\r\n"
+            + "static int number(int... digits) {\r\n"
+            + "    return IntStream.of(digits).reduce(0, (n, d) -> n * 10 + d);\r\n"
+            + "};\r\n";
+        parse(source).compileGo(dest);
     }
 
 

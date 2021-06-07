@@ -1,4 +1,4 @@
-package puzzle.language;
+package puzzle.language.csp;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,6 +25,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import puzzle.language.SimplerJavaCompiler;
 import puzzle.language.SimplerJavaCompiler.SimplerJavaCompileError;
 
 public class CSPCompiler {
@@ -133,7 +136,7 @@ public class CSPCompiler {
                     for (String s : imports)
                         writer.printf("import %s;%n", s);
                     writer.printf("public class %s {%n", className);
-                    writer.printf("public static void solve(Consumer<Map<String, Integer>> callback) {%n", className);
+                    writer.printf("public static void solve(Consumer<int[]> callback) {%n", className);
                 }
 
                 void epilog() {
@@ -151,9 +154,9 @@ public class CSPCompiler {
                                 .collect(Collectors.joining(", ")));
                     for (Variable v : variables)
                         variable(v);
-                    writer.printf("callback.accept(Map.of(%s));%n",
+                    writer.printf("callback.accept(new int[] {%s});%n",
                         variables.stream()
-                            .map(v -> "\"" + v.name + "\", " + v.name)
+                            .map(v -> v.name)
                             .collect(Collectors.joining(", ")));
                     epilog();
                 }
@@ -161,7 +164,7 @@ public class CSPCompiler {
             }.gen();
         }
 
-        public void solve(File destination, Consumer<Map<String, Integer>> callback)
+        public void solve(File destination, Consumer<int[]> callback)
             throws MalformedURLException, SimplerJavaCompileError, IOException,
             IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, SecurityException,
@@ -173,13 +176,42 @@ public class CSPCompiler {
                 .invoke(null, callback);
         }
 
-        public Set<Map<String, Integer>> solve(File destination)
+        public List<int[]> solve(File destination)
             throws MalformedURLException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, SecurityException,
             ClassNotFoundException, SimplerJavaCompileError, IOException {
-            Set<Map<String, Integer>> answers = new LinkedHashSet<>();
+            List<int[]> answers = new ArrayList<>();
             solve(destination, answers::add);
             return answers;
+        }
+
+        public void print(List<int[]> answers, Consumer<String> output) {
+            int columns = variables.size();
+            int[] width = new int[columns];
+            int i = 0;
+            for (Variable v : variables) {
+                int c = i;
+                width[i] = Math.max(v.name.length(),
+                    answers.stream()
+                        .mapToInt(row -> ("" + row[c]).length())
+                        .max().orElse(0));
+                ++i;
+            }
+            StringBuilder line = new StringBuilder();
+            i = 0;
+            for (Variable v : variables)
+                line.append(String.format("%" + (width[i++] + 1) + "s", v.name));
+            output.accept(line.toString());
+            line.setLength(0);
+            for (int c = 0; c < columns; ++c)
+                line.append(" " + "-".repeat(width[c]));
+            output.accept(line.toString());
+            for (int[] row : answers) {
+                line.setLength(0);
+                for (int c = 0, max = row.length; c < max; ++c)
+                    line.append(String.format("%" + (width[c] + 1) + "s", row[c]));
+                output.accept(line.toString());
+            }
         }
     }
 
@@ -286,9 +318,9 @@ public class CSPCompiler {
                 return true;
             }
 
-            void semicolon() {
+            void semicolon(String word) {
                 if (!match(";"))
-                    throw error("';' expected");
+                    throw error("';' expected after %s", word);
             }
 
             void problem() {
@@ -298,7 +330,7 @@ public class CSPCompiler {
                         int p = packageClassName.lastIndexOf('.');
                         packageName = p < 0 ? null : packageClassName.substring(0, index);
                         className = p < 0 ? packageClassName : packageClassName.substring(index + 1);
-                        semicolon();
+                        semicolon(token);
                     } else
                         throw error("FQCN expected");
                 else
@@ -309,8 +341,9 @@ public class CSPCompiler {
                 while (match("import"))
                     if (match(IMPORT_NAME)) {
                         imports.add(token);
-                        semicolon();
-                    }
+                        semicolon(token);
+                    } else
+                        throw error("import class expected");
             }
 
             int[] domain() {
@@ -340,7 +373,7 @@ public class CSPCompiler {
                     int[] domain = domain();
                     while (match(VARIABLE_NAME))
                         problem.variable(token, domain);
-                    semicolon();
+                    semicolon(token);
                 }
             }
 
@@ -352,13 +385,13 @@ public class CSPCompiler {
                         while (index < length && source.charAt(index) != ';')
                             sb.append(source.charAt(index++));
                         problem.constraint(sb.toString());
-                        semicolon();
+                        semicolon(token);
                     } else if (match("different")) {
                         List<String> vars = new ArrayList<>();
                         while (match(VARIABLE_NAME))
                             vars.add(token);
                         problem.allDifferent(vars.toArray(String[]::new));
-                        semicolon();
+                        semicolon(token);
                     } else
                         break;
                 }
@@ -377,32 +410,49 @@ public class CSPCompiler {
         }.parse();
     }
 
-    static class StringSequence implements CharSequence {
-        final String s;
-        public int index;
+    static void usage(String opt) {
+        System.err.println("java " + CSPCompiler.class.getName() + " [-d DEST] [-s] CSP_FILE");
+        System.err.println("-d DEST  クラスファイルの出力ディレクトリ");
+        System.err.println("-s       生成されたJavaソースの表示");
+        throw new IllegalArgumentException("unknown option: " + opt);
+    }
 
-        public StringSequence(String s, int index) {
-            this.s = s;
-            this.index = index;
+    public static void main(String[] args) throws IOException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+        SecurityException, ClassNotFoundException, SimplerJavaCompileError {
+        File destination = new File(".");
+        boolean printSource = false;
+        int i = 0;
+        L: for (int max = args.length; i < max; ++i) {
+            switch (args[i]) {
+            case "-d":
+                destination = new File(args[++i]);
+                break;
+            case "-s":
+                printSource = true;
+                break;
+            default:
+                if (args[i].startsWith("-"))
+                    usage(args[i]);
+                break L;
+            }
         }
-
-        @Override
-        public int length() {
-            return s.length() - index;
-        }
-
-        @Override
-        public char charAt(int index) {
-            return s.charAt(this.index + index);
-        }
-
-        @Override
-        public CharSequence subSequence(int start, int end) {
-            return s.substring(index + start, index + end);
-        }
-
-        public boolean startsWith(String pat) {
-            return s.startsWith(pat, index);
-        }
+        long start = System.currentTimeMillis();
+        Problem problem = parse(Files.readString(Path.of(args[i])));
+        int[] width = problem.variables.stream()
+            .peek(v -> System.out.print("  " + v.name))
+            .mapToInt(v -> v.name.length())
+            .toArray();
+        System.out.println();
+        System.out.println("-".repeat(IntStream.of(width).map(k -> k + 2).sum()));
+        problem.solve(destination, row -> {
+            for (int c = 0, max = row.length; c < max; ++c)
+                System.out.printf("%" + (width[c] + 2) + "d", row[c]);
+            System.out.println();
+        });
+        System.out.println();
+        if (printSource)
+            System.out.println(problem.generate());
+        System.out.printf("%d msec.%n", System.currentTimeMillis() - start);
     }
 }

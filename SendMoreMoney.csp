@@ -1,0 +1,18 @@
+problem TestParseSendMoreMoney;
+
+# SEND + MORE = MONEY
+
+import java.util.stream.IntStream;
+
+variable [1..9] s;
+variable [0..9] e n d;
+variable [1..9] m;
+variable [0..9] o r y;
+
+different s m e n d o r y;
+constraint number(s, e, n, d) + number(m, o, r, e) == number(m, o, n, e, y);
+
+static int number(int... digits) {
+    return IntStream.of(digits).reduce(0, (n, d) -> n * 10 + d);
+};
+

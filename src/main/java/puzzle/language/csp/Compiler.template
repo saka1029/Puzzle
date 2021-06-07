@@ -1,0 +1,20 @@
+#PACKAGE#
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+#IMPORTS#
+public class #CLASS# {
+public static void solve(Consumer<int[]> callback) {
+#DECLARE#
+#FOR#
+}
+#FUNCTIONS#
+    static final Consumer<int[]> CALLBACK = a ->
+        System.out.println(IntStream.of(a)
+            .mapToObj(n -> "" + n)
+            .collect(Collectors.joining(",")));
+    public static void main(String[] args) throws Exception {
+        System.out.println(#VARIABLES#);
+        solve(CALLBACK);
+    }
+}

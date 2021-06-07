@@ -1,0 +1,36 @@
+problem いしき;
+
+import java.util.stream.IntStream;
+
+#                いしき
+#        --------------
+# しれい ）てつていてき
+#          うてほき
+#          ----------
+#            いんして
+#            てほうて
+#            ----------
+#              いつれき
+#              いりてつ
+#              --------
+#                  ほて
+
+variable [1..9] い し て う;
+variable [0..9] き れ つ ほ ん り;
+
+different い し て う き れ つ ほ ん り;
+
+constraint number(て,つ,て,い,て,き) / number(し,れ,い) == number(い,し,き);
+constraint number(て,つ,て,い,て,き) % number(し,れ,い) == number(ほ,て);
+
+constraint number(し,れ,い) * number(い) == number(う,て,ほ,き);
+constraint number(て,つ,て,い) - number(う,て,ほ,き) == number(い,ん,し);
+constraint number(し,れ,い) * number(し) == number(て,ほ,う,て);
+constraint number(い,ん,し,て) - number(て,ほ,う,て) == number(い,つ,れ);
+constraint number(し,れ,い) * number(き) == number(い,り,て,つ);
+constraint number(い,つ,れ,き) - number(い,り,て,つ) == number(ほ,て);
+
+
+static int number(int... digits) {
+    return IntStream.of(digits).reduce(0, (n, d) -> n * 10 + d);
+}

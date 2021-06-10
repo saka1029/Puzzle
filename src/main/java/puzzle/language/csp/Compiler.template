@@ -9,14 +9,17 @@ public static void solve(Consumer<int[]> callback) {
 #FOR#
 }
 #FUNCTIONS#
-    static final Consumer<int[]> CALLBACK = a ->
-        System.out.println(IntStream.of(a)
-            .mapToObj(n -> "" + n)
-            .collect(Collectors.joining(",")));
     public static void main(String[] args) throws Exception {
         long start = System.currentTimeMillis();
         System.out.println(#VARIABLES#);
-        solve(CALLBACK);
-        System.err.printf("elapse: %d msec.%n", System.currentTimeMillis() - start);
+        int[] count = {0};
+        Consumer<int[]> callback = a -> {
+            ++count[0];
+            System.out.println(IntStream.of(a)
+                .mapToObj(n -> "" + n)
+                .collect(Collectors.joining(",")));
+        };
+        solve(callback);
+        System.err.printf("solutions: " + count[0] + ", elapse: %d msec.%n", System.currentTimeMillis() - start);
     }
 }

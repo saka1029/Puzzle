@@ -192,9 +192,6 @@ public class Compiler {
     static Pattern CVARIABLE = Pattern.compile(NAME);
     static Pattern INT = Pattern.compile("^-?\\d+");
 
-    static record VAR(String name, int[] domain) {
-    };
-
     public static Problem parse(String source) {
         return new Object() {
             int length = source.length();

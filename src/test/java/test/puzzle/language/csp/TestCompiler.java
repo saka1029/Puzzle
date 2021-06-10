@@ -3,6 +3,9 @@ package test.puzzle.language.csp;
 import static puzzle.language.csp.Compiler.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -66,5 +69,30 @@ class TestCompiler {
         parse(source).compileGo(dest);
     }
 
+    @Test
+    public void testNQueens() {
+        Problem p = new Problem("NQueens",
+            "static java.lang.Math.abs");
+        int n = 10;
+        int[] domain = IntStream.range(0, n).toArray();
+        Variable[] v = IntStream.range(0, n)
+            .mapToObj(i -> p.variable("v" + i, domain))
+            .toArray(Variable[]::new);
+        p.allDifferent(v);
+        for (int i = 0; i < n; ++i)
+            for (int j = i + 1; j < n; ++j) {
+                int d = Math.abs(i - j);
+                p.constraint("abs(v" + i + " - v" + j + ") != " + d, v[i], v[j]);
+            }
+        p.compileGo(dest);
+    }
+
+    @Test
+    public void test8QueensFile() throws IOException {
+        String source = Files.readString(Path.of("src/test/csp/Queen8.csp"));
+        Problem problem = parse(source);
+        System.out.println(problem.generate());
+        problem.compileGo(dest);
+    }
 
 }

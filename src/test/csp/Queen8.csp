@@ -1,0 +1,46 @@
+problem Queen8;
+
+import static java.lang.Math.abs;
+
+variable [0..7] a0 a1 a2 a3 a4 a5 a6 a7;
+
+different a0 a1 a2 a3 a4 a5 a6 a7;
+
+constraint abs(a0 - a1) != 1;
+constraint abs(a0 - a2) != 2;
+constraint abs(a0 - a3) != 3;
+constraint abs(a0 - a4) != 4;
+constraint abs(a0 - a5) != 5;
+constraint abs(a0 - a6) != 6;
+constraint abs(a0 - a7) != 7;
+
+constraint abs(a1 - a2) != 1;
+constraint abs(a1 - a3) != 2;
+constraint abs(a1 - a4) != 3;
+constraint abs(a1 - a5) != 4;
+constraint abs(a1 - a6) != 5;
+constraint abs(a1 - a7) != 6;
+
+constraint abs(a2 - a3) != 1;
+constraint abs(a2 - a4) != 2;
+constraint abs(a2 - a5) != 3;
+constraint abs(a2 - a6) != 4;
+constraint abs(a2 - a7) != 5;
+
+constraint abs(a3 - a4) != 1;
+constraint abs(a3 - a5) != 2;
+constraint abs(a3 - a6) != 3;
+constraint abs(a3 - a7) != 4;
+
+constraint abs(a4 - a5) != 1;
+constraint abs(a4 - a6) != 2;
+constraint abs(a4 - a7) != 3;
+
+constraint abs(a5 - a6) != 1;
+constraint abs(a5 - a7) != 2;
+
+constraint abs(a6 - a7) != 1;
+
+
+
+

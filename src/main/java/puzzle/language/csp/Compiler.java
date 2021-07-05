@@ -34,7 +34,7 @@ public class Compiler {
             throw new RuntimeException(e);
         }
     }
-    static final String NAME = "\\p{L}[\\p{L}\\p{IsDigit}]*";
+    static final String NAME = "\\p{L}[\\p{L}\\p{IsDigit}_]*";
     static final Pattern MACRO_VAR = Pattern.compile("#" + NAME + "#(\r\n)*");
 
     static RuntimeException error(String format, Object... arguments) {

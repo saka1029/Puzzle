@@ -213,7 +213,7 @@ class TestLambdaCalculus {
         define("1", "λf x.f x");
         define("2", "λf x.f(f x)");
         define("3", "λf x.f(f(f x))");
-        define("succ", "λn f x.f(n f x))");
+        define("succ", "λn f x.f(n f x)");
         assertEquivalent("1", "succ 0");
         assertEquivalent("2", "succ 1");
         assertEquivalent("3", "succ 2");
@@ -234,7 +234,7 @@ class TestLambdaCalculus {
         assertEquivalent("0", "pred 1");
         assertEquivalent("1", "pred 2");
         assertEquivalent("2", "pred (succ 2)");
-        define("pred2", "λn.n(λg k.(g 1)(λu.+(g k)1)k)(λv.0)0)");
+        define("pred2", "λn.n(λg k.(g 1)(λu.+(g k)1)k)(λv.0)0");
         assertEquivalent("0", "pred2 1");
         assertEquivalent("2", "pred2 3");
     }

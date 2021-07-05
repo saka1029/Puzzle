@@ -9,19 +9,23 @@ public class LambdaCalculus {
     private LambdaCalculus() {
     }
 
-    static class Bind<K, V> {
+    public static RuntimeException error(String format, Object... args) {
+        return new RuntimeException(String.format(format, args));
+    }
+
+    public static class Bind<K, V> {
         final K key;
         final V value;
         final Bind<K, V> previous;
-        int count = 0;
+        public int count = 0;
 
-        Bind(Bind<K, V> previous, K key, V value) {
+        public Bind(Bind<K, V> previous, K key, V value) {
             this.key = key;
             this.value = value;
             this.previous = previous;
         }
 
-        static <K, V> V find(Bind<K, V> bind, K key) {
+        public static <K, V> V find(Bind<K, V> bind, K key) {
             for (; bind != null; bind = bind.previous)
                 if (key.equals(bind.key)) {
                     ++bind.count;
@@ -30,7 +34,7 @@ public class LambdaCalculus {
             return null;
         }
 
-        static <K, V> String toString(Bind<K, V> bind) {
+        public static <K, V> String toString(Bind<K, V> bind) {
             StringBuilder sb = new StringBuilder();
             sb.append("{");
             String sep = "";
@@ -41,7 +45,7 @@ public class LambdaCalculus {
         }
     }
 
-    static class IntHolder {
+    public static class IntHolder {
         public int value = 0;
     }
 
@@ -112,9 +116,9 @@ public class LambdaCalculus {
     }
 
     public static class Lambda extends Expression {
-        final BoundVariable variable;
-        final Expression body;
-        final int referenceCount;
+        public final BoundVariable variable;
+        public final Expression body;
+        public final int referenceCount;
 
         private Lambda(BoundVariable variable, Expression body, int referenceCount) {
             this.variable = variable;
@@ -122,7 +126,7 @@ public class LambdaCalculus {
             this.referenceCount = referenceCount;
         }
 
-        static Lambda of(BoundVariable variable, Expression body, int referenceCount) {
+        public static Lambda of(BoundVariable variable, Expression body, int referenceCount) {
             return new Lambda(variable, body, referenceCount);
         }
 
@@ -183,7 +187,7 @@ public class LambdaCalculus {
 
     public static abstract class Variable extends Expression {
 
-        final String name;
+        public final String name;
 
         Variable(String name) {
             this.name = name;
@@ -201,7 +205,7 @@ public class LambdaCalculus {
             super(name);
         }
 
-        static BoundVariable of(String name) {
+        public static BoundVariable of(String name) {
             return new BoundVariable(name);
         }
 
@@ -265,14 +269,15 @@ public class LambdaCalculus {
     }
 
     public static class Application extends Expression {
-        final Expression head, tail;
+        public final Expression head;
+        public final Expression tail;
 
         private Application(Expression head, Expression tail) {
             this.head = head;
             this.tail = tail;
         }
 
-        static Application of(Expression head, Expression tail) {
+        public static Application of(Expression head, Expression tail) {
             return new Application(head, tail);
         }
 
@@ -372,75 +377,83 @@ public class LambdaCalculus {
                     get();
             }
 
-            Lambda parseLambda() {
+            Lambda lambda() {
                 skipSpaces();
                 if (!isVariableChar(ch))
-                    throw new RuntimeException("variable expected");
-                String variableName = parseVariableName();
+                    throw error("variable expected");
+                String variableName = variableName();
                 BoundVariable variable = BoundVariable.of(variableName);
                 bind = new Bind<>(bind, variableName, variable);
                 skipSpaces();
                 Expression body;
                 if (ch == '.') {
                     get(); // skip '.'
-                    body = parse();
+                    body = expression();
                 } else
-                    body = parseLambda();
+                    body = lambda();
                 Lambda lambda = Lambda.of(variable, body, bind.count);
                 bind = bind.previous;
                 return lambda;
             }
 
-            Expression parseParen() {
+            Expression paren() {
                 skipSpaces();
-                Expression term = parse();
+                Expression term = expression();
                 if (ch != ')')
-                    throw new RuntimeException("')' expected");
+                    throw error("')' expected");
                 get(); // skip ')'
                 return term;
             }
 
-            String parseVariableName() {
+            String variableName() {
                 StringBuilder sb = new StringBuilder();
                 for (; isVariableChar(ch); get())
                     sb.appendCodePoint(ch);
                 return sb.toString();
             }
 
-            Variable parseVariable() {
-                String variableName = parseVariableName();
+            Variable variable() {
+                String variableName = variableName();
                 BoundVariable variable = Bind.find(bind, variableName);
                 return variable != null ? variable : FreeVariable.of(variableName);
             }
 
-            Expression parseTerm() {
+            Expression term() {
                 skipSpaces();
                 switch (ch) {
                 case -1:
-                    throw new RuntimeException("unexpected end of string");
+                    throw error("unexpected end of string");
                 case 'λ':
                     get(); // skip 'λ'
-                    return parseLambda();
+                    return lambda();
                 case '(':
                     get(); // skip '('
-                    return parseParen();
+                    return paren();
                 default:
                     if (!isVariableChar(ch))
-                        throw new RuntimeException("unexpected '" + ((char) ch) + "'");
-                    return parseVariable();
+                        throw error("unexpected '" + ((char) ch) + "'");
+                    return variable();
                 }
             }
 
-            Expression parse() {
-                Expression term = parseTerm();
+            Expression expression() {
+                Expression term = term();
                 while (true) {
                     skipSpaces();
                     if (ch != 'λ' && ch != '(' && !isVariableChar(ch))
                         break;
-                    term = Application.of(term, parseTerm());
+                    term = Application.of(term, term());
                 }
                 return term;
             }
+
+            Expression parse() {
+                Expression e = expression();
+                if (ch != -1)
+                    throw error("extra string: " + source.substring(index - 1));
+                return e;
+            }
+
         }.parse();
     }
 

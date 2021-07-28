@@ -67,6 +67,7 @@ class TestCompiler {
             + "    return IntStream.of(digits).reduce(0, (n, d) -> n * 10 + d);\r\n"
             + "};\r\n";
         parse(source).compileGo(dest);
+//        System.out.println(parse(source).generate());
     }
 
     @Test
@@ -85,6 +86,7 @@ class TestCompiler {
                 p.constraint("abs(v" + i + " - v" + j + ") != " + d, v[i], v[j]);
             }
         p.compileGo(dest);
+        System.out.println(p.generate());
     }
 
     @Test

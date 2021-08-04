@@ -2,10 +2,10 @@ package puzzle.csp;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class CspInt {
@@ -14,13 +14,26 @@ public class CspInt {
         private final Map<String, Variable> variables = new LinkedHashMap<>();
         private final List<Constraint> constraints = new ArrayList<>();
 
+        public Variable variable(String name, Domain domain) {
+            if (variables.containsKey(name))
+                throw new IllegalArgumentException("variable '" + name + "' duplicate");
+            Variable v =  new Variable(name, domain);
+            variables.put(name, v);
+            return v;
+        }
+
+        public Constraint constraint(IntsPredicate predicate, Variable... variables) {
+            return new Constraint(predicate, variables);
+        }
     }
 
-    public static class Domain implements Iterable<Integer> {
-        private final int[] elements;
+    public static class Domain {
+        private final int[] values;
 
-        private Domain(int[] elements) {
-            this.elements = elements;
+        private Domain(int... elements) {
+            if (elements.length == 0)
+                throw new IllegalArgumentException("empty elements");
+            this.values = elements;
         }
 
         public Domain of(int... elements) {
@@ -31,26 +44,13 @@ public class CspInt {
             return new Domain(IntStream.rangeClosed(start, end).toArray());
         }
 
-        @Override
-        public Iterator<Integer> iterator() {
-            return new Iterator<Integer>() {
-                int index = 0;
-
-                @Override
-                public boolean hasNext() {
-                    return index < elements.length;
-                }
-
-                @Override
-                public Integer next() {
-                    return elements[index++];
-                }
-            };
+        public int[] values() {
+            return values.clone();
         }
 
         @Override
         public String toString() {
-            return Arrays.toString(elements);
+            return Arrays.toString(values);
         }
 
     }
@@ -60,6 +60,8 @@ public class CspInt {
         public final Domain domain;
 
         Variable(String name, Domain domain) {
+            Objects.requireNonNull(name, "name");
+            Objects.requireNonNull(domain, "domain");
             this.name = name;
             this.domain = domain;
         }
@@ -79,6 +81,9 @@ public class CspInt {
         public final List<Variable> variables;
 
         Constraint(IntsPredicate predicate, Variable... variables) {
+            Objects.requireNonNull(predicate, "predicate");
+            if (variables.length == 0)
+                throw new IllegalArgumentException("empty variables");
             this.predicate = predicate;
             this.variables = List.of(variables);
         }

@@ -11,14 +11,14 @@ import java.util.stream.IntStream;
 public class CspInt {
 
     public static class Problem {
-        private final Map<String, Variable> variables = new LinkedHashMap<>();
+        private final Map<String, Variable> variables_private = new LinkedHashMap<>();
         private final List<Constraint> constraints = new ArrayList<>();
 
         public Variable variable(String name, Domain domain) {
-            if (variables.containsKey(name))
+            if (variables_private.containsKey(name))
                 throw new IllegalArgumentException("variable '" + name + "' duplicate");
             Variable v =  new Variable(name, domain);
-            variables.put(name, v);
+            variables_private.put(name, v);
             return v;
         }
 

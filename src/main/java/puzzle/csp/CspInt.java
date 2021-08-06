@@ -10,8 +10,8 @@ import java.util.stream.IntStream;
 public class CspInt {
 
     public static class Problem {
-        final List<Variable> pVariables = new ArrayList<>();
-        final List<Constraint> pConstraints = new ArrayList<>();
+        private final List<Variable> pVariables = new ArrayList<>();
+        private final List<Constraint> pConstraints = new ArrayList<>();
         public final List<Variable> variables = Collections.unmodifiableList(pVariables);
         public final List<Constraint> constraints = Collections.unmodifiableList(pConstraints);
 

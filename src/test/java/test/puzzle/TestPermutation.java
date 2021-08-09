@@ -13,11 +13,12 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
+import puzzle.Common;
 import puzzle.Permutation;
 
 class TestPermutation {
 
-    static Logger logger = Logger.getLogger(TestPermutation.class.getName());
+    static Logger logger = Common.getLogger(TestPermutation.class);
 
     @Test
     void testIterable4_0() {
@@ -309,4 +310,28 @@ class TestPermutation {
         logger.info("count = " + count + " " + (System.currentTimeMillis() - start) + "msec.");
     }
 
+    @Test
+    public void testTokyo2020() {
+        int[] array = {0, 0, 1, 2, 2};
+        int length = array.length;
+        int count = 0;
+        for (int[] a : Permutation.iterable(array, length)) {
+            ++count;
+//            logger.info(count + " " + Arrays.toString(a));
+        }
+        int expectedCount = 5 * 4 * 3 * 2 * 1 / 2 / 2;
+        assertEquals(expectedCount, count);
+        assertEquals(expectedCount, Permutation.stream(array, length).count());
+
+        String tokyo = "Tokyo2020";
+        int[] tokyoArray = tokyo.codePoints().sorted().toArray();
+        System.out.println(Arrays.toString(tokyoArray));
+        long tokyoCount = Permutation.stream(tokyoArray, tokyoArray.length)
+            .count();
+        long expectedTokyoCount = 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1 / 2 / 2 / 2;
+        assertEquals(expectedTokyoCount, tokyoCount);
+        //        Integer[] s = {(int)'T', (int)'o', (int)'k', (int)'y', (int)'o', (int)'2', (int)'0', (int)'2', (int)'0'};
+//        long count = Permutation.stream(s, s.length).count();
+//        System.out.println(count);
+    }
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -28,14 +29,23 @@ public class Permutation {
         final int[] array;
         boolean hasNext = true;
 
-        IndexIterator(int n, int r) {
-            if (r > n)
-                throw new IllegalArgumentException("r must be <= n");
-            this.n = n;
+        IndexIterator(int[] array, int r) {
+            if (r > array.length)
+                throw new IllegalArgumentException("array length must be <= n");
+            this.n = array.length;
             this.r = r;
-            this.array = new int[n];
-            for (int i = 0; i < n; ++i)
-                array[i] = i;
+            this.array = array.clone();
+        }
+
+        IndexIterator(int n, int r) {
+            this(IntStream.range(0, n).toArray(), r);
+//            if (r > n)
+//                throw new IllegalArgumentException("r must be <= n");
+//            this.n = n;
+//            this.r = r;
+//            this.array = new int[n];
+//            for (int i = 0; i < n; ++i)
+//                array[i] = i;
         }
 
         @Override
@@ -81,13 +91,20 @@ public class Permutation {
     }
 
     public static Iterable<int[]> iterable(int[] array, int r) {
-        return () -> stream(array.length, r)
-            .map(a -> {
-                int[] sub = new int[r];
-                for (int i = 0; i < r; ++i)
-                    sub[i] = array[a[i]];
-                return sub;
-            }).iterator();
+        return () -> new IndexIterator(array, r);
+    }
+//    public static Iterable<int[]> iterable(int[] array, int r) {
+//        return () -> stream(array.length, r)
+//            .map(a -> {
+//                int[] sub = new int[r];
+//                for (int i = 0; i < r; ++i)
+//                    sub[i] = array[a[i]];
+//                return sub;
+//            }).iterator();
+//    }
+
+    public static Stream<int[]> stream(int[] array, int r) {
+        return StreamSupport.stream(iterable(array, r).spliterator(), false);
     }
 
     public static <T> Stream<T[]> stream(T[] array, int r) {

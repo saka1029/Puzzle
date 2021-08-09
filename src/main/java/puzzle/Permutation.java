@@ -15,7 +15,7 @@ public class Permutation {
 
     /**
      * 辞書的順序生成アルゴリズムを改善した順列生成Iteratorです。
-     * n個のなかからr個選ぶ順列の生成ができます。
+     * n個の中からr個選ぶ順列の生成ができます。
      */
     static class IndexIterator implements Iterator<int[]> {
 
@@ -34,42 +34,31 @@ public class Permutation {
         IndexIterator(int n, int r) {
             this(IntStream.range(0, n).toArray(), r);
         }
-        
+
         void swap(int i, int j) {
             int temp = array[i];
             array[i] = array[j];
             array[j] = temp;
-        }
-        
-        void reverse(int from, int to) {
-            for (int i = from, j = to - 1; i < j; ++i, --j)
-                swap(i, j);
         }
 
         boolean advance() {
             for (int i = r - 1; i >= 0; --i) {
                 int ai = array[i];
                 int m = -1;
-                for (int j = i + 1, min = Integer.MAX_VALUE; j < n; ++j) {
+                for (int j = i + 1, am = 0; j < n; ++j) {
                     int aj = array[j];
-                    if (aj > ai && aj < min) {
+                    if (ai < aj && (m == -1 || aj < am)) {
                         m = j;
-                        min = aj;
+                        am = aj;
                     }
                 }
                 if (m >= 0) {
                     swap(i, m);
-//                    reverse(i + 1, n);
-                    System.out.print("sorting: ");
-                    for (int k = i + 1; k < n; ++k)
-                        System.out.print(array[k] + " ");
-                    System.out.println();
                     Arrays.sort(array, i + 1, n);
                     return true;
                 }
             }
             return false;
-
         }
 
         @Override

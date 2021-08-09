@@ -1,8 +1,6 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,18 +22,21 @@ class TestPermutation {
 
     @Test
     void testIterable4_0() {
+        logger.info(Common.methodName());
         for (int[] a : Permutation.iterable(4, 0))
             logger.info(Arrays.toString(a));
     }
 
     @Test
     void testIterable4() {
+        logger.info(Common.methodName());
         for (int[] a : Permutation.iterable(4, 2))
             logger.info(Arrays.toString(a));
     }
 
     @Test
     void testIterable3_3() {
+        logger.info(Common.methodName());
         List<int[]> all = new ArrayList<>();
         for (int[] a : Permutation.iterable(3, 3))
             all.add(a);
@@ -46,6 +47,7 @@ class TestPermutation {
 
     @Test
     void testIterable3_2() {
+        logger.info(Common.methodName());
         List<int[]> all = new ArrayList<>();
         for (int[] a : Permutation.iterable(3, 2))
             all.add(a);
@@ -55,6 +57,7 @@ class TestPermutation {
 
     @Test
     void testIterable3_1() {
+        logger.info(Common.methodName());
         List<int[]> all = new ArrayList<>();
         for (int[] a : Permutation.iterable(3, 1))
             all.add(a);
@@ -68,6 +71,7 @@ class TestPermutation {
      */
 //    @Test
     void testIterable12() {
+        logger.info(Common.methodName());
         long start = System.currentTimeMillis();
         int count = 0;
         for (int[] a : Permutation.iterable(12, 12))
@@ -82,6 +86,7 @@ class TestPermutation {
 
     @Test
     public void testArrayIterator() {
+        logger.info(Common.methodName());
         String[] a = {"a", "b", "c"};
         for (String[] e : Permutation.iterable(a, 3))
             logger.info(Arrays.toString(e));
@@ -95,6 +100,7 @@ class TestPermutation {
 
     @Test
     public void testListIterator() {
+        logger.info(Common.methodName());
         List<String> a = List.of("a", "b", "c", "d");
         for (List<String> e : Permutation.iterable(a, 4))
             logger.info(e.toString());
@@ -112,6 +118,7 @@ class TestPermutation {
 
     @Test
     public void testSendMoreMoney() {
+        logger.info(Common.methodName());
         new Object() {
 
             void check(int s, int e, int n, int d, int m, int o, int r, int y) {
@@ -129,7 +136,6 @@ class TestPermutation {
             }
 
             void run() {
-                logger.info("start SEND MORE MONEY");
                 for (int[] a : Permutation.iterable(10, 8))
                     check(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
             }
@@ -139,6 +145,7 @@ class TestPermutation {
 
     @Test
     public void testSaveMoreMoney() {
+        logger.info(Common.methodName());
         new Object() {
             int count = 0;
 
@@ -163,7 +170,6 @@ class TestPermutation {
             }
 
             void run() {
-                logger.info("start SAVE MORE MONEY");
                 for (int[] a : Permutation.iterable(10, 9))
                     check(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
                 assertEquals(4, count);
@@ -179,6 +185,7 @@ class TestPermutation {
      */
 //    @Test
     public void test12() {
+        logger.info(Common.methodName());
         int count = 0;
         long start = System.currentTimeMillis();
         for (int[] a : Permutation.iterable(12, 12))
@@ -191,6 +198,7 @@ class TestPermutation {
      */
 //    @Test
     public void test12Loop() {
+        logger.info(Common.methodName());
         int count = 0;
         long start = System.currentTimeMillis();
         for (int a = 0; a < 12; ++a) {
@@ -258,6 +266,7 @@ class TestPermutation {
      */
 //    @Test
     public void test12LoopSet() {
+        logger.info(Common.methodName());
         int max = 12;
         int count = 0;
         long start = System.currentTimeMillis();
@@ -291,6 +300,7 @@ class TestPermutation {
      */
 //    @Test
     public void test12LoopArray() {
+        logger.info(Common.methodName());
         int max = 12;
         int count = 0;
         long start = System.currentTimeMillis();
@@ -314,6 +324,7 @@ class TestPermutation {
 
     @Test
     public void testTokyo2020() {
+        logger.info(Common.methodName());
         int[] array = {0, 0, 1, 2, 2};
         int length = array.length;
         int count = 0;
@@ -335,5 +346,107 @@ class TestPermutation {
         //        Integer[] s = {(int)'T', (int)'o', (int)'k', (int)'y', (int)'o', (int)'2', (int)'0', (int)'2', (int)'0'};
 //        long count = Permutation.stream(s, s.length).count();
 //        System.out.println(count);
+    }
+
+    /**
+     * Lexicographically next permutation in C++ - GeeksforGeeks
+     * https://www.geeksforgeeks.org/find-the-next-lexicographically-greater-word-than-a-given-word/
+     * @param array
+     * @return
+     */
+    static boolean nextPermutation(int[] s) {
+        return new Object() {
+
+            int len = s.length;
+
+            void swap(int i, int j) {
+                int temp = s[i];
+                s[i] = s[j];
+                s[j] = temp;
+            }
+
+            void rev(int l, int r) {
+                while (l < r)
+                    swap(l++, r--);
+            }
+
+            /**
+             *
+             * @param l 検索範囲の最小インデックス
+             * @param r 検索範囲の最大インデックス
+             * @param key 検索する値
+             * @return 検索されたインデックス値。見つからない場合は-1を返す。
+             */
+            int bsearch(int l, int r, int key) {
+                int index = -1;
+                while (l <= r) {
+                    int mid = l + (r - l) / 2;
+                    if (s[mid] <= key)
+                        r = mid - 1;
+                    else {
+                        l = mid + 1;
+                        if (index == -1 || s[index] >= s[mid])
+                            index = mid;
+                    }
+                }
+                return index;
+            }
+
+            boolean next() {
+                int i = len - 2;
+                while (i >= 0 && s[i] >= s[i + 1])
+                    --i;
+                if (i < 0)
+                    return false;
+                else {
+                    int index = bsearch(i + 1, len - 1, s[i]);
+                    // index = -1 の場合は例外が発生する。
+                    swap(i, index);
+                    rev(i + 1, len - 1);
+                    return true;
+                }
+            }
+        }.next();
+    }
+
+    @Test
+    public void testNextPermutation() {
+        logger.info(Common.methodName());
+        int[] array = IntStream.range(0, 5).toArray();
+        do {
+            logger.info(Arrays.toString(array));
+        } while (nextPermutation(array));
+    }
+
+    static int fact(int n) {
+        int r = 1;
+        for (int i = 1; i <= n; ++i)
+            r *= i;
+        return r;
+    }
+
+    @Test
+    public void testNextPermutationDuplicatedValues() {
+        logger.info(Common.methodName());
+        List<int[]> result = new ArrayList<>();
+        int[] array = {0, 0, 1, 2};
+        do {
+            result.add(array.clone());
+        } while (nextPermutation(array));
+        int[][] expected = {
+            {0, 0, 1, 2},
+            {0, 0, 2, 1},
+            {0, 1, 0, 2},
+            {0, 1, 2, 0},
+            {0, 2, 0, 1},
+            {0, 2, 1, 0},
+            {1, 0, 0, 2},
+            {1, 0, 2, 0},
+            {1, 2, 0, 0},
+            {2, 0, 0, 1},
+            {2, 0, 1, 0},
+            {2, 1, 0, 0},
+        };
+        assertArrayEquals(expected, result.toArray(int[][]::new));
     }
 }

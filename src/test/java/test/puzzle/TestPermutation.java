@@ -1,6 +1,8 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +21,42 @@ import puzzle.Permutation;
 class TestPermutation {
 
     static Logger logger = Common.getLogger(TestPermutation.class);
+
+    @Test
+    void testNextInts() {
+        int[] array = {0, 1, 2};
+        List<int[]> list = new ArrayList<>();
+        do {
+            list.add(array.clone());
+        } while (Permutation.next(array));
+        int[][] expected = {
+            {0, 1, 2},
+            {0, 2, 1},
+            {1, 0, 2},
+            {1, 2, 0},
+            {2, 0, 1},
+            {2, 1, 0},
+        };
+        assertArrayEquals(expected, list.stream().toArray(int[][]::new));
+    }
+
+    @Test
+    void testNextStrings() {
+        String[] array = {"a", "b", "c"};
+        List<String[]> list = new ArrayList<>();
+        do {
+            list.add(array.clone());
+        } while (Permutation.next(array));
+        String[][] expected = {
+            {"a", "b", "c"},
+            {"a", "c", "b"},
+            {"b", "a", "c"},
+            {"b", "c", "a"},
+            {"c", "a", "b"},
+            {"c", "b", "a"},
+        };
+        assertArrayEquals(expected, list.stream().toArray(String[][]::new));
+    }
 
     @Test
     void testIterable4_0() {

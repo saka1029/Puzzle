@@ -12,6 +12,58 @@ public class Permutation {
 
     private Permutation() {
     }
+    
+    static void swap(int[] array, int i, int j) {
+        int temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    static <T> void swap(T[] array, int i, int j) {
+        T temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    
+    static void reverse(int[] array, int i, int j) {
+        while (i < j)
+            swap(array, i++, j--);
+    }
+
+    static <T> void reverse(T[] array, int i, int j) {
+        while (i < j)
+            swap(array, i++, j--);
+    }
+    
+    public static boolean next(int[] array) {
+        int length = array.length;
+        int i = length - 2;
+        while (i >= 0 && array[i] >= array[i + 1])
+            --i;
+        if (i < 0)
+            return false;
+        int j = array.length - 1;
+        while (array[i] >= array[j])
+            --j;
+        swap(array, i, j);
+        reverse(array, i + 1, length - 1);
+        return true;
+    }
+    
+    public static <T extends Comparable<T>> boolean next(T[] array) {
+        int length = array.length;
+        int i = length - 2;
+        while (i >= 0 && array[i].compareTo(array[i + 1]) >= 0)
+            --i;
+        if (i < 0)
+            return false;
+        int j = array.length - 1;
+        while (array[i].compareTo(array[j]) >= 0)
+            --j;
+        swap(array, i, j);
+        reverse(array, i + 1, length - 1);
+        return true;
+    }
 
     /**
      * 辞書的順序生成アルゴリズムを改善した順列生成Iteratorです。

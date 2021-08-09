@@ -1,6 +1,8 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -323,13 +325,13 @@ class TestPermutation {
         assertEquals(expectedCount, count);
         assertEquals(expectedCount, Permutation.stream(array, length).count());
 
-        String tokyo = "Tokyo2020";
-        int[] tokyoArray = tokyo.codePoints().sorted().toArray();
-        System.out.println(Arrays.toString(tokyoArray));
-        long tokyoCount = Permutation.stream(tokyoArray, tokyoArray.length)
-            .count();
-        long expectedTokyoCount = 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1 / 2 / 2 / 2;
-        assertEquals(expectedTokyoCount, tokyoCount);
+//        String tokyo = "Tokyo2020";
+//        int[] tokyoArray = tokyo.codePoints().sorted().toArray();
+//        System.out.println(Arrays.toString(tokyoArray));
+//        long tokyoCount = Permutation.stream(tokyoArray, tokyoArray.length)
+//            .count();
+//        long expectedTokyoCount = 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1 / 2 / 2 / 2;
+//        assertEquals(expectedTokyoCount, tokyoCount);
         //        Integer[] s = {(int)'T', (int)'o', (int)'k', (int)'y', (int)'o', (int)'2', (int)'0', (int)'2', (int)'0'};
 //        long count = Permutation.stream(s, s.length).count();
 //        System.out.println(count);

@@ -13,12 +13,6 @@ public class Permutation {
     private Permutation() {
     }
 
-    static void swap(int[] array, int i, int j) {
-        int temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-    }
-
     /**
      * 辞書的順序生成アルゴリズムを改善した順列生成Iteratorです。
      * n個のなかからr個選ぶ順列の生成ができます。
@@ -39,18 +33,17 @@ public class Permutation {
 
         IndexIterator(int n, int r) {
             this(IntStream.range(0, n).toArray(), r);
-//            if (r > n)
-//                throw new IllegalArgumentException("r must be <= n");
-//            this.n = n;
-//            this.r = r;
-//            this.array = new int[n];
-//            for (int i = 0; i < n; ++i)
-//                array[i] = i;
         }
-
-        @Override
-        public boolean hasNext() {
-            return hasNext;
+        
+        void swap(int i, int j) {
+            int temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+        
+        void reverse(int from, int to) {
+            for (int i = from, j = to - 1; i < j; ++i, --j)
+                swap(i, j);
         }
 
         boolean advance() {
@@ -65,13 +58,23 @@ public class Permutation {
                     }
                 }
                 if (m >= 0) {
-                    swap(array, i, m);
+                    swap(i, m);
+//                    reverse(i + 1, n);
+                    System.out.print("sorting: ");
+                    for (int k = i + 1; k < n; ++k)
+                        System.out.print(array[k] + " ");
+                    System.out.println();
                     Arrays.sort(array, i + 1, n);
                     return true;
                 }
             }
             return false;
 
+        }
+
+        @Override
+        public boolean hasNext() {
+            return hasNext;
         }
 
         @Override

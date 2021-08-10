@@ -2,8 +2,10 @@ package puzzle;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.IntBinaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -12,7 +14,7 @@ public class Permutation {
 
     private Permutation() {
     }
-    
+
     static void swap(int[] array, int i, int j) {
         int temp = array[i];
         array[i] = array[j];
@@ -24,7 +26,7 @@ public class Permutation {
         array[i] = array[j];
         array[j] = temp;
     }
-    
+
     static void reverse(int[] array, int i, int j) {
         while (i < j)
             swap(array, i++, j--);
@@ -34,31 +36,63 @@ public class Permutation {
         while (i < j)
             swap(array, i++, j--);
     }
-    
+
     public static boolean next(int[] array) {
+        return next(array, Integer::compare);
+//        int length = array.length;
+//        int i = length - 2;
+//        while (i >= 0 && array[i] >= array[i + 1])
+//            --i;
+//        if (i < 0)
+//            return false;
+//        int j = array.length - 1;
+//        while (array[i] >= array[j])
+//            --j;
+//        swap(array, i, j);
+//        reverse(array, i + 1, length - 1);
+//        return true;
+    }
+
+    public static boolean next(int[] array, IntBinaryOperator comparator) {
         int length = array.length;
         int i = length - 2;
-        while (i >= 0 && array[i] >= array[i + 1])
+        while (i >= 0 && comparator.applyAsInt(array[i], array[i + 1]) >= 0)
             --i;
         if (i < 0)
             return false;
         int j = array.length - 1;
-        while (array[i] >= array[j])
+        while (comparator.applyAsInt(array[i], array[j]) >= 0)
             --j;
         swap(array, i, j);
         reverse(array, i + 1, length - 1);
         return true;
     }
-    
+
     public static <T extends Comparable<T>> boolean next(T[] array) {
+        return next(array, Comparator.naturalOrder());
+//        int length = array.length;
+//        int i = length - 2;
+//        while (i >= 0 && array[i].compareTo(array[i + 1]) >= 0)
+//            --i;
+//        if (i < 0)
+//            return false;
+//        int j = array.length - 1;
+//        while (array[i].compareTo(array[j]) >= 0)
+//            --j;
+//        swap(array, i, j);
+//        reverse(array, i + 1, length - 1);
+//        return true;
+    }
+
+    public static <T> boolean next(T[] array, Comparator<T> comparator) {
         int length = array.length;
         int i = length - 2;
-        while (i >= 0 && array[i].compareTo(array[i + 1]) >= 0)
+        while (i >= 0 && comparator.compare(array[i], array[i + 1]) >= 0)
             --i;
         if (i < 0)
             return false;
         int j = array.length - 1;
-        while (array[i].compareTo(array[j]) >= 0)
+        while (comparator.compare(array[i], array[j]) >= 0)
             --j;
         swap(array, i, j);
         reverse(array, i + 1, length - 1);

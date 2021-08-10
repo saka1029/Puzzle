@@ -1,14 +1,14 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntBinaryOperator;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -41,6 +41,25 @@ class TestPermutation {
     }
 
     @Test
+    void testNextIntsReverse() {
+        int[] array = {2, 1, 0};
+        List<int[]> list = new ArrayList<>();
+        IntBinaryOperator reverse = (a, b) -> -Integer.compare(a, b);
+        do {
+            list.add(array.clone());
+        } while (Permutation.next(array, reverse));
+        int[][] expected = {
+            {2, 1, 0},
+            {2, 0, 1},
+            {1, 2, 0},
+            {1, 0, 2},
+            {0, 2, 1},
+            {0, 1, 2},
+        };
+        assertArrayEquals(expected, list.stream().toArray(int[][]::new));
+    }
+
+    @Test
     void testNextStrings() {
         String[] array = {"a", "b", "c"};
         List<String[]> list = new ArrayList<>();
@@ -54,6 +73,24 @@ class TestPermutation {
             {"b", "c", "a"},
             {"c", "a", "b"},
             {"c", "b", "a"},
+        };
+        assertArrayEquals(expected, list.stream().toArray(String[][]::new));
+    }
+
+    @Test
+    void testNextStringsReverse() {
+        String[] array = {"c", "b", "a"};
+        List<String[]> list = new ArrayList<>();
+        do {
+            list.add(array.clone());
+        } while (Permutation.next(array, Comparator.reverseOrder()));
+        String[][] expected = {
+            {"c", "b", "a"},
+            {"c", "a", "b"},
+            {"b", "c", "a"},
+            {"b", "a", "c"},
+            {"a", "c", "b"},
+            {"a", "b", "c"},
         };
         assertArrayEquals(expected, list.stream().toArray(String[][]::new));
     }

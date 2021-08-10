@@ -1,12 +1,17 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.IntBinaryOperator;
 import java.util.logging.Logger;
@@ -93,6 +98,25 @@ class TestPermutation {
             {"a", "b", "c"},
         };
         assertArrayEquals(expected, list.stream().toArray(String[][]::new));
+    }
+
+    @Test
+    void testNextIndexOrderComparator() {
+        record F(String name) {}
+        F a = new F("a");
+        F c = new F("c");
+        F[] array = {c, a, a};
+        Comparator<F> comparator = new Permutation.IndexOrderComparator<>(array);
+        List<F[]> list = new ArrayList<>();
+        do {
+            list.add(array.clone());
+        } while (Permutation.next(array, comparator));
+        F[][] expected = {
+            {c, a, a},
+            {a, c, a},
+            {a, a, c},
+        };
+        assertArrayEquals(expected, list.stream().toArray(F[][]::new));
     }
 
     @Test
@@ -523,5 +547,22 @@ class TestPermutation {
             {2, 1, 0, 0},
         };
         assertArrayEquals(expected, result.toArray(int[][]::new));
+    }
+    
+    @Test
+    public void test赤白黒玉() {
+        logger.info(Common.methodName());
+        enum 玉 {赤, 白, 黒};
+        玉[] t = {玉.赤, 玉.赤, 玉.赤, 玉.白, 玉.白, 玉.黒};
+        int count = 0;
+        Map<List<玉>, Integer> counts = new HashMap<>();
+        for (玉[] e : Permutation.iterable(t, 2)) {
+            List<玉> set = Arrays.asList(e);
+//            Collections.sort(set);
+            counts.compute(set, (k, v) -> v == null ? 1 : v + 1);
+            logger.info(count++ + " " + Arrays.toString(e));
+        }
+        for (Entry<List<玉>, Integer> e : counts.entrySet())
+            logger.info(e.toString());
     }
 }

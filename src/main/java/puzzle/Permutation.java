@@ -3,8 +3,10 @@ package puzzle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntBinaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -37,22 +39,6 @@ public class Permutation {
             swap(array, i++, j--);
     }
 
-    public static boolean next(int[] array) {
-        return next(array, Integer::compare);
-//        int length = array.length;
-//        int i = length - 2;
-//        while (i >= 0 && array[i] >= array[i + 1])
-//            --i;
-//        if (i < 0)
-//            return false;
-//        int j = array.length - 1;
-//        while (array[i] >= array[j])
-//            --j;
-//        swap(array, i, j);
-//        reverse(array, i + 1, length - 1);
-//        return true;
-    }
-
     public static boolean next(int[] array, IntBinaryOperator comparator) {
         int length = array.length;
         int i = length - 2;
@@ -68,20 +54,8 @@ public class Permutation {
         return true;
     }
 
-    public static <T extends Comparable<T>> boolean next(T[] array) {
-        return next(array, Comparator.naturalOrder());
-//        int length = array.length;
-//        int i = length - 2;
-//        while (i >= 0 && array[i].compareTo(array[i + 1]) >= 0)
-//            --i;
-//        if (i < 0)
-//            return false;
-//        int j = array.length - 1;
-//        while (array[i].compareTo(array[j]) >= 0)
-//            --j;
-//        swap(array, i, j);
-//        reverse(array, i + 1, length - 1);
-//        return true;
+    public static boolean next(int[] array) {
+        return next(array, Integer::compare);
     }
 
     public static <T> boolean next(T[] array, Comparator<T> comparator) {
@@ -97,6 +71,26 @@ public class Permutation {
         swap(array, i, j);
         reverse(array, i + 1, length - 1);
         return true;
+    }
+
+    public static <T extends Comparable<T>> boolean next(T[] array) {
+        return next(array, Comparator.naturalOrder());
+    }
+    
+    public static class IndexOrderComparator<T> implements Comparator<T> {
+
+        final Map<T, Integer> map = new HashMap<>();
+
+        public IndexOrderComparator(T[] array) {
+            int[] i = {0};
+            for (T e : array)
+                map.computeIfAbsent(e, k -> i[0]++);
+        }
+
+        @Override
+        public int compare(T o1, T o2) {
+            return Integer.compare(map.get(o1), map.get(o2));
+        }
     }
 
     /**

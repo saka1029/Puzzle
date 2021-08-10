@@ -1,8 +1,6 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,6 +115,45 @@ class TestPermutation {
             {a, a, c},
         };
         assertArrayEquals(expected, list.stream().toArray(F[][]::new));
+    }
+
+    @Test
+    void testNextIntsR() {
+        int[] array = {0, 0, 1};
+        List<List<Integer>> list = new ArrayList<>();
+        do {
+            list.add(IntStream.of(array).limit(2).boxed().toList());
+        } while (Permutation.next(array, 2));
+        List<List<Integer>> expected = List.of(
+            List.of(0, 0),
+            List.of(0, 1),
+            List.of(1, 0));
+        assertEquals(expected, list);
+    }
+
+    @Test
+    public void testNextEnumR() {
+        logger.info(Common.methodName());
+        enum 玉 {赤, 白, 黒};
+        // 赤が2個でも結果は同じ。
+        玉[] array = {玉.赤, 玉.赤, 玉.赤, 玉.白, 玉.白, 玉.黒};
+        List<List<玉>> list = new ArrayList<>();
+        do {
+            list.add(Arrays.stream(array).limit(2).toList());
+        } while (Permutation.next(array, 2));
+        int i = 0;
+        for (List<玉> e : list)
+            logger.info(i++ + " " + e.toString());
+        List<List<玉>> expected = List.of(
+            List.of(玉.赤, 玉.赤),
+            List.of(玉.赤, 玉.白),
+            List.of(玉.赤, 玉.黒),
+            List.of(玉.白, 玉.赤),
+            List.of(玉.白, 玉.白),
+            List.of(玉.白, 玉.黒),
+            List.of(玉.黒, 玉.赤),
+            List.of(玉.黒, 玉.白));
+        assertEquals(expected, list);
     }
 
     @Test
@@ -548,7 +585,7 @@ class TestPermutation {
         };
         assertArrayEquals(expected, result.toArray(int[][]::new));
     }
-    
+
     @Test
     public void test赤白黒玉() {
         logger.info(Common.methodName());

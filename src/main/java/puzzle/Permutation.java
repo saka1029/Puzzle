@@ -76,7 +76,7 @@ public class Permutation {
     public static <T extends Comparable<T>> boolean next(T[] array) {
         return next(array, Comparator.naturalOrder());
     }
-    
+
     public static class IndexOrderComparator<T> implements Comparator<T> {
 
         final Map<T, Integer> map = new HashMap<>();
@@ -91,6 +91,55 @@ public class Permutation {
         public int compare(T o1, T o2) {
             return Integer.compare(map.get(o1), map.get(o2));
         }
+    }
+
+    public static boolean next(int[] array, int r, IntBinaryOperator comparator) {
+        for (int i = r - 1, n = array.length; i >= 0; --i) {
+            int ai = array[i];
+            int m = -1;
+            for (int j = i + 1, am = 0; j < n; ++j) {
+                int aj = array[j];
+                if (comparator.applyAsInt(ai, aj) < 0 && (m == -1 || comparator.applyAsInt(aj, am) < 0)) {
+                    m = j;
+                    am = aj;
+                }
+            }
+            if (m >= 0) {
+                swap(array, i, m);
+                Arrays.sort(array, i + 1, n);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean next(int[] array, int r) {
+        return next(array, r, Integer::compare);
+    }
+
+    public static <T> boolean next(T[] array, int r, Comparator<T> comparator) {
+        for (int i = r - 1, n = array.length; i >= 0; --i) {
+            T ai = array[i];
+            int m = -1;
+            T am = null;
+            for (int j = i + 1; j < n; ++j) {
+                T aj = array[j];
+                if (comparator.compare(ai, aj) < 0 && (m == -1 || comparator.compare(aj, am) < 0)) {
+                    m = j;
+                    am = aj;
+                }
+            }
+            if (m >= 0) {
+                swap(array, i, m);
+                Arrays.sort(array, i + 1, n);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static <T extends Comparable<T>> boolean next(T[] array, int r) {
+        return next(array, r, Comparator.naturalOrder());
     }
 
     /**

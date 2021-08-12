@@ -13,7 +13,59 @@ public class TestCombination {
 
     static final Logger logger = Logger.getLogger(TestCombination.class.getName());
 
-    /** 組み合わせの数(nCr)を計算するメモ化関数 */
+    @Test
+    public void testCount() {
+        assertEquals(1, Combination.count(0, 0));
+        assertEquals(1, Combination.count(1, 0));
+        assertEquals(1, Combination.count(1, 1));
+        assertEquals(1, Combination.count(2, 0));
+        assertEquals(2, Combination.count(2, 1));
+        assertEquals(1, Combination.count(2, 2));
+        assertEquals(1, Combination.count(3, 0));
+        assertEquals(3, Combination.count(3, 1));
+        assertEquals(3, Combination.count(3, 2));
+        assertEquals(1, Combination.count(3, 3));
+        assertEquals(1, Combination.count(4, 0));
+        assertEquals(4, Combination.count(4, 1));
+        assertEquals(6, Combination.count(4, 2));
+        assertEquals(4, Combination.count(4, 3));
+        assertEquals(1, Combination.count(4, 4));
+        assertEquals(1, Combination.count(5, 0));
+        assertEquals(5, Combination.count(5, 1));
+        assertEquals(10, Combination.count(5, 2));
+        assertEquals(10, Combination.count(5, 3));
+        assertEquals(5, Combination.count(5, 4));
+        assertEquals(1, Combination.count(5, 5));
+        assertEquals(1, Combination.count(6, 0));
+        assertEquals(6, Combination.count(6, 1));
+        assertEquals(15, Combination.count(6, 2));
+        assertEquals(20, Combination.count(6, 3));
+        assertEquals(15, Combination.count(6, 4));
+        assertEquals(6, Combination.count(6, 5));
+        assertEquals(1, Combination.count(6, 6));
+    }
+
+    @Test
+    public void testIterableCount() {
+        int max = 20;
+        for (int n = 0; n < max; ++n)
+            for (int r = 0; r <= n; ++r) {
+                int count = 0;
+                for (int[] a : Combination.iterable(n, r)) {
+                    ++count;
+                    assertEquals(r, a.length);
+                }
+                assertEquals(Combination.count(n, r), count);
+            }
+    }
+
+    /**
+     * 組み合わせの数(nCr)を計算するメモ化関数
+     * 漸化式:
+     * n C 0 = 1
+     * n C n = 1;
+     * n C r = (n - 1) C (r - 1) + (n - 1) C r
+     */
     static final Memoizer<Integer, Memoizer<Integer, Integer>> C =
         Memoizer.memoize(self -> n ->
             Memoizer.memoize(dummy -> r ->
@@ -38,22 +90,6 @@ public class TestCombination {
         assertEquals(6, C(4, 2));
         assertEquals(4, C(4, 3));
         assertEquals(1, C(4, 4));
-    }
-
-    @Test
-    public void testIterableCount() {
-        int max = 20;
-        for (int n = 0; n < max; ++n)
-            for (int r = 0; r <= n; ++r) {
-                int count = 0;
-                for (int[] a : Combination.iterable(n, r)) {
-                    ++count;
-                    assertEquals(r, a.length);
-                }
-                // logger.info("n = " + n + " r = " + r + " count = " + count);
-                assertEquals(C(n, r), count);
-            }
-        logger.info(C.toString());  // Cのキャッシュ
     }
 
 }

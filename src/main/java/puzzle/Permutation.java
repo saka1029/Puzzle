@@ -1,16 +1,17 @@
 package puzzle;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class Permutation {
-    
+
     private Permutation() {
     }
-    
+
     /**
      * nPr（n個からr個取り出す順列の総数）を計算します。
      * @param n 全体の要素数を指定します。
@@ -78,7 +79,7 @@ public class Permutation {
             return result;
         }
     }
-    
+
     static class PermutationIterator64 implements Iterator<int[]> {
 
         final int n, r;
@@ -133,7 +134,7 @@ public class Permutation {
             return result;
         }
     }
-    
+
     public static Iterator<int[]> iterator(int n, int r) {
         if (n <= Integer.SIZE)
             return new PermutationIterator32(n, r);
@@ -142,19 +143,19 @@ public class Permutation {
         else
             throw new IllegalArgumentException("n must b <= " + Long.SIZE);
     }
-    
+
     public static Iterable<int[]> iterable(int n, int r) {
         return () -> iterator(n, r);
     }
-    
+
     public static Stream<int[]> stream(int n, int r) {
         return StreamSupport.stream(iterable(n, r).spliterator(), false);
     }
-    
+
     public static Iterator<int[]> iterator(int[] array, int r) {
         return stream(array, r).iterator();
     }
-    
+
     public static Iterable<int[]> iterable(int[] array, int r) {
         return () -> iterator(array, r);
     }
@@ -165,7 +166,7 @@ public class Permutation {
                 .map(i -> array[i])
                 .toArray());
     }
-    
+
     public static <T> Iterator<T[]> iterator(T[] array, int r) {
         return stream(array, r).iterator();
     }
@@ -173,7 +174,7 @@ public class Permutation {
     public static <T> Iterable<T[]> iterable(T[] array, int r) {
         return () -> iterator(array, r);
     }
-    
+
     public static <T> Stream<T[]> stream(T[] array, int r) {
         int n = array.length;
         return stream(IntStream.range(0, n).toArray(), r)
@@ -181,5 +182,98 @@ public class Permutation {
                 .mapToObj(i -> array[i])
                 .toArray(size -> Arrays.copyOf(array, size)));
     }
-    
+
+    static void swap(int[] array, int i, int j) {
+        int temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    static <T> void swap(T[] array, int i, int j) {
+        T temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    static void reverse(int[] array, int i, int j) {
+        while (i < j)
+            swap(array, i++, j--);
+    }
+
+    static <T> void reverse(T[] array, int i, int j) {
+        while (i < j)
+            swap(array, i++, j--);
+    }
+
+    /**
+     * 次の辞書的順列を求めます。
+     * <code>next(new int[] {0, 0, 0})</code>はfalseを返す点に注意してください。
+     * @param array 順列を指定します。呼び出し後は次の辞書的順列に並び変えられています。
+     * @return 次の辞書的順列が存在する場合はtrue、
+     *         そうでない場合はfalseを返します。
+     */
+    public static boolean next(int[] array) {
+        int length = array.length;
+        int i = length - 2;
+        while (i >= 0 && array[i] >= array[i + 1])
+            --i;
+        if (i < 0)
+            return false;
+        int j = array.length - 1;
+        while (array[i] >= array[j])
+            --j;
+        swap(array, i, j);
+        reverse(array, i + 1, length - 1);
+        return true;
+    }
+
+    /**
+     * 次の辞書的順序文字列を求めます。
+     * <code>next("aaa")</code>はnullを返す点に注意してください。
+     * @param input 文字列を指定します。
+     * @return 次の辞書的順序文字列が存在する場合はそれを返します。
+     *         そうでない場合はnullを返します。
+     */
+    public static String next(String input) {
+        int[] array = input.codePoints().toArray();
+        return next(array) ? new String(array, 0, array.length) : null;
+    }
+
+    /**
+     * 次の辞書的順列を求めます。
+     * <code>next(new String[] {"a", "a", "a"}, Comparator.reverseOrder())</code>
+     * はfalseを返す点に注意してください。
+     * @param array 順列を指定します。呼び出し後は次の辞書的順列に並び変えられています。
+     * @param comparator T型の要素を比較するComparatorを指定します。
+     * @return 次の辞書的順列が存在する場合はtrue、
+     *         そうでない場合はfalseを返します。
+     */
+    public static <T> boolean next(T[] array, Comparator<T> comparator) {
+        int length = array.length;
+        int i = length - 2;
+        while (i >= 0 && comparator.compare(array[i], array[i + 1]) >= 0)
+            --i;
+        if (i < 0)
+            return false;
+        int j = array.length - 1;
+        while (comparator.compare(array[i], array[j]) >= 0)
+            --j;
+        swap(array, i, j);
+        reverse(array, i + 1, length - 1);
+        return true;
+    }
+
+    /**
+     * 次の辞書的順列を求めます。
+     * 辞書的順序はComparableを実装する型Tの順序です。
+     * <code>next(new String[] {"a", "a", "a"})</code>
+     * はfalseを返す点に注意してください。
+     * @param array 順列を指定します。呼び出し後は次の辞書的順列に並び変えられています。
+     * @return 次の辞書的順列が存在する場合はtrue、
+     *         そうでない場合はfalseを返します。
+     */
+    public static <T extends Comparable<T>> boolean next(T[] array) {
+        return next(array, Comparator.naturalOrder());
+    }
+
 }

@@ -35,6 +35,17 @@ public class Combination {
 //        return new ArrayList<>(histogram.entrySet());
 //    }
 
+    public static int count(int n, int r) {
+        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+        if (r < 0) throw new IllegalArgumentException("r must be >= 0");
+        if (r > n) throw new IllegalArgumentException("r must be <= n");
+        r = Math.min(r, n - r);
+        int count = 1;
+        for(int i = 1, j = n - i + 1; i <= r; ++i, --j)
+            count = count * j / i;
+        return count;
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> Entry<T, Integer>[] histogramArray(List<T> list) {
         Map<T, Integer> histogram = new LinkedHashMap<>(list.size());

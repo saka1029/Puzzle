@@ -1,9 +1,12 @@
 package test.puzzle;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -72,7 +75,7 @@ class TestPermutation {
         assertEquals(Permutation.count(4, 2), actual.size());
         assertEquals(EXPECTED_4_2, actual);
     }
-    
+
     @Test
     void testStream_33_2() {
         List<List<Integer>> actual = Permutation.stream(33, 2)
@@ -95,5 +98,79 @@ class TestPermutation {
         } catch (IllegalArgumentException e) {
             assertEquals("n must b <= 64", e.getMessage());
         }
+    }
+
+    @Test
+    void testNextInt_3() {
+        int[] array = IntStream.range(0, 3).toArray();
+        List<List<Integer>> actual = new ArrayList<>();
+        do {
+            actual.add(IntStream.of(array).boxed().toList());
+        } while (Permutation.next(array));
+        List<List<Integer>> expected = List.of(
+            List.of(0, 1, 2),
+            List.of(0, 2, 1),
+            List.of(1, 0, 2),
+            List.of(1, 2, 0),
+            List.of(2, 0, 1),
+            List.of(2, 1, 0));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void testNextInt_3_String() {
+        String str = "abc";
+        int[] array = str.codePoints().toArray();
+        List<String> actual = new ArrayList<>();
+        do {
+            actual.add(new String(array, 0, array.length));
+        } while (Permutation.next(array));
+        List<String> expected = List.of("abc", "acb", "bac", "bca", "cab", "cba");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void testNextString() {
+        String str = "abc";
+        List<String> actual = new ArrayList<>();
+        do {
+            actual.add(str);
+            str = Permutation.next(str);
+        } while (str != null);
+        List<String> expected = List.of("abc", "acb", "bac", "bca", "cab", "cba");
+        assertEquals(expected, actual);
+        assertEquals("acb", Permutation.next("abc"));
+        assertEquals("bab", Permutation.next("abb"));
+        assertEquals(null, Permutation.next("cba"));
+        assertEquals(null, Permutation.next("aaa"));
+    }
+
+    @Test
+    void testNextStringArrayComparator() {
+        Comparator<String> comparator = Comparator.reverseOrder();
+        String[] array1 = {"c", "b", "a"};
+        Permutation.next(array1, comparator);
+        assertArrayEquals(new String[] {"c", "a", "b"}, array1);
+        String[] array2 = {"b", "b", "a"};
+        Permutation.next(array2, comparator);
+        assertArrayEquals(new String[] {"b", "a", "b"}, array2);
+        String[] array3 = {"a", "b", "c"};
+        assertFalse(Permutation.next(array3, comparator));
+        String[] array4 = {"a", "a", "a"};
+        assertFalse(Permutation.next(array4, comparator));
+    }
+
+    @Test
+    void testNextStringArray() {
+        String[] array1 = {"a", "b", "c"};
+        Permutation.next(array1);
+        assertArrayEquals(new String[] {"a", "c", "b"}, array1);
+        String[] array2 = {"a", "b", "b"};
+        Permutation.next(array2);
+        assertArrayEquals(new String[] {"b", "a", "b"}, array2);
+        String[] array3 = {"c", "b", "a"};
+        assertFalse(Permutation.next(array3));
+        String[] array4 = {"a", "a", "a"};
+        assertFalse(Permutation.next(array4));
     }
 }

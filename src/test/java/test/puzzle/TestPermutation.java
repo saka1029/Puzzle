@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -50,7 +51,7 @@ class TestPermutation {
             List.of(3, 2));
 
     @Test
-    void testIterator_N_R() {
+    void testIteratorInt_N_R() {
         List<List<Integer>> actual = new ArrayList<>();
         for (Iterator<int[]> i = Permutation.iterator(4, 2); i.hasNext();)
             actual.add(IntStream.of(i.next()).boxed().toList());
@@ -59,7 +60,7 @@ class TestPermutation {
     }
 
     @Test
-    void testIterable_N_R() {
+    void testIterableInt_N_R() {
         List<List<Integer>> actual = new ArrayList<>();
         for (int[] a : Permutation.iterable(4, 2))
             actual.add(IntStream.of(a).boxed().toList());
@@ -68,9 +69,69 @@ class TestPermutation {
     }
 
     @Test
-    void testStream_N_R() {
+    void testStreamInt_N_R() {
         List<List<Integer>> actual = Permutation.stream(4, 2)
             .map(a -> IntStream.of(a).boxed().toList())
+            .toList();
+        assertEquals(Permutation.count(4, 2), actual.size());
+        assertEquals(EXPECTED_4_2, actual);
+    }
+
+    @Test
+    void testIteratorIntArray_N_R() {
+        List<List<Integer>> actual = new ArrayList<>();
+        int[] array = IntStream.range(0, 4).toArray();
+        for (Iterator<int[]> i = Permutation.iterator(array, 2); i.hasNext();)
+            actual.add(IntStream.of(i.next()).boxed().toList());
+        assertEquals(Permutation.count(4, 2), actual.size());
+        assertEquals(EXPECTED_4_2, actual);
+    }
+
+    @Test
+    void testIterableIntArray_N_R() {
+        List<List<Integer>> actual = new ArrayList<>();
+        int[] array = IntStream.range(0, 4).toArray();
+        for (int[] a : Permutation.iterable(array, 2))
+            actual.add(IntStream.of(a).boxed().toList());
+        assertEquals(Permutation.count(4, 2), actual.size());
+        assertEquals(EXPECTED_4_2, actual);
+    }
+
+    @Test
+    void testStreamIntArray_N_R() {
+        int[] array = IntStream.range(0, 4).toArray();
+        List<List<Integer>> actual = Permutation.stream(array, 2)
+            .map(a -> IntStream.of(a).boxed().toList())
+            .toList();
+        assertEquals(Permutation.count(4, 2), actual.size());
+        assertEquals(EXPECTED_4_2, actual);
+    }
+
+    @Test
+    void testIteratorIntegerArray_N_R() {
+        List<List<Integer>> actual = new ArrayList<>();
+        Integer[] array = IntStream.range(0, 4).boxed().toArray(Integer[]::new);
+        for (Iterator<Integer[]> i = Permutation.iterator(array, 2); i.hasNext();)
+            actual.add(Arrays.asList(i.next()));
+        assertEquals(Permutation.count(4, 2), actual.size());
+        assertEquals(EXPECTED_4_2, actual);
+    }
+
+    @Test
+    void testIterableIntegerArray_N_R() {
+        List<List<Integer>> actual = new ArrayList<>();
+        Integer[] array = IntStream.range(0, 4).boxed().toArray(Integer[]::new);
+        for (Integer[] a : Permutation.iterable(array, 2))
+            actual.add(Arrays.asList(a));
+        assertEquals(Permutation.count(4, 2), actual.size());
+        assertEquals(EXPECTED_4_2, actual);
+    }
+
+    @Test
+    void testStreamIntegerArray_N_R() {
+        Integer[] array = IntStream.range(0, 4).boxed().toArray(Integer[]::new);
+        List<List<Integer>> actual = Permutation.stream(array, 2)
+            .map(a -> Arrays.asList(a))
             .toList();
         assertEquals(Permutation.count(4, 2), actual.size());
         assertEquals(EXPECTED_4_2, actual);

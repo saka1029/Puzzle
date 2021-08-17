@@ -14,8 +14,9 @@ import puzzle.csp.CspInt.Problem;
 import puzzle.csp.CspInt.Solver;
 import puzzle.csp.CspInt.Variable;
 
+
 class TestCspInt {
-    
+
     static Logger logger = Common.getLogger(TestCspInt.class);
 
     @Test
@@ -30,8 +31,10 @@ class TestCspInt {
         Constraint c2 = problem.constraint("b < c");
         assertEquals(List.of(A, B, C), problem.variables);
         assertEquals(List.of(c1, c2), problem.constraints);
+        assertEquals("a < b", c1.predicate);
         assertEquals(List.of(c1), A.constraints);
         assertEquals(List.of(c1, c2), B.constraints);
+        assertEquals("b < c", c2.predicate);
         assertEquals(List.of(c2), C.constraints);
         assertEquals(List.of(A, B), c1.variables);
         assertEquals(List.of(B, C), c2.variables);
@@ -40,8 +43,6 @@ class TestCspInt {
             Solver.constraintOrder(problem, List.of(A, B, C)));
         assertEquals(List.of(List.of(), List.of(c2), List.of(c1)),
             Solver.constraintOrder(problem, List.of(C, B, A)));
-        assertEquals("a < b", c1.predicate);
-        assertEquals("b < c", c2.predicate);
     }
 
 }

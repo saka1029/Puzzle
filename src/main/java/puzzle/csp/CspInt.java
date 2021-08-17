@@ -3,12 +3,14 @@ package puzzle.csp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -34,7 +36,7 @@ public class CspInt {
             pNameVariables.put(name, v);
             return v;
         }
-        
+
         public Variable variable(String name) {
             return pNameVariables.get(name);
         }
@@ -87,6 +89,10 @@ public class CspInt {
             return new Domain(IntStream.rangeClosed(start, end).toArray());
         }
 
+        public int size() {
+            return values.length;
+        }
+
         public int[] values() {
             return values.clone();
         }
@@ -137,6 +143,10 @@ public class CspInt {
     }
 
     public static class Solver {
+
+        private Solver() {
+        }
+
         public static List<List<Constraint>> constraintOrder(Problem problem,
             List<Variable> bindingOrder) {
             if (!(new HashSet<>(bindingOrder).equals(new HashSet<>(problem.variables))))
@@ -159,6 +169,74 @@ public class CspInt {
                 throw new IllegalStateException("Illegal constraints: " + remainConstraints);
             return constraintOrder;
         }
+    }
+
+    /**
+     * ドメインサイズの小さい順の束縛順序を求めます。
+     *
+     * @param problem 問題を指定します。
+     * @return 変数の束縛順序を返します。
+     */
+    public static List<Variable> domainBinding(Problem problem) {
+        return problem.variables.stream()
+            .sorted(Comparator.comparing(v -> v.domain.size()))
+            .toList();
+    }
+
+    /**
+     * 変数のクラスターリストから変数の束縛順序を求めます。
+     *
+     * @param problem 問題を指定します。
+     * @param clusters 変数のクラスターのリストを指定します。
+     * @return 変数の束縛順序を返します。
+     */
+    public static List<Variable> clusterBinding(Problem problem, List<List<Variable>> clusters) {
+        int size = problem.variables.size();
+        if (clusters.stream().mapToInt(cluster -> cluster.size()).sum() != size)
+            throw new IllegalArgumentException("invalid variable count");
+        if (clusters.stream().flatMap(cluster -> cluster.stream()).distinct().count() != size)
+            throw new IllegalArgumentException("duplicated variables");
+        Set<Variable> remains = new HashSet<>(problem.variables);
+        List<Variable> bindingOrder = new ArrayList<>();
+        // 定数変数をbindingOrderに追加します。
+        List<Variable> constants = remains.stream().filter(v -> v.domain.size() == 1).toList();
+        bindingOrder.addAll(constants);
+        remains.removeAll(constants);
+        // クラスターをドメインの合計サイズでソートします。
+        List<List<Variable>> sortedClusters = clusters.stream()
+            .map(cluster -> new Object() {
+                // クラスターのドメインの合計サイズを求めます。
+                int totalDomainSize = cluster.stream()
+                    .mapToInt(v -> v.domain.size())
+                    .sum();
+                // 各クラスターは変数のドメインサイズでそれぞれソートします。
+                List<Variable> sortedCluster = cluster.stream()
+                    .sorted(Comparator.comparing(v -> v.domain.size()))
+                    .toList();
+            })
+            .sorted(Comparator.comparingInt(obj -> obj.totalDomainSize))
+            .map(obj -> obj.sortedCluster)
+            .toList();
+        // ソート順にbindingOrderに変数を追加します。
+        for (List<Variable> cluster : sortedClusters) {
+            for (Variable v : cluster) {
+                if (remains.contains(v)) {
+                    bindingOrder.add(v);
+                    remains.remove(v);
+                }
+            }
+        }
+        // すべての変数がbindingOrderに追加されたことを確認します。
+        if (bindingOrder.size() != size)
+            throw new IllegalStateException("invalid binding order size");
+        return bindingOrder;
+    }
+
+    public static void solve(Problem problem, Consumer<int[]> callback, List<Variable> bindingOrder) {
+    }
+
+    public static void solve(Problem problem, Consumer<int[]> callback) {
+        solve(problem, callback, problem.variables);
     }
 
 }

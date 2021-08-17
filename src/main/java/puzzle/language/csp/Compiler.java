@@ -3,6 +3,7 @@ package puzzle.language.csp;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +19,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import puzzle.language.JavaCompiler;
+import puzzle.language.JavaCompilerInMemory;
+import puzzle.language.JavaCompilerInMemory.CompileError;
 
 public class Compiler {
 
@@ -140,15 +142,16 @@ public class Compiler {
             return sb.toString();
         }
 
-        public void compile(File dest) {
-            JavaCompiler.compile(dest, null,
-                List.of(new JavaCompiler.Source(fqcn, generate())));
-        }
+        // public void compile(File dest) {
+        // JavaCompilerWriteClassFile.compile(dest, null,
+        // List.of(new JavaCompilerWriteClassFile.Source(fqcn, generate())));
+        // }
 
-        public void compileGo(File dest) {
-            JavaCompiler.compileGo(dest, null,
-                new JavaCompiler.Source(fqcn, generate()),
-                new String[0]);
+        public void compileGo(File dest)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+            NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
+            JavaCompilerInMemory.compile(fqcn, generate())
+                .getMethod("main", String[].class).invoke(null, new Object[] { new String[0]});
         }
     }
 
@@ -342,11 +345,14 @@ public class Compiler {
     }
 
     static IllegalArgumentException usage() {
-        System.err.println("usage: java " + Compiler.class.getName() + " [-d DESTINATION] CSP_FILE");
+        System.err
+            .println("usage: java " + Compiler.class.getName() + " [-d DESTINATION] CSP_FILE");
         return new IllegalArgumentException();
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+        SecurityException, ClassNotFoundException, CompileError {
         File destination = new File(".");
         int i = 0;
         L: for (int max = args.length; i < max; ++i)

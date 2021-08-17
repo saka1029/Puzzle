@@ -1,9 +1,10 @@
 package test.puzzle.language.csp;
 
-import static puzzle.language.csp.Compiler.*;
+import static puzzle.language.csp.Compiler.parse;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Logger;
@@ -12,6 +13,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 import puzzle.Common;
+import puzzle.language.JavaCompilerInMemory.CompileError;
 import puzzle.language.csp.Compiler.Problem;
 import puzzle.language.csp.Compiler.Variable;
 
@@ -47,7 +49,7 @@ class TestCompiler {
     static File dest = new File("temp");
 
     @Test
-    void testCompileGo() {
+    void testCompileGo() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
         String source = "problem SendMoreMoney;\r\n"
             + "\r\n"
             + "# SEND + MORE = MONEY\r\n"
@@ -71,7 +73,7 @@ class TestCompiler {
     }
 
     @Test
-    public void testNQueens() {
+    public void testNQueens() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
         Problem p = new Problem("NQueens",
             "static java.lang.Math.abs");
         int n = 10;
@@ -90,7 +92,7 @@ class TestCompiler {
     }
 
     @Test
-    public void test8QueensFile() throws IOException {
+    public void test8QueensFile() throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
         String source = Files.readString(Path.of("src/test/csp/Queen8.csp"));
         Problem problem = parse(source);
         System.out.println(problem.generate());

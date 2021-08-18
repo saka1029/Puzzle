@@ -1,6 +1,5 @@
 package puzzle.language.csp;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -147,11 +146,13 @@ public class Compiler {
         // List.of(new JavaCompilerWriteClassFile.Source(fqcn, generate())));
         // }
 
-        public void compileGo(File dest)
+        static final List<String> OPTIONS = List.of("-g:none");
+
+        public void compileGo()
             throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
             NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
-            JavaCompilerInMemory.compile(fqcn, generate())
-                .getMethod("main", String[].class).invoke(null, new Object[] { new String[0]});
+            JavaCompilerInMemory.compile(fqcn, generate(), OPTIONS)
+                .getMethod("main", String[].class).invoke(null, new Object[] {new String[0]});
         }
     }
 
@@ -353,13 +354,9 @@ public class Compiler {
     public static void main(String[] args) throws IOException, IllegalAccessException,
         IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
         SecurityException, ClassNotFoundException, CompileError {
-        File destination = new File(".");
         int i = 0;
         L: for (int max = args.length; i < max; ++i)
             switch (args[i]) {
-            case "-d":
-                destination = new File(args[++i]);
-                break;
             default:
                 if (args[i].startsWith("-"))
                     throw usage();
@@ -370,6 +367,6 @@ public class Compiler {
             throw usage();
         String source = Files.readString(Path.of(args[i]));
         Problem problem = parse(source);
-        problem.compileGo(destination);
+        problem.compileGo();
     }
 }

@@ -108,8 +108,8 @@ public class JavaCompilerInMemory {
      * @throws ClassNotFoundException クラスオブジェクトをロードできなかった時にスローします。
      * @throws CompileError コンパイルに失敗したときにスローします。
      */
-    public static Class<?> compile(String fullName, String sourceCode) throws ClassNotFoundException, CompileError {
-        return compile(List.of(new Source(fullName, sourceCode))).loadClass(fullName);
+    public static Class<?> compile(String fullName, String sourceCode, Iterable<String> options) throws ClassNotFoundException, CompileError {
+        return compile(List.of(new Source(fullName, sourceCode)), options).loadClass(fullName);
     }
 
     /**
@@ -119,12 +119,12 @@ public class JavaCompilerInMemory {
      * @return コンパイルした結果のクラスをロードするためのClassLoaderを返します。
      * @throws CompileError コンパイルに失敗したときにスローします。
      */
-    public static ClassLoader compile(Collection<Source> sources) throws CompileError {
+    public static ClassLoader compile(Collection<Source> sources, Iterable<String> options) throws CompileError {
         javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         JavaFileManager fileManager = new ClassFileManager(
             compiler.getStandardFileManager(null, null, null));
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-        if (!compiler.getTask(null, fileManager, diagnostics, null, null, sources).call())
+        if (!compiler.getTask(null, fileManager, diagnostics, options, null, sources).call())
             throw new CompileError(diagnostics);
         return fileManager.getClassLoader(null);
     }

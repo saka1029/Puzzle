@@ -2,6 +2,7 @@ package test.puzzle.language;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -18,14 +19,17 @@ public class TestJavaCompilerInMemory {
 
     static final Logger logger = Common.getLogger(TestJavaCompilerInMemory.class);
 
+    static final List<String> OPTIONS = List.of("-g:none");
+
     public static String name() {
         return "Invoke TestJavaCompilerInMemory.name()";
     }
 
     /**
-     * コンパイル環境のクラスはコンパイルされたコードからロードできる。 ということはProblemで定義した制約にアクセスすることはできるはず。
-     *
-     * @throws CompileError
+     * <pre>
+     * コンパイル環境のクラスはコンパイルされたコードからロードできる。
+     * ということはProblemで定義した制約にアクセスすることはできるはず。
+     * </pre>
      */
     @Test
     void testCompileReferCompilingEnvironment()
@@ -34,15 +38,17 @@ public class TestJavaCompilerInMemory {
         SecurityException, CompileError {
         logger.info(Common.methodName());
         String fullName = "DynaClass";
-        String sourceCode = "public class DynaClass {\n"
+        String sourceCode = "import test.puzzle.language.TestJavaCompilerInMemory;\n"
+            + "public class DynaClass {\n"
             + "    public String toString() {\n"
             + "        return \"Hello, I am\"\n"
             + "            + \" \" + this.getClass().getSimpleName()"
-            + "            + \" \" + test.puzzle.language.TestJavaCompilerInMemory.name();\n"
+            + "            + \" \" + TestJavaCompilerInMemory.name();\n"
             + "    }\n"
             + "}\n";
-        Class<?> clazz = JavaCompilerInMemory.compile(fullName, sourceCode);
-        logger.info(clazz.getDeclaredConstructor().newInstance().toString());
+        Class<?> clazz = JavaCompilerInMemory.compile(fullName, sourceCode, OPTIONS);
+        Object result = clazz.getDeclaredConstructor().newInstance().toString();
+        assertEquals("Hello, I am DynaClass Invoke TestJavaCompilerInMemory.name()", result);
     }
 
     @Test
@@ -54,9 +60,8 @@ public class TestJavaCompilerInMemory {
             new Source("A", "public class A { public static String foo() { return \"I am A\"; }}"),
             new Source("B",
                 "public class B { public static String foo() { return \"B calls A.foo() : \" + A.foo(); }}"));
-        ClassLoader loader = JavaCompilerInMemory.compile(sources);
-        String result = (String) loader.loadClass("B").getMethod("foo").invoke(null);
-        logger.info(result);
+        ClassLoader loader = JavaCompilerInMemory.compile(sources, OPTIONS);
+        assertEquals("B calls A.foo() : I am A", loader.loadClass("B").getMethod("foo").invoke(null));
     }
 
     @Test
@@ -69,9 +74,8 @@ public class TestJavaCompilerInMemory {
                 + " public static String foo() { return \"I am A\"; }}"),
             new Source("B", "package foo.bar; public class B {"
                 + " public static String foo() { return \"B calls A.foo() : \" + A.foo(); }}"));
-        ClassLoader loader = JavaCompilerInMemory.compile(sources);
-        String result = (String) loader.loadClass("foo.bar.B").getMethod("foo").invoke(null);
-        logger.info(result);
+        ClassLoader loader = JavaCompilerInMemory.compile(sources, OPTIONS);
+        assertEquals("B calls A.foo() : I am A", loader.loadClass("foo.bar.B").getMethod("foo").invoke(null));
     }
 
     @Test
@@ -84,11 +88,11 @@ public class TestJavaCompilerInMemory {
             + "    1 + 2;\n"
             + "}\n";
         try {
-            Class<?> clazz = JavaCompilerInMemory.compile(fullName, sourceCode);
+            Class<?> clazz = JavaCompilerInMemory.compile(fullName, sourceCode, OPTIONS);
             logger.info(clazz.getDeclaredConstructor().newInstance().toString());
             fail();
         } catch (CompileError e) {
-            logger.info(e.getMessage());
+//            logger.info(e.getMessage());
             assertTrue(e.getMessage().contains("CompileErrorClass"));
             assertTrue(e.getMessage().contains("1 + 2;"));
         }

@@ -1,11 +1,13 @@
 package puzzle.csp;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,6 +17,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import puzzle.language.JavaCompilerInMemory;
+import puzzle.language.JavaCompilerInMemory.CompileError;
 
 public class CspInt {
 
@@ -46,16 +51,16 @@ public class CspInt {
                 return variableNames;
             return variableNames = Pattern.compile(
                 "\\b("
-                + pVariables.stream().map(v -> v.name).collect(Collectors.joining("|"))
-                + ")\\b");
+                    + pVariables.stream().map(v -> v.name).collect(Collectors.joining("|"))
+                    + ")\\b");
         }
 
         public List<Variable> variables(String predicate) {
-            List<Variable> variables = new ArrayList<>();
+            Set<Variable> variables = new LinkedHashSet<>();
             Matcher m = variableNames().matcher(predicate);
             while (m.find())
                 variables.add(variable(m.group()));
-            return variables;
+            return new ArrayList<>(variables);
         }
 
         public Constraint constraint(String predicate) {
@@ -65,6 +70,12 @@ public class CspInt {
             for (Variable v : variables)
                 v.pConstraints.add(c);
             return c;
+        }
+
+        public void allDifferent(Variable... variables) {
+            for (int i = 0, size = variables.length; i < size; ++i)
+                for (int j = i + 1; j < size; ++j)
+                    constraint(variables[i].name + " != " + variables[j].name);
         }
     }
 
@@ -138,7 +149,7 @@ public class CspInt {
         @Override
         public String toString() {
             return predicate;
-//            return "constraint:" + predicate + variables;
+            // return "constraint:" + predicate + variables;
         }
     }
 
@@ -171,13 +182,15 @@ public class CspInt {
         }
 
         static final String CLASS_NAME = "CspSolver";
-        static final String METHOD_NAME = "solver";
+        static final String METHOD_NAME = "solve";
+        static final List<String> OPTIONS = List.of("-g:none");
 
-        public static String generateSource(Problem problem, List<Variable> bindingOrder, List<List<Constraint>> constraintOrder) {
+        public static String generateSource(Problem problem, List<Variable> bindingOrder,
+            List<List<Constraint>> constraintOrder, String prolog, String epilog) {
             StringBuilder sb = new StringBuilder();
             new Object() {
                 Map<Domain, String> domainNames = new HashMap<>();
-                
+
                 void println(String format, Object... args) {
                     sb.append(String.format(format + System.lineSeparator(), args));
                 }
@@ -196,7 +209,7 @@ public class CspInt {
                         }
                     }
                 }
-                
+
                 void body() {
                     for (int i = 0, size = bindingOrder.size(); i < size; ++i) {
                         Variable varible = bindingOrder.get(i);
@@ -217,30 +230,59 @@ public class CspInt {
 
                 void source() {
                     println("import java.util.function.Consumer;");
+                    if (prolog != null && !prolog.equals(""))
+                        println("%s", prolog);
                     println("public class %s {", CLASS_NAME);
                     println("public static void %s(Consumer<int[]> _callback) {", METHOD_NAME);
                     variables();
                     body();
                     println("}");
+                    if (epilog != null && !epilog.equals(""))
+                        println("%s", epilog);
                     println("}");
                 }
             }.source();
             return sb.toString();
         }
 
-        public static void solve(Problem problem, Consumer<int[]> callback, List<Variable> bindingOrder) {
-            String source = generateSource(problem, bindingOrder, constraintOrder(problem, bindingOrder));
+        public static long solve(Problem problem, Consumer<int[]> callback,
+            List<Variable> bindingOrder, String prolog, String epilog)
+            throws ClassNotFoundException, CompileError, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+            SecurityException {
+            String source = generateSource(problem, bindingOrder,
+                constraintOrder(problem, bindingOrder), prolog, epilog);
+            Class<?> clazz = JavaCompilerInMemory.compile(CLASS_NAME, source, OPTIONS);
+            long start = System.currentTimeMillis();
+            clazz.getDeclaredMethod(METHOD_NAME, Consumer.class).invoke(null, callback);
+            return System.currentTimeMillis() - start;
         }
 
-        public static void solve(Problem problem, Consumer<int[]> callback) {
-            solve(problem, callback, problem.variables);
+        public static long solve(Problem problem, Consumer<int[]> callback, List<Variable> bindingOrder)
+            throws ClassNotFoundException, CompileError, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+            SecurityException {
+            return solve(problem, callback, bindingOrder, null, null);
+        }
+
+        public static long solve(Problem problem, Consumer<int[]> callback, String prolog, String epilog)
+            throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
+            return solve(problem, callback, problem.variables, prolog, epilog);
+        }
+
+        public static long solve(Problem problem, Consumer<int[]> callback)
+            throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
+            return solve(problem, callback, problem.variables, null, null);
         }
     }
 
     /**
      * ドメインサイズの小さい順の束縛順序を求めます。
      *
-     * @param problem 問題を指定します。
+     * @param problem
+     *            問題を指定します。
      * @return 変数の束縛順序を返します。
      */
     public static List<Variable> domainBinding(Problem problem) {
@@ -252,8 +294,10 @@ public class CspInt {
     /**
      * 変数のクラスターリストから変数の束縛順序を求めます。
      *
-     * @param problem 問題を指定します。
-     * @param clusters 変数のクラスターのリストを指定します。
+     * @param problem
+     *            問題を指定します。
+     * @param clusters
+     *            変数のクラスターのリストを指定します。
      * @return 変数の束縛順序を返します。
      */
     public static List<Variable> clusterBinding(Problem problem, List<List<Variable>> clusters) {
@@ -297,6 +341,5 @@ public class CspInt {
             throw new IllegalStateException("invalid binding order size");
         return bindingOrder;
     }
-    
 
 }

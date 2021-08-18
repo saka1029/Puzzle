@@ -2,7 +2,6 @@ package test.puzzle.language.csp;
 
 import static puzzle.language.csp.Compiler.parse;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
@@ -46,8 +45,6 @@ class TestCompiler {
         System.out.println(problem.generate());
     }
 
-    static File dest = new File("temp");
-
     @Test
     void testCompileGo() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
         String source = "problem SendMoreMoney;\r\n"
@@ -68,7 +65,7 @@ class TestCompiler {
             + "static int number(int... digits) {\r\n"
             + "    return IntStream.of(digits).reduce(0, (n, d) -> n * 10 + d);\r\n"
             + "};\r\n";
-        parse(source).compileGo(dest);
+        parse(source).compileGo();
 //        System.out.println(parse(source).generate());
     }
 
@@ -87,7 +84,7 @@ class TestCompiler {
                 int d = Math.abs(i - j);
                 p.constraint("abs(v" + i + " - v" + j + ") != " + d, v[i], v[j]);
             }
-        p.compileGo(dest);
+        p.compileGo();
         System.out.println(p.generate());
     }
 
@@ -96,7 +93,7 @@ class TestCompiler {
         String source = Files.readString(Path.of("src/test/csp/Queen8.csp"));
         Problem problem = parse(source);
         System.out.println(problem.generate());
-        problem.compileGo(dest);
+        problem.compileGo();
     }
 
 }

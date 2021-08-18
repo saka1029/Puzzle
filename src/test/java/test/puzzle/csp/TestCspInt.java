@@ -3,6 +3,7 @@ package test.puzzle.csp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,24 @@ class TestCspInt {
             Solver.constraintOrder(problem, List.of(A, B, C)));
         assertEquals(List.of(List.of(), List.of(c2), List.of(c1)),
             Solver.constraintOrder(problem, List.of(C, B, A)));
+        String source = Solver.generateSource(problem, problem.variables,
+            Solver.constraintOrder(problem, problem.variables));
+        logger.info(source);
+        List<Variable> reverse = List.of(C, B, A);
+        String source2 = Solver.generateSource(problem, reverse,
+            Solver.constraintOrder(problem, reverse));
+        logger.info(source2);
     }
 
+    public class CspSolver {
+        public static void solve(Consumer<int[]> _callback) {
+            int[] _d0 = {0, 1, 2, 3};
+            for (int c : _d0)
+                for (int b : _d0)
+                    if ((b < c))
+                        for (int a : _d0)
+                            if ((a < b))
+                                _callback.accept(new int[] {a, b, c});
+        }
+    }
 }

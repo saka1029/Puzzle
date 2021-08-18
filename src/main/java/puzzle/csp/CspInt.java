@@ -169,6 +169,72 @@ public class CspInt {
                 throw new IllegalStateException("Illegal constraints: " + remainConstraints);
             return constraintOrder;
         }
+
+        static final String CLASS_NAME = "CspSolver";
+        static final String METHOD_NAME = "solver";
+
+        public static String generateSource(Problem problem, List<Variable> bindingOrder, List<List<Constraint>> constraintOrder) {
+            StringBuilder sb = new StringBuilder();
+            new Object() {
+                Map<Domain, String> domainNames = new HashMap<>();
+                
+                void println(String format, Object... args) {
+                    sb.append(String.format(format + System.lineSeparator(), args));
+                }
+
+                void variables() {
+                    int i = 0;
+                    for (Variable v : problem.variables) {
+                        Domain d = v.domain;
+                        String name = domainNames.get(d);
+                        if (name == null) {
+                            domainNames.put(d, name = "_d" + i++);
+                            println("int[] %s = {%s};", name,
+                                IntStream.of(d.values)
+                                    .mapToObj(e -> Integer.toString(e))
+                                    .collect(Collectors.joining(", ")));
+                        }
+                    }
+                }
+                
+                void body() {
+                    for (int i = 0, size = bindingOrder.size(); i < size; ++i) {
+                        Variable varible = bindingOrder.get(i);
+                        println("for (int %s : %s)",
+                            varible.name, domainNames.get(varible.domain));
+                        List<Constraint> cs = constraintOrder.get(i);
+                        if (cs.isEmpty())
+                            continue;
+                        println("if (%s)", cs.stream()
+                            .map(c -> "(" + c.predicate + ")")
+                            .collect(Collectors.joining(" && ")));
+                    }
+                    println("_callback.accept(new int [] {%s});",
+                        problem.variables.stream()
+                            .map(x -> x.name)
+                            .collect(Collectors.joining(", ")));
+                }
+
+                void source() {
+                    println("import java.util.function.Consumer;");
+                    println("public class %s {", CLASS_NAME);
+                    println("public static void %s(Consumer<int[]> _callback) {", METHOD_NAME);
+                    variables();
+                    body();
+                    println("}");
+                    println("}");
+                }
+            }.source();
+            return sb.toString();
+        }
+
+        public static void solve(Problem problem, Consumer<int[]> callback, List<Variable> bindingOrder) {
+            String source = generateSource(problem, bindingOrder, constraintOrder(problem, bindingOrder));
+        }
+
+        public static void solve(Problem problem, Consumer<int[]> callback) {
+            solve(problem, callback, problem.variables);
+        }
     }
 
     /**
@@ -231,12 +297,6 @@ public class CspInt {
             throw new IllegalStateException("invalid binding order size");
         return bindingOrder;
     }
-
-    public static void solve(Problem problem, Consumer<int[]> callback, List<Variable> bindingOrder) {
-    }
-
-    public static void solve(Problem problem, Consumer<int[]> callback) {
-        solve(problem, callback, problem.variables);
-    }
+    
 
 }

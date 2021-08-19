@@ -24,9 +24,9 @@ public class TestCspInt {
     static Logger logger = Common.getLogger(TestCspInt.class);
 
     @Test
-    void testSolver()
-        throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
-        InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
+    void testSolver() throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
         logger.info(Common.methodName());
         Problem problem = new Problem();
         Domain domain = Domain.rangeClosed(0, 3);
@@ -69,8 +69,9 @@ public class TestCspInt {
 
     @Test
     public void testSendMoreMoney()
-        throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
-        InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
+        throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
         logger.info(Common.methodName());
         Problem problem = new Problem();
         Domain first = Domain.rangeClosed(1, 9);
@@ -95,15 +96,13 @@ public class TestCspInt {
             "number(s, e, n, d) + number(m, o, r, e) == number(m, o, n, e, y)");
         String prolog = null;
         String epilog = "static int number(int... digits) {\n"
-            + "    int r = 0;\n"
-            + "    for (int d : digits)\n"
-            + "        r = r * 10 + d;\n"
-            + "    return r;\n"
-            + "}";
+            + "    int r = 0;\n" + "    for (int d : digits)\n"
+            + "        r = r * 10 + d;\n" + "    return r;\n" + "}";
         List<int[]> actual = new ArrayList<>();
         long start = System.currentTimeMillis();
         long exec = Solver.solve(problem, a -> actual.add(a), prolog, epilog);
-        logger.info("total = " + (System.currentTimeMillis() - start) + "msec. exec = " + exec + "msec.");
+        logger.info("total = " + (System.currentTimeMillis() - start)
+            + "msec. exec = " + exec + "msec.");
         int[][] expected = {{9, 5, 6, 7, 1, 0, 8, 2}};
         assertArrayEquals(expected, actual.stream().toArray(int[][]::new));
 //        logger.info(Solver.generateSource(problem, problem.variables, Solver.constraintOrder(problem, problem.variables), prolog, epilog));
@@ -111,15 +110,39 @@ public class TestCspInt {
 
     static List<int[][]> sudoku(int[][] matrix) {
         Problem problem = new Problem();
-        Domain domain = Domain.rangeClosed(1, 9);
-        Variable[][] vars = new Variable[9][9];
-        for (int i = 0; i < 9; ++i)
-            for (int j = 0; j < 9; ++j) {
-                int n = matrix[i][j];
-                vars[i][j] = problem.variable("v" + i + "_" + j,
-                    n == 0 ? domain : Domain.of(n));
+        Domain unknown = Domain.rangeClosed(1, 9);
+        Variable[][] variables = new Variable[9][9];
+        List<List<Variable>> clusters = new ArrayList<>();
+        new Object() {
+            void variables() {
+                for (int i = 0; i < 9; ++i)
+                    for (int j = 0; j < 9; ++j) {
+                        int n = matrix[i][j];
+                        variables[i][j] = problem.variable("v" + i + "_" + j,
+                            n == 0 ? unknown : Domain.of(n));
+                    }
+            }
+            
+            void clusters() {
+                for (int i = 0; i < 9; ++i)
+                    clusters.add(IntStream.range(0, 9)
+                        .mapToObj(j -> variables[i][j]).toList());
+                for (int j = 0; j < 9; ++j)
+                    clusters.add(IntStream.range(0, 9)
+                        .mapToObj(i -> variables[i][j]).toList());
+                for (int r = 0; r < 9; r += 3)
+                    for (int c = 0; c < 9; c += 3)
+                        clusters.add(IntStream.range(r, r + 3)
+                            .boxed()
+                            .flatMap(i -> IntStream.range(c, c + 3)
+                                .mapToObj(j -> variables[i][j]))
+                            .toList());
             }
 
-
+            void make() {
+                variables();
+                clusters();
+            }
+        }.make();
     }
 }

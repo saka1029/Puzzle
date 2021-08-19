@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -12,6 +13,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 import puzzle.Common;
+import puzzle.csp.CspInt;
 import puzzle.csp.CspInt.Constraint;
 import puzzle.csp.CspInt.Domain;
 import puzzle.csp.CspInt.Problem;
@@ -51,11 +53,11 @@ public class TestCspInt {
             Solver.constraintOrder(problem, List.of(C, B, A)));
         String source = Solver.generateSource(problem, problem.variables,
             Solver.constraintOrder(problem, problem.variables), null, null);
-//        logger.info(source);
+        // logger.info(source);
         List<Variable> reverse = List.of(C, B, A);
         String source2 = Solver.generateSource(problem, reverse,
             Solver.constraintOrder(problem, reverse), null, null);
-//        logger.info(source2);
+        // logger.info(source2);
         List<int[]> answers = new ArrayList<>();
         // Solver.solve(problem, a -> logger.info(Arrays.toString(a)));
         Solver.solve(problem, a -> answers.add(a));
@@ -85,13 +87,14 @@ public class TestCspInt {
         Variable R = problem.variable("r", rest);
         Variable Y = problem.variable("y", rest);
         problem.allDifferent(S, E, N, D, M, O, R, Y);
-//        Constraint c1 = problem.constraint(
-//            "((s * 10 + e) * 10 + n) * 10 + d"
-//                + " + ((m * 10 + o) * 10 + r) * 10 + e"
-//                + " == (((m * 10 + o) * 10 + n) * 10 + e) * 10 + y");
-//        Constraint c1 = problem.constraint(
-//            String.format("%1$s(s, e, n, d) + %1$s(m, o, r, e) == %1$s(m, o, n, e, y)",
-//                getClass().getName() + ".number"));
+        // Constraint c1 = problem.constraint(
+        // "((s * 10 + e) * 10 + n) * 10 + d"
+        // + " + ((m * 10 + o) * 10 + r) * 10 + e"
+        // + " == (((m * 10 + o) * 10 + n) * 10 + e) * 10 + y");
+        // Constraint c1 = problem.constraint(
+        // String.format("%1$s(s, e, n, d) + %1$s(m, o, r, e) == %1$s(m, o, n,
+        // e, y)",
+        // getClass().getName() + ".number"));
         Constraint c1 = problem.constraint(
             "number(s, e, n, d) + number(m, o, r, e) == number(m, o, n, e, y)");
         String prolog = null;
@@ -105,14 +108,18 @@ public class TestCspInt {
             + "msec. exec = " + exec + "msec.");
         int[][] expected = {{9, 5, 6, 7, 1, 0, 8, 2}};
         assertArrayEquals(expected, actual.stream().toArray(int[][]::new));
-//        logger.info(Solver.generateSource(problem, problem.variables, Solver.constraintOrder(problem, problem.variables), prolog, epilog));
+        // logger.info(Solver.generateSource(problem, problem.variables,
+        // Solver.constraintOrder(problem, problem.variables), prolog, epilog));
     }
 
-    static List<int[][]> sudoku(int[][] matrix) {
+    static List<int[][]> sudoku(int[][] matrix)
+        throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
+        InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
         Problem problem = new Problem();
         Domain unknown = Domain.rangeClosed(1, 9);
         Variable[][] variables = new Variable[9][9];
         List<List<Variable>> clusters = new ArrayList<>();
+        List<int[][]> results = new ArrayList<>();
         new Object() {
             void variables() {
                 for (int i = 0; i < 9; ++i)
@@ -122,7 +129,7 @@ public class TestCspInt {
                             n == 0 ? unknown : Domain.of(n));
                     }
             }
-            
+
             void clusters() {
                 for (int i = 0; i < 9; ++i)
                     clusters.add(IntStream.range(0, 9)
@@ -132,17 +139,40 @@ public class TestCspInt {
                         .mapToObj(i -> variables[i][j]).toList());
                 for (int r = 0; r < 9; r += 3)
                     for (int c = 0; c < 9; c += 3)
-                        clusters.add(IntStream.range(r, r + 3)
-                            .boxed()
+                        clusters.add(IntStream.range(r, r + 3).boxed()
                             .flatMap(i -> IntStream.range(c, c + 3)
                                 .mapToObj(j -> variables[i][j]))
                             .toList());
             }
 
-            void make() {
+            void constraint() {
+                for (List<Variable> cluster : clusters)
+                    problem.allDifferent(cluster.toArray(Variable[]::new));
+            }
+
+            int[][] matrix(int[] array) {
+                int[][] matrix = new int[9][];
+                for (int i = 0, j = 0; i < 9; ++i, j += 9)
+                    matrix[i] = Arrays.copyOfRange(array, j, j + 9);
+                return matrix;
+            }
+
+            void solve()
+                throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
+                InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
+                List<Variable> bindingOrder = CspInt.clusterBinding(problem, clusters);
+                Solver.solve(problem, a -> results.add(matrix(a)), bindingOrder);
+            }
+
+            void make()
+                throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
+                InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
                 variables();
                 clusters();
+                constraint();
+                solve();
             }
         }.make();
+        return results;
     }
 }

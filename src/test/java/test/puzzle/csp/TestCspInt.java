@@ -108,4 +108,18 @@ public class TestCspInt {
         assertArrayEquals(expected, actual.stream().toArray(int[][]::new));
 //        logger.info(Solver.generateSource(problem, problem.variables, Solver.constraintOrder(problem, problem.variables), prolog, epilog));
     }
+
+    static List<int[][]> sudoku(int[][] matrix) {
+        Problem problem = new Problem();
+        Domain domain = Domain.rangeClosed(1, 9);
+        Variable[][] vars = new Variable[9][9];
+        for (int i = 0; i < 9; ++i)
+            for (int j = 0; j < 9; ++j) {
+                int n = matrix[i][j];
+                vars[i][j] = problem.variable("v" + i + "_" + j,
+                    n == 0 ? domain : Domain.of(n));
+            }
+
+
+    }
 }

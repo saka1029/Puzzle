@@ -302,14 +302,12 @@ public class CspInt {
      */
     public static List<Variable> clusterBinding(Problem problem, List<List<Variable>> clusters) {
         int size = problem.variables.size();
-        if (clusters.stream().mapToInt(cluster -> cluster.size()).sum() != size)
-            throw new IllegalArgumentException("invalid variable count");
-        if (clusters.stream().flatMap(cluster -> cluster.stream()).distinct().count() != size)
-            throw new IllegalArgumentException("duplicated variables");
         Set<Variable> remains = new HashSet<>(problem.variables);
         List<Variable> bindingOrder = new ArrayList<>();
         // 定数変数をbindingOrderに追加します。
-        List<Variable> constants = remains.stream().filter(v -> v.domain.size() == 1).toList();
+        List<Variable> constants = remains.stream()
+            .filter(v -> v.domain.size() == 1)
+            .toList();
         bindingOrder.addAll(constants);
         remains.removeAll(constants);
         // クラスターをドメインの合計サイズでソートします。
@@ -328,14 +326,12 @@ public class CspInt {
             .map(obj -> obj.sortedCluster)
             .toList();
         // ソート順にbindingOrderに変数を追加します。
-        for (List<Variable> cluster : sortedClusters) {
-            for (Variable v : cluster) {
+        for (List<Variable> cluster : sortedClusters)
+            for (Variable v : cluster)
                 if (remains.contains(v)) {
                     bindingOrder.add(v);
                     remains.remove(v);
                 }
-            }
-        }
         // すべての変数がbindingOrderに追加されたことを確認します。
         if (bindingOrder.size() != size)
             throw new IllegalStateException("invalid binding order size");

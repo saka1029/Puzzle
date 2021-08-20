@@ -112,37 +112,52 @@ public class TestCspInt {
         // Solver.constraintOrder(problem, problem.variables), prolog, epilog));
     }
 
-    static List<int[][]> sudoku(int[][] matrix)
-        throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
-        InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
+    static List<int[][]> 数独(int[][] matrix)
+        throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
         Problem problem = new Problem();
         Domain unknown = Domain.rangeClosed(1, 9);
         Variable[][] variables = new Variable[9][9];
         List<List<Variable>> clusters = new ArrayList<>();
         List<int[][]> results = new ArrayList<>();
+
         new Object() {
+
+            String name(int r, int c) {
+                return String.format("v%d_%d", r, c);
+            }
+
             void variables() {
-                for (int i = 0; i < 9; ++i)
-                    for (int j = 0; j < 9; ++j) {
-                        int n = matrix[i][j];
-                        variables[i][j] = problem.variable("v" + i + "_" + j,
+                for (int r = 0; r < 9; ++r)
+                    for (int c = 0; c < 9; ++c) {
+                        int n = matrix[r][c];
+                        variables[r][c] = problem.variable(name(r, c),
                             n == 0 ? unknown : Domain.of(n));
                     }
             }
 
             void clusters() {
-                for (int i = 0; i < 9; ++i)
-                    clusters.add(IntStream.range(0, 9)
-                        .mapToObj(j -> variables[i][j]).toList());
-                for (int j = 0; j < 9; ++j)
-                    clusters.add(IntStream.range(0, 9)
-                        .mapToObj(i -> variables[i][j]).toList());
+                for (int r = 0; r < 9; ++r) {
+                    List<Variable> row = new ArrayList<>();
+                    clusters.add(row);
+                    for (int c = 0; c < 9; ++c)
+                        row.add(variables[r][c]);
+                }
+                for (int c = 0; c < 9; ++c) {
+                    List<Variable> col = new ArrayList<>();
+                    clusters.add(col);
+                    for (int r = 0; r < 9; ++r)
+                        col.add(variables[r][c]);
+                }
                 for (int r = 0; r < 9; r += 3)
-                    for (int c = 0; c < 9; c += 3)
-                        clusters.add(IntStream.range(r, r + 3).boxed()
-                            .flatMap(i -> IntStream.range(c, c + 3)
-                                .mapToObj(j -> variables[i][j]))
-                            .toList());
+                    for (int c = 0; c < 9; c += 3) {
+                        List<Variable> box = new ArrayList<>();
+                        clusters.add(box);
+                        for (int i = 0; i < 3; ++i)
+                            for (int j = 0; j < 3; ++j)
+                                box.add(variables[r + i][c + j]);
+                    }
             }
 
             void constraint() {
@@ -157,16 +172,19 @@ public class TestCspInt {
                 return matrix;
             }
 
-            void solve()
-                throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
-                InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
+            void solve() throws ClassNotFoundException, IllegalAccessException,
+                IllegalArgumentException, InvocationTargetException,
+                NoSuchMethodException, SecurityException, CompileError {
                 List<Variable> bindingOrder = CspInt.clusterBinding(problem, clusters);
-                Solver.solve(problem, a -> results.add(matrix(a)), bindingOrder);
+//                List<Variable> bindingOrder = CspInt.domainBinding(problem);
+//                List<Variable> bindingOrder = problem.variables;
+                Solver.solve(problem, a -> results.add(matrix(a)),
+                    bindingOrder);
             }
 
-            void make()
-                throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
-                InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
+            void make() throws ClassNotFoundException, IllegalAccessException,
+                IllegalArgumentException, InvocationTargetException,
+                NoSuchMethodException, SecurityException, CompileError {
                 variables();
                 clusters();
                 constraint();
@@ -174,5 +192,176 @@ public class TestCspInt {
             }
         }.make();
         return results;
+    }
+
+    @Test
+    public void testSudokuWikipedia()
+        throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
+        logger.info(Common.methodName());
+        // Wikipedia 数独 の例題
+        // https://ja.wikipedia.org/wiki/%E6%95%B0%E7%8B%AC
+        int[][] question = {
+            {5, 3, 0, 0, 7, 0, 0, 0, 0},
+            {6, 0, 0, 1, 9, 5, 0, 0, 0},
+            {0, 9, 8, 0, 0, 0, 0, 6, 0},
+            {8, 0, 0, 0, 6, 0, 0, 0, 3},
+            {4, 0, 0, 8, 0, 3, 0, 0, 1},
+            {7, 0, 0, 0, 2, 0, 0, 0, 6},
+            {0, 6, 0, 0, 0, 0, 2, 8, 0},
+            {0, 0, 0, 4, 1, 9, 0, 0, 5},
+            {0, 0, 0, 0, 8, 0, 0, 7, 9},
+        };
+        List<int[][]> result = 数独(question);
+        for (int[][] b : result)
+            for (int[] row : b)
+                logger.info(Arrays.toString(row));
+    }
+
+    @Test
+    public void test難問SUDOKU()
+        throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
+        logger.info(Common.methodName());
+        // 難問SUDOKU の例題
+        // https://www.danboko.net/
+        int[][] question = {
+            { 2, 0, 0, 4, 0, 6, 0, 0, 9 },
+            { 0, 3, 1, 0, 5, 0, 6, 8, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 6, 0, 0, 9, 0, 5, 0, 0, 4 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 8, 0, 6, 0, 7, 0, 9, 0 },
+            { 5, 0, 0, 0, 0, 0, 0, 0, 2 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 4, 9, 5, 0, 1, 8, 3, 0 },
+        };
+        List<int[][]> result = 数独(question);
+        for (int[][] b : result)
+            for (int[] row : b)
+                logger.info(Arrays.toString(row));
+    }
+
+    @Test
+    public void testナンプレ問題10()
+        throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
+        logger.info(Common.methodName());
+        // https://si-coding.net/sudoku10.html
+        int[][] question = {
+            { 0, 0, 1, 0, 9, 0, 0, 0, 0 },
+            { 0, 5, 0, 4, 0, 0, 0, 0, 2 },
+            { 8, 0, 3, 0, 1, 0, 5, 0, 0 },
+            { 0, 0, 6, 0, 0, 0, 0, 2, 0 },
+            { 0, 0, 0, 0, 6, 0, 0, 0, 8 },
+            { 2, 0, 0, 8, 0, 3, 0, 6, 5 },
+            { 0, 0, 0, 0, 0, 6, 0, 0, 4 },
+            { 0, 0, 0, 0, 0, 4, 0, 7, 0 },
+            { 0, 9, 2, 0, 0, 0, 0, 0, 3 },
+        };
+        List<int[][]> result = 数独(question);
+        for (int[][] b : result)
+            for (int[] row : b)
+                logger.info(Arrays.toString(row));
+    }
+
+    @Test
+	public void testナンプレNo601010()
+        throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
+        logger.info(Common.methodName());
+        // https://numpre7.com/np601010
+        int[][] question = {
+            { 0, 0, 1, 0, 6, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 1, 5, 0, 0 },
+            { 0, 8, 0, 3, 0, 0, 0, 0, 9 },
+            { 0, 7, 0, 4, 0, 9, 8, 0, 0 },
+            { 2, 0, 0, 0, 0, 0, 0, 0, 4 },
+            { 0, 0, 6, 1, 0, 2, 0, 5, 0 },
+            { 4, 0, 0, 0, 0, 5, 0, 7, 0 },
+            { 0, 0, 9, 6, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 7, 0, 6, 0, 0 },
+        };
+        List<int[][]> result = 数独(question);
+        for (int[][] b : result)
+            for (int[] row : b)
+                logger.info(Arrays.toString(row));
+    }
+
+    @Test
+	public void testOurHardestSudokuAndHowToSolveIt()
+        throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
+        logger.info(Common.methodName());
+        // YouTube
+        // https://youtu.be/-ZZFEgCQsvA
+        int[][] question = {
+            { 0, 0, 1, 0, 6, 0, 0, 5, 9 },
+            { 0, 0, 0, 0, 0, 3, 0, 2, 0 },
+            { 0, 6, 0, 0, 8, 0, 0, 0, 0 },
+            { 4, 0, 0, 0, 0, 0, 5, 0, 0 },
+            { 0, 2, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 7, 0, 2, 0, 0, 4, 8, 0 },
+            { 8, 0, 0, 0, 0, 0, 9, 0, 5 },
+            { 7, 0, 0, 6, 0, 9, 0, 3, 0 },
+            { 0, 0, 5, 0, 0, 0, 0, 4, 0 },
+        };
+        List<int[][]> result = 数独(question);
+        for (int[][] b : result)
+            for (int[] row : b)
+                logger.info(Arrays.toString(row));
+    }
+
+    @Test
+	public void testEvil_sudoku_with_17_initial_values()
+        throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
+        logger.info(Common.methodName());
+        // https://www.free-sudoku.com/sudoku.php?dchoix=evil
+        int[][] question = {
+            { 1, 0, 0, 7, 0, 0, 0, 0, 6 },
+            { 0, 8, 0, 0, 0, 0, 0, 9, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 6, 0, 0, 4, 0, 0, 2, 0, 0 },
+            { 4, 0, 0, 0, 8, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 9, 0, 0, 5, 0 },
+            { 0, 5, 3, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 2, 0, 0, 4, 0, 0 },
+            { 0, 9, 0, 0, 0, 0, 0, 0, 0 },
+        };
+        List<int[][]> result = 数独(question);
+        for (int[][] b : result)
+            for (int[] row : b)
+                logger.info(Arrays.toString(row));
+    }
+
+    @Test
+	public void testGood_at_Sudoku_Heres_some_youll_never_complete()
+        throws ClassNotFoundException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException,
+        NoSuchMethodException, SecurityException, CompileError {
+        logger.info(Common.methodName());
+        // http://theconversation.com/good-at-sudoku-heres-some-youll-never-complete-5234
+        int[][] question = {
+            { 0, 0, 0, 7, 0, 0, 0, 0, 0 },
+            { 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 4, 3, 0, 2, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 6 },
+            { 0, 0, 0, 5, 0, 9, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 4, 1, 8 },
+            { 0, 0, 0, 0, 8, 1, 0, 0, 0 },
+            { 0, 0, 2, 0, 0, 0, 0, 5, 0 },
+            { 0, 4, 0, 0, 0, 0, 3, 0, 0 },
+        };
+        List<int[][]> result = 数独(question);
+        for (int[][] b : result)
+            for (int[] row : b)
+                logger.info(Arrays.toString(row));
     }
 }

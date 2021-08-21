@@ -13,17 +13,17 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 import puzzle.Common;
-import puzzle.csp.CspInt;
-import puzzle.csp.CspInt.Constraint;
-import puzzle.csp.CspInt.Domain;
-import puzzle.csp.CspInt.Problem;
-import puzzle.csp.CspInt.Solver;
-import puzzle.csp.CspInt.Variable;
+import puzzle.csp.CspIntCompiler;
+import puzzle.csp.CspIntCompiler.Constraint;
+import puzzle.csp.CspIntCompiler.Domain;
+import puzzle.csp.CspIntCompiler.Problem;
+import puzzle.csp.CspIntCompiler.Solver;
+import puzzle.csp.CspIntCompiler.Variable;
 import puzzle.language.JavaCompilerInMemory.CompileError;
 
-public class TestCspInt {
+public class TestCspIntCompiler {
 
-    static Logger logger = Common.getLogger(TestCspInt.class);
+    static Logger logger = Common.getLogger(TestCspIntCompiler.class);
 
     @Test
     void testSolver() throws ClassNotFoundException, IllegalAccessException,
@@ -175,7 +175,7 @@ public class TestCspInt {
             void solve() throws ClassNotFoundException, IllegalAccessException,
                 IllegalArgumentException, InvocationTargetException,
                 NoSuchMethodException, SecurityException, CompileError {
-                List<Variable> bindingOrder = CspInt.clusterBinding(problem, clusters);
+                List<Variable> bindingOrder = CspIntCompiler.clusterBinding(problem, clusters);
 //                List<Variable> bindingOrder = CspInt.domainBinding(problem);
 //                List<Variable> bindingOrder = problem.variables;
                 Solver.solve(problem, a -> results.add(matrix(a)),

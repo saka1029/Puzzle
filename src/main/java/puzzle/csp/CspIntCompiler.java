@@ -21,7 +21,7 @@ import java.util.stream.IntStream;
 import puzzle.language.JavaCompilerInMemory;
 import puzzle.language.JavaCompilerInMemory.CompileError;
 
-public class CspInt {
+public class CspIntCompiler {
 
     public static class Problem {
         private final List<Variable> pVariables = new ArrayList<>();

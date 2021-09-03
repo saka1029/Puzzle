@@ -47,7 +47,7 @@ class TestNurikabe {
         boolean[][] visited = new boolean[matrix.length][matrix[0].length];
         return new Object() {
             Stream<int[]> stream(int... x) {
-                visited[x[0]][x[1]] = true;
+                visited[row(x)][col(x)] = true;
                 return Stream.concat(Stream.of(x), Stream.of(directions)
                     .map(dir -> add(x, dir))
                     .filter(p -> in(matrix, p) && !visited[row(p)][col(p)] && includes.test(p))

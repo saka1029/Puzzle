@@ -82,7 +82,7 @@ class TestNurikabe {
     }
 
     @Test
-    void testN4c() {
+    void testNeighbors4Count() {
         assertEquals(2, count(neighbors4(board, 0, 0)));
         assertEquals(4, count(neighbors4(board, 1, 1)));
         assertEquals(3, count(neighbors4(board, 0, 4)));
@@ -90,7 +90,7 @@ class TestNurikabe {
     }
 
     @Test
-    void testN4p() {
+    void testNeighbors4Array() {
         assertMatrixEquals(new int[][] {{0, 1}, {1, 0}}, array(neighbors4(board, 0, 0)));
         assertMatrixEquals(new int[][] {{0, 1}, {1, 2}, {2, 1}, {1, 0}}, array(neighbors4(board, 1, 1)));
         assertMatrixEquals(new int[][] {{0, 5}, {1, 4}, {0, 3}}, array(neighbors4(board, 0, 4)));
@@ -98,7 +98,7 @@ class TestNurikabe {
     }
 
     @Test
-    void testN4v() {
+    void testNeighbors4Values() {
         assertArrayEquals(new int[] {0, 2}, values(board, neighbors4(board, 0, 0)));
         assertArrayEquals(new int[] {0, 0, 0, 2}, values(board, neighbors4(board, 1, 1)));
         assertArrayEquals(new int[] {0, 0, 0}, values(board, neighbors4(board, 0, 4)));
@@ -106,7 +106,7 @@ class TestNurikabe {
     }
 
     @Test
-    void testNxr() {
+    void testNeighbors() {
         int[][] matrix = {
             {1, 0, 0, 0, 0, 0, 1},
             {0, 0, 1, 0, 0, 0, 0},

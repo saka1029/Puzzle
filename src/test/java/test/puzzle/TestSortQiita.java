@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
-public class TestSort {
+public class TestSortQiita {
 
     @Test
     void testSortIntArray() {
@@ -128,7 +128,7 @@ public class TestSort {
         // [7, 6, 5, 4, 3, 2, 1, 0]
     }
 
-    static int partition(int arr[], int begin, int end) {
+    static int partition0(int arr[], int begin, int end) {
         int pivot = arr[end];
         int i = (begin - 1);
         for (int j = begin; j < end; j++) {
@@ -145,18 +145,18 @@ public class TestSort {
         return i + 1;
     }
 
-    public static void quickSort(int arr[], int begin, int end) {
+    public static void quickSort0(int arr[], int begin, int end) {
         if (begin < end) {
-            int partitionIndex = partition(arr, begin, end);
-            quickSort(arr, begin, partitionIndex - 1);
-            quickSort(arr, partitionIndex + 1, end);
+            int partitionIndex = partition0(arr, begin, end);
+            quickSort0(arr, begin, partitionIndex - 1);
+            quickSort0(arr, partitionIndex + 1, end);
         }
     }
 
     @Test
-    public void testQuickSort() {
+    public void testQuickSort0() {
         int[] ints = {4, 5, 2, 6, 1, 3, 7, 0};
-        quickSort(ints, 0, ints.length - 1);
+        quickSort0(ints, 0, ints.length - 1);
         System.out.println(Arrays.toString(ints));
         // [0, 1, 2, 3, 4, 5, 6, 7]
     }

@@ -18,16 +18,13 @@ class TestNurikabe {
 
     static final Logger loger = Common.getLogger(TestNurikabe.class);
 
-    static final int UNKNOWN = 0;
-    static final int BLACK = -1;
-    static final int WHITE = -2;
-
     static int row(int... p) { return p[0]; }
     static int col(int... p) { return p[1]; }
     static int[] point(int... p) { return p; }
     static int[] add(int[] p0, int[] p1) { return point(row(p0) + row(p1), col(p0) + col(p1)); }
     static int get(int[][] matrix, int... p) { return matrix[row(p)][col(p)]; }
     static void set(int[][] matrix, int value, int... p) { matrix[row(p)][col(p)] = value; }
+    static void set(int[][] matrix, int value, List<int[]> p) { p.forEach(x -> set(matrix, value, x)); }
     static boolean get(boolean[][] matrix, int... p) { return matrix[row(p)][col(p)]; }
     static void set(boolean[][] matrix, boolean value, int... p) { matrix[row(p)][col(p)] = value; }
     static boolean in(int[][] m, int... p) {
@@ -54,15 +51,17 @@ class TestNurikabe {
 
     static List<int[]> neighbors(int[][] matrix, int[][] directions, Predicate<int[]> includes, int... p) {
         boolean[][] visited = new boolean[matrix.length][matrix[0].length];
+        set(visited, true, p);  // 自分自身は除く
         List<int[]> result = new ArrayList<>();
         new Object() {
             void make(int... x) {
-                result.add(x);
-                set(visited, true, x);
                 for (int[] dir : directions) {
                     int[] y = add(x, dir);
-                    if (in(matrix, y) && !get(visited, y) && includes.test(y))
+                    if (in(matrix, y) && !get(visited, y) && includes.test(y)) {
+                        result.add(y);
+                        set(visited, true, y);
                         make(y);
+                    }
                 }
             }
         }.make(p);
@@ -76,6 +75,10 @@ class TestNurikabe {
         for (int[] row : m)
             System.out.println(Arrays.toString(row));
     }
+
+    static final int UNKNOWN = 0;
+    static final int BLACK = -1;
+    static final int WHITE = -2;
 
     static final int[][] board = {
         {0, 0, 0, 0, 2, 0, 2, 0, 0, 0,},
@@ -105,7 +108,7 @@ class TestNurikabe {
     }
 
     @Test
-    void testCrawl4Size() {
+    void testNeighbors4Size() {
         assertEquals(2, neighbors4(board, 0, 0).size());
         assertEquals(4, neighbors4(board, 1, 1).size());
         assertEquals(3, neighbors4(board, 0, 4).size());
@@ -113,7 +116,7 @@ class TestNurikabe {
     }
 
     @Test
-    void testN4p() {
+    void testNeighbors4Points() {
         assertArrayEquals(new int[][] {{0, 1}, {1, 0}}, neighbors4(board, 0, 0).stream().toArray(TOI2));
         assertArrayEquals(new int[][] {{0, 1}, {1, 2}, {2, 1}, {1, 0}}, neighbors4(board, 1, 1).stream().toArray(TOI2));
         assertArrayEquals(new int[][] {{0, 5}, {1, 4}, {0, 3}}, neighbors4(board, 0, 4).stream().toArray(TOI2));
@@ -121,7 +124,7 @@ class TestNurikabe {
     }
 
     @Test
-    void testN4v() {
+    void testNeighbors4Values() {
         assertArrayEquals(new int[] {0, 2}, neighbors4(board, 0, 0).stream().mapToInt(p -> get(board, p)).toArray());
         assertArrayEquals(new int[] {0, 0, 0, 2}, neighbors4(board, 1, 1).stream().mapToInt(p -> get(board, p)).toArray());
         assertArrayEquals(new int[] {0, 0, 0}, neighbors4(board, 0, 4).stream().mapToInt(p -> get(board, p)).toArray());
@@ -129,7 +132,7 @@ class TestNurikabe {
     }
 
     @Test
-    void testCrawl() {
+    void testNeighbors() {
         int[][] matrix = {
             {1, 0, 0, 0, 0, 0, 1},
             {0, 0, 1, 0, 0, 0, 0},
@@ -139,7 +142,6 @@ class TestNurikabe {
             {0, 0, 0, 1, 0, 0, 0},
             {0, 0, 0, 1, 1, 1, 1},
         };
-        assertEquals(12, neighbors(matrix, N4, p -> matrix[p[0]][p[1]] == 1, 3, 3).size());
+        assertEquals(11, neighbors(matrix, N4, p -> get(matrix, p) == 1, 3, 3).size());
     }
-
 }

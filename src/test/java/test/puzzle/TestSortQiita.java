@@ -66,7 +66,6 @@ public class TestSortQiita {
         // -MIN_VALUE = -2147483648
         // MAX_VALUE = 2147483647
         // -MAX_VALUE = -2147483647
-
     }
 
     @Test
@@ -117,7 +116,6 @@ public class TestSortQiita {
         public int size() {
             return ints.length;
         }
-
     }
 
     @Test

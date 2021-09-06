@@ -44,6 +44,17 @@ class TestIndexedCollectionUtil {
         assertArrayEquals(IntStream.range(0, len).map(i -> len - i - 1).toArray(), ints);
     }
 
+    @Test
+    void testQuickSortMid3() {
+        logger.info(methodName());
+        int[] ints = {5, 8, 3, 4, 1, 0, 2, 7, 9, 6};
+        quickSort((l, r) -> Integer.compare(ints[l], ints[r]),
+            (l, r) -> swap(ints, l, r),
+            3, 6);
+        int[] expected = {5, 8, 3, 0, 1, 4, 2, 7, 9, 6};
+        assertArrayEquals(expected, ints);
+    }
+
     static double standardDeviation(Collection<Integer> data) {
         IntSummaryStatistics summary = data.stream().mapToInt(i -> i).summaryStatistics();
         long count = summary.getCount();
@@ -63,8 +74,8 @@ class TestIndexedCollectionUtil {
             shuffle((l, r) -> swap(ints, l, r), 0, ints.length);
             counts.compute(ints, (k, v) -> v == null ? 1 : v + 1);
         }
-//        for (Entry<int[], Integer> e : counts.entrySet())
-//            logger.info(Arrays.toString(e.getKey()) + " : " + e.getValue());
+        // for (Entry<int[], Integer> e : counts.entrySet())
+        // logger.info(Arrays.toString(e.getKey()) + " : " + e.getValue());
         assertEquals(24, counts.size());
         double sd = standardDeviation(counts.values());
         logger.info("標準偏差 = " + sd);
@@ -80,8 +91,8 @@ class TestIndexedCollectionUtil {
             shuffle((l, r) -> swap(ints, l, r), 1, ints.length);
             counts.compute(ints, (k, v) -> v == null ? 1 : v + 1);
         }
-//        for (Entry<int[], Integer> e : counts.entrySet())
-//            logger.info(Arrays.toString(e.getKey()) + " : " + e.getValue());
+        // for (Entry<int[], Integer> e : counts.entrySet())
+        // logger.info(Arrays.toString(e.getKey()) + " : " + e.getValue());
         assertEquals(24, counts.size());
         double sd = standardDeviation(counts.values());
         logger.info("標準偏差 = " + sd);
@@ -124,4 +135,21 @@ class TestIndexedCollectionUtil {
         assertArrayEquals(expected, ints);
     }
 
+    /**
+     * Returns: index of the search key, if it is contained in the array;
+     * otherwise, (-(insertion point) - 1). The insertion point is defined as
+     * the point at which the key would be inserted into the array: the index of
+     * the first element greater than the key, or a.length if all elements in
+     * the array are less than the specified key. Note that this guarantees that
+     * the return value will be >= 0 if and only if the key is found.
+     */
+    @Test
+    public void testArraysBinarySearch() {
+        int[] ints = IntStream.range(0, 8).map(i -> i * 2).toArray();
+        logger.info(Arrays.toString(ints));
+        assertEquals(2, Arrays.binarySearch(ints, 4));
+        assertEquals(-1, Arrays.binarySearch(ints, -1));
+        assertEquals(-3, Arrays.binarySearch(ints, 3));
+        assertEquals(-9, Arrays.binarySearch(ints, 15));
+    }
 }

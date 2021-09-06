@@ -12,7 +12,10 @@ import static puzzle.IndexedCollectionUtil.swap;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.IntSummaryStatistics;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -145,11 +148,55 @@ class TestIndexedCollectionUtil {
      */
     @Test
     public void testArraysBinarySearch() {
+        logger.info(methodName());
         int[] ints = IntStream.range(0, 8).map(i -> i * 2).toArray();
         logger.info(Arrays.toString(ints));
         assertEquals(2, Arrays.binarySearch(ints, 4));
         assertEquals(-1, Arrays.binarySearch(ints, -1));
         assertEquals(-3, Arrays.binarySearch(ints, 3));
         assertEquals(-9, Arrays.binarySearch(ints, 15));
+    }
+    
+    /**
+     * コンパレータの使い方は以下のとおり。
+     * キーで指定した値はcompare(left, right)の呼び出しにおいて、
+     * 常にright(右辺)に指定される。
+     */
+    @Test
+    public void testCollectionsBinarySearch() {
+        logger.info(methodName());
+        List<Integer> list = IntStream.range(0, 8).mapToObj(i -> i * 2).toList();
+        Comparator<Integer> comp = (a, b) -> {
+            logger.info("compare " + a + " and " + b);
+            return Integer.compare(a, b);
+        };
+        logger.info("list = " + list.toString());
+        logger.info("search " + 4);
+        assertEquals(2, Collections.binarySearch(list, 4, comp));
+        logger.info("search " + -1);
+        assertEquals(-1, Collections.binarySearch(list, -1, comp));
+        logger.info("search " + 3);
+        assertEquals(-3, Collections.binarySearch(list, 3, comp));
+        logger.info("search " + 15);
+        assertEquals(-9, Collections.binarySearch(list, 15, comp));
+        // 2021-09-06T17:29:41.629 情報 TestIndexedCollectionUtil testCollectionsBinarySearch 
+        // 2021-09-06T17:29:41.706 情報 TestIndexedCollectionUtil list = [0, 2, 4, 6, 8, 10, 12, 14] 
+        // 2021-09-06T17:29:41.708 情報 TestIndexedCollectionUtil search 4 
+        // 2021-09-06T17:29:41.710 情報 TestIndexedCollectionUtil compare 6 and 4 
+        // 2021-09-06T17:29:41.712 情報 TestIndexedCollectionUtil compare 2 and 4 
+        // 2021-09-06T17:29:41.712 情報 TestIndexedCollectionUtil compare 4 and 4 
+        // 2021-09-06T17:29:41.718 情報 TestIndexedCollectionUtil search -1 
+        // 2021-09-06T17:29:41.720 情報 TestIndexedCollectionUtil compare 6 and -1 
+        // 2021-09-06T17:29:41.720 情報 TestIndexedCollectionUtil compare 2 and -1 
+        // 2021-09-06T17:29:41.721 情報 TestIndexedCollectionUtil compare 0 and -1 
+        // 2021-09-06T17:29:41.722 情報 TestIndexedCollectionUtil search 3 
+        // 2021-09-06T17:29:41.723 情報 TestIndexedCollectionUtil compare 6 and 3 
+        // 2021-09-06T17:29:41.723 情報 TestIndexedCollectionUtil compare 2 and 3 
+        // 2021-09-06T17:29:41.724 情報 TestIndexedCollectionUtil compare 4 and 3 
+        // 2021-09-06T17:29:41.725 情報 TestIndexedCollectionUtil search 15 
+        // 2021-09-06T17:29:41.727 情報 TestIndexedCollectionUtil compare 6 and 15 
+        // 2021-09-06T17:29:41.728 情報 TestIndexedCollectionUtil compare 10 and 15 
+        // 2021-09-06T17:29:41.730 情報 TestIndexedCollectionUtil compare 12 and 15 
+        // 2021-09-06T17:29:41.730 情報 TestIndexedCollectionUtil compare 14 and 15 
     }
 }

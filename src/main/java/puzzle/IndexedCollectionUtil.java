@@ -3,6 +3,7 @@ package puzzle;
 import java.util.List;
 import java.util.Random;
 import java.util.function.IntBinaryOperator;
+import java.util.function.IntPredicate;
 
 public class IndexedCollectionUtil {
     private IndexedCollectionUtil() {}
@@ -84,6 +85,65 @@ public class IndexedCollectionUtil {
     public static void reverse(IntBiConsumer swapper, int begin, int end) {
         for (int i = begin, j = end - 1; i < j; ++i, --j)
             swapper.accept(i, j);
+    }
+    
+    /**
+     * Collections.binarySearch(コンパレータ引数あり)のソース
+     * <pre>
+     *     @SuppressWarnings("unchecked")
+     *     public static <T> int binarySearch(List<? extends T> list, T key, Comparator<? super T> c) {
+     *         if (c==null)
+     *             return binarySearch((List<? extends Comparable<? super T>>) list, key);
+     * 
+     *         if (list instanceof RandomAccess || list.size()<BINARYSEARCH_THRESHOLD)
+     *             return Collections.indexedBinarySearch(list, key, c);
+     *         else
+     *             return Collections.iteratorBinarySearch(list, key, c);
+     *     }
+     * 
+     *     private static <T> int indexedBinarySearch(List<? extends T> l, T key, Comparator<? super T> c) {
+     *         int low = 0;
+     *         int high = l.size()-1;
+     * 
+     *         while (low <= high) {
+     *             int mid = (low + high) >>> 1;
+     *             T midVal = l.get(mid);
+     *             int cmp = c.compare(midVal, key);
+     * 
+     *             if (cmp < 0)
+     *                 low = mid + 1;
+     *             else if (cmp > 0)
+     *                 high = mid - 1;
+     *             else
+     *                 return mid; // key found
+     *         }
+     *         return -(low + 1);  // key not found
+     *     }
+     *     
+     *     private static <T> int iteratorBinarySearch(List<? extends T> l, T key, Comparator<? super T> c) {
+     *         int low = 0;
+     *         int high = l.size()-1;
+     *         ListIterator<? extends T> i = l.listIterator();
+     * 
+     *         while (low <= high) {
+     *             int mid = (low + high) >>> 1;
+     *             T midVal = get(i, mid);
+     *             int cmp = c.compare(midVal, key);
+     * 
+     *             if (cmp < 0)
+     *                 low = mid + 1;
+     *             else if (cmp > 0)
+     *                 high = mid - 1;
+     *             else
+     *                 return mid; // key found
+     *         }
+     *         return -(low + 1);  // key not found
+     *     }
+     * 
+     * </pre>
+     */
+    public static int binarySearch(IntPredicate comparator, int begin, int end) {
+        return -1;
     }
 
     public static void swap(boolean[] a, int i, int j) {

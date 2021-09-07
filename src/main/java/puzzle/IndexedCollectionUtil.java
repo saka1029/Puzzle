@@ -145,6 +145,29 @@ public class IndexedCollectionUtil {
     public static int binarySearch(IntPredicate comparator, int begin, int end) {
         return -1;
     }
+    
+    public static boolean nextPermutation(IntBinaryOperator comparator, IntBiConsumer swapper, int begin, int end) {
+        int i = end - 2;
+        while (i >= begin && comparator.applyAsInt(i, i + 1) >= 0)
+            --i;
+        if (i < begin)
+            return false;
+        int j = end - 1;
+        while (comparator.applyAsInt(i, j) >= 0)
+            --j;
+        swapper.accept(i, j);
+        reverse(swapper, i + 1, end);
+        return true;
+    }
+
+    public static int compare(boolean[] a, int i, int j) { return Boolean.compare(a[i], a[j]); }
+    public static int compare(byte[] a, int i, int j) { return Byte.compare(a[i], a[j]); }
+    public static int compare(short[] a, int i, int j) { return Short.compare(a[i], a[j]); }
+    public static int compare(int[] a, int i, int j) { return Integer.compare(a[i], a[j]); }
+    public static int compare(long[] a, int i, int j) { return Long.compare(a[i], a[j]); }
+    public static int compare(float[] a, int i, int j) { return Float.compare(a[i], a[j]); }
+    public static int compare(double[] a, int i, int j) { return Double.compare(a[i], a[j]); }
+    public static <T extends Comparable<T>> int compare(List<T> a, int i, int j) { return a.get(i).compareTo(a.get(j)); }
 
     public static void swap(boolean[] a, int i, int j) {
         boolean temp = a[i];

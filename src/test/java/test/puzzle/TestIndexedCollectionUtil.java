@@ -1,10 +1,13 @@
 package test.puzzle;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static puzzle.Common.getLogger;
 import static puzzle.Common.methodName;
+import static puzzle.IndexedCollectionUtil.compare;
+import static puzzle.IndexedCollectionUtil.nextPermutation;
 import static puzzle.IndexedCollectionUtil.quickSort;
 import static puzzle.IndexedCollectionUtil.reverse;
 import static puzzle.IndexedCollectionUtil.shuffle;
@@ -17,10 +20,13 @@ import java.util.Comparator;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.function.IntBinaryOperator;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
+
+import puzzle.IndexedCollectionUtil.IntBiConsumer;
 
 class TestIndexedCollectionUtil {
 
@@ -198,5 +204,77 @@ class TestIndexedCollectionUtil {
         // 2021-09-06T17:29:41.728 情報 TestIndexedCollectionUtil compare 10 and 15 
         // 2021-09-06T17:29:41.730 情報 TestIndexedCollectionUtil compare 12 and 15 
         // 2021-09-06T17:29:41.730 情報 TestIndexedCollectionUtil compare 14 and 15 
+    }
+    
+    @Test
+    public void testNextPermutationInt3() {
+        int[] ints = {0, 1, 2};
+        IntBinaryOperator comp = (l, r) -> compare(ints, l, r);
+        IntBiConsumer swap = (l, r) -> swap(ints, l, r);
+        int end = ints.length;
+        int[][] expected = {
+            {0, 1, 2},
+            {0, 2, 1},
+            {1, 0, 2},
+            {1, 2, 0},
+            {2, 0, 1},
+            {2, 1, 0},
+        };
+        for (int i = 0, size = expected.length; i < size; ++i) {
+            int[] e = expected[i];
+            assertArrayEquals(e, ints);
+            if (i + 1 == size)
+                assertFalse(nextPermutation(comp, swap, 0, end));
+            else
+                assertTrue(nextPermutation(comp, swap, 0, end));
+        }
+    }
+    
+    @Test
+    public void testNextPermutationInt3From4() {
+        int[] ints = {0, 1, 2, 3};
+        IntBinaryOperator comp = (l, r) -> compare(ints, l, r);
+        IntBiConsumer swap = (l, r) -> swap(ints, l, r);
+        int end = ints.length;
+        int[][] expected = {
+            {0, 1, 2, 3},
+            {0, 1, 3, 2},
+            {0, 2, 1, 3},
+            {0, 2, 3, 1},
+            {0, 3, 1, 2},
+            {0, 3, 2, 1},
+        };
+        for (int i = 0, size = expected.length; i < size; ++i) {
+            int[] e = expected[i];
+            assertArrayEquals(e, ints);
+            if (i + 1 == size)
+                assertFalse(nextPermutation(comp, swap, 1, end));
+            else
+                assertTrue(nextPermutation(comp, swap, 1, end));
+        }
+    }
+    
+    @Test
+    public void testNextPermutationList() {
+        List<Integer> list = Arrays.asList(0, 1, 2);
+        IntBinaryOperator comp = (l, r) -> compare(list, l, r);
+        IntBiConsumer swap = (l, r) -> swap(list, l, r);
+        int end = list.size();
+        List<List<Integer>> expected = List.of(
+            List.of(0, 1, 2),
+            List.of(0, 2, 1),
+            List.of(1, 0, 2),
+            List.of(1, 2, 0),
+            List.of(2, 0, 1),
+            List.of(2, 1, 0)
+        );
+        for (int i = 0, size = expected.size(); i < size; ++i) {
+            List<Integer> e = expected.get(i);
+            assertEquals(e, list);
+            if (i + 1 == size)
+                assertFalse(nextPermutation(comp, swap, 0, end));
+            else
+                assertTrue(nextPermutation(comp, swap, 0, end));
+        }
     }
 }

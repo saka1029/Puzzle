@@ -219,7 +219,7 @@ public class Permutation {
             --i;
         if (i < 0)
             return false;
-        int j = array.length - 1;
+        int j = length - 1;
         while (array[i] >= array[j])
             --j;
         swap(array, i, j);

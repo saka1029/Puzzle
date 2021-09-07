@@ -1,7 +1,17 @@
 package test.puzzle;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static puzzle.Primes.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static puzzle.Primes.SUBSCRIPTS;
+import static puzzle.Primes.SUPERSCRIPTS;
+import static puzzle.Primes.factors;
+import static puzzle.Primes.multiply;
+import static puzzle.Primes.primeFactors;
+import static puzzle.Primes.primes;
+import static puzzle.Primes.primes2;
+import static puzzle.Primes.subscripts;
+import static puzzle.Primes.sumOfFactors;
+import static puzzle.Primes.superscripts;
 
 import java.math.BigInteger;
 import java.util.Map;
@@ -28,6 +38,29 @@ class TestPrimes {
         testPrimeFactor(987654321);
         testPrimeFactor(3571);
         testPrimeFactor(999975);
+    }
+
+    @Test
+    void testPrimeFactor60() {
+        Set<Integer> factors = factors(60);
+        long mult = factors.stream()
+            .mapToLong(i -> i)
+            .reduce(1, (a, b) -> a * b);
+        System.out.println(mult);
+        System.out.println(Math.log(mult) / Math.log(60));
+    }
+
+    @Test
+    void testPrimeFactor36() {
+        int n = 100;
+        Set<Integer> factors = factors(n);
+        long mult = factors.stream()
+            .mapToLong(i -> i)
+            .reduce(1, (a, b) -> a * b);
+        System.out.println(mult);
+        double p = Math.log(mult) / Math.log(n);
+        System.out.println(p);
+        System.out.println(Math.pow(n, p));
     }
 
     @Test

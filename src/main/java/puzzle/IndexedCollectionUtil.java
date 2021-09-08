@@ -86,7 +86,7 @@ public class IndexedCollectionUtil {
         for (int i = begin, j = end - 1; i < j; ++i, --j)
             swapper.accept(i, j);
     }
-    
+
     /**
      * Collections.binarySearch(コンパレータ引数あり)のソース
      * <pre>
@@ -94,22 +94,22 @@ public class IndexedCollectionUtil {
      *     public static <T> int binarySearch(List<? extends T> list, T key, Comparator<? super T> c) {
      *         if (c==null)
      *             return binarySearch((List<? extends Comparable<? super T>>) list, key);
-     * 
+     *
      *         if (list instanceof RandomAccess || list.size()<BINARYSEARCH_THRESHOLD)
      *             return Collections.indexedBinarySearch(list, key, c);
      *         else
      *             return Collections.iteratorBinarySearch(list, key, c);
      *     }
-     * 
+     *
      *     private static <T> int indexedBinarySearch(List<? extends T> l, T key, Comparator<? super T> c) {
      *         int low = 0;
      *         int high = l.size()-1;
-     * 
+     *
      *         while (low <= high) {
      *             int mid = (low + high) >>> 1;
      *             T midVal = l.get(mid);
      *             int cmp = c.compare(midVal, key);
-     * 
+     *
      *             if (cmp < 0)
      *                 low = mid + 1;
      *             else if (cmp > 0)
@@ -119,17 +119,17 @@ public class IndexedCollectionUtil {
      *         }
      *         return -(low + 1);  // key not found
      *     }
-     *     
+     *
      *     private static <T> int iteratorBinarySearch(List<? extends T> l, T key, Comparator<? super T> c) {
      *         int low = 0;
      *         int high = l.size()-1;
      *         ListIterator<? extends T> i = l.listIterator();
-     * 
+     *
      *         while (low <= high) {
      *             int mid = (low + high) >>> 1;
      *             T midVal = get(i, mid);
      *             int cmp = c.compare(midVal, key);
-     * 
+     *
      *             if (cmp < 0)
      *                 low = mid + 1;
      *             else if (cmp > 0)
@@ -139,13 +139,13 @@ public class IndexedCollectionUtil {
      *         }
      *         return -(low + 1);  // key not found
      *     }
-     * 
+     *
      * </pre>
      */
     public static int binarySearch(IntPredicate comparator, int begin, int end) {
         return -1;
     }
-    
+
     public static boolean nextPermutation(IntBinaryOperator comparator, IntBiConsumer swapper, int begin, int end) {
         int i = end - 2;
         while (i >= begin && comparator.applyAsInt(i, i + 1) >= 0)
@@ -168,6 +168,7 @@ public class IndexedCollectionUtil {
     public static int compare(float[] a, int i, int j) { return Float.compare(a[i], a[j]); }
     public static int compare(double[] a, int i, int j) { return Double.compare(a[i], a[j]); }
     public static <T extends Comparable<T>> int compare(List<T> a, int i, int j) { return a.get(i).compareTo(a.get(j)); }
+    public static int compare(StringBuilder a, int i, int j) { return Character.compare(a.charAt(i), a.charAt(j)); }
 
     public static void swap(boolean[] a, int i, int j) {
         boolean temp = a[i];
@@ -221,5 +222,11 @@ public class IndexedCollectionUtil {
         T temp = a.get(i);
         a.set(i, a.get(j));
         a.set(j, temp);
+    }
+
+    public static void swap(StringBuilder a, int i, int j) {
+        char temp = a.charAt(i);
+        a.setCharAt(i, a.charAt(j));
+        a.setCharAt(j, temp);
     }
 }

@@ -1,47 +1,44 @@
 package test.puzzle.indexable;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
 import puzzle.Common;
-import puzzle.indexable.IndexableIntArray;
+import puzzle.indexable.IndexableString;
 
 class TestIndexableString {
-    
+
     static final Logger logger = Common.getLogger(TestIndexableString.class);
 
     @Test
     void testInsertionSort() {
-        int[] array = {5, 7, 3, 2, 9, 4, 0, 8, 1, 6};
-        IndexableIntArray.builder(array).build().insertionSort();
-        assertArrayEquals(IntStream.range(0, 10).toArray(), array);
+        StringBuilder array = new StringBuilder("fhdcjeaibg");
+        IndexableString.builder(array).build().insertionSort();
+        assertEquals("abcdefghij", array.toString());
     }
 
     @Test
     void testInsertionSortRange() {
-        int[] array = {5, 7, 3, 2, 9, 4, 0, 8, 1, 6};
-        IndexableIntArray.builder(array).range(5, array.length).build().insertionSort();
-        int[] expected = {5, 7, 3, 2, 9, 0, 1, 4, 6, 8};
-        assertArrayEquals(expected, array);
+        StringBuilder array = new StringBuilder("fhdcjeaibg");
+        IndexableString.builder(array).range(5, array.length()).build().insertionSort();
+        assertEquals("fhdcjabegi", array.toString());
     }
 
     @Test
     void testQuickSort() {
-        int[] array = {5, 7, 3, 2, 9, 4, 0, 8, 1, 6};
-        IndexableIntArray.builder(array).build().quickSort();
-        assertArrayEquals(IntStream.range(0, 10).toArray(), array);
+        StringBuilder array = new StringBuilder("fhdcjeaibg");
+        IndexableString.builder(array).build().quickSort();
+        assertEquals("abcdefghij", array.toString());
     }
 
     @Test
     void testQuickSortRange() {
-        int[] array = {5, 7, 3, 2, 9, 4, 0, 8, 1, 6};
-        IndexableIntArray.builder(array).range(5, array.length).build().quickSort();
-        int[] expected = {5, 7, 3, 2, 9, 0, 1, 4, 6, 8};
-        assertArrayEquals(expected, array);
+        StringBuilder array = new StringBuilder("fhdcjeaibg");
+        IndexableString.builder(array).range(5, array.length()).build().quickSort();
+        assertEquals("fhdcjabegi", array.toString());
     }
 
 }

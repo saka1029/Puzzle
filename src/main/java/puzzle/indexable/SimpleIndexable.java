@@ -2,9 +2,9 @@ package puzzle.indexable;
 
 public class SimpleIndexable implements Indexable {
 
-    final int begin, end;
-    final IndexComparator comparator;
-    final IndexSwapper swapper;
+    public int begin, end;
+    public IndexComparator comparator;
+    public IndexSwapper swapper;
 
     public SimpleIndexable(IndexComparator comparator, IndexSwapper swapper, int begin, int end) {
         this.comparator = comparator;

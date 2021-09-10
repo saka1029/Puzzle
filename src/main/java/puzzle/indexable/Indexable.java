@@ -4,8 +4,11 @@ import java.util.Random;
 
 public interface Indexable {
     int compare(int leftIndex, int rightIndex);
+
     void swap(int leftIndex, int rightIndex);
+
     int begin();
+
     int end();
 
     public default void quickSort() {
@@ -66,6 +69,24 @@ public interface Indexable {
         for (int p = i + 1, q = end - 1; p < q; ++p, --q)
             swap(p, q);
         return true;
+    }
+
+    public default int binarySearch() {
+        int low = begin();
+        int high = end() - 1;
+
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            // T midVal = l.get(mid);
+            int cmp = compare(-1, mid);
+            if (cmp > 0)
+                low = mid + 1;
+            else if (cmp < 0)
+                high = mid - 1;
+            else
+                return mid; // key found
+        }
+        return -(low + 1); // key not found
     }
 
 }

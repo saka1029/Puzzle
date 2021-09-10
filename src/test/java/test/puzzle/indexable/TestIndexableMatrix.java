@@ -73,5 +73,4 @@ class TestIndexableMatrix {
         int[][] expected = {{2, 1, 0}, {5, 4, 3}, {8, 7, 6}};
         assertArrayEquals(expected, array);
     }
-
 }

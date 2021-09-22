@@ -21,6 +21,7 @@ public class LambdaCalculus2 {
     }
 
     public static class LambdaCalculusException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         public LambdaCalculusException(String message) {
             super(message);
         }

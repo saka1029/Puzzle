@@ -1,6 +1,7 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -78,6 +79,26 @@ public class TestCalculator {
             fail();
         } catch (RuntimeException e) {
             assertEquals("'atan2' takes 2 arguments but 1", e.getMessage());
+        }
+    }
+
+    /**
+     * 1996 平成8年　大阪府 - YouTube
+     * https://www.youtube.com/watch?v=HhRVwem1e3Y
+     */
+    @Test
+    public void testYouTube() {
+        String[] o = {"+", "-", "*", "/"};
+        int length = o.length;
+        for (int a = 0; a < length; ++a)
+        for (int b = 0; b < length; ++b)
+        for (int c = 0; c < length; ++c) {
+            String e = "1" + o[a] + "9" + o[b] + "9" + o[c] + "6";
+            double x = calculate(e);
+//            System.out.println(e + " = " + x);
+//            System.out.println("√(" + e + ") = " + Math.sqrt(x));
+            if (x == 64)
+                assertEquals("1+9+9*6", e);
         }
     }
 

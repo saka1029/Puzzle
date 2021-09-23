@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 import org.junit.jupiter.api.Test;
 
 /**
- * 
+ *
  * Parse Boolean Expression in Java - Stack Overflow
  * https://stackoverflow.com/questions/69292555/parse-boolean-expression-in-java/69294374#69294374
  *
@@ -34,7 +34,7 @@ class TestBooleanExpressionParser {
                 }
                 return false;
             }
-            
+
             Predicate<String> identifier() {
                 StringBuilder sb = new StringBuilder();
                 do {
@@ -49,7 +49,7 @@ class TestBooleanExpressionParser {
                         "identifier '" + id + "' undefined");
                 return s -> s.contains(value);
             }
-            
+
             Predicate<String> factor() {
                 boolean not = false;
                 Predicate<String> p;
@@ -67,7 +67,7 @@ class TestBooleanExpressionParser {
                     p = p.negate();
                 return p;
             }
-            
+
             Predicate<String> term() {
                 Predicate<String> p = factor();
                 while (eat("and"))
@@ -112,14 +112,39 @@ class TestBooleanExpressionParser {
         assertFalse(p.test("str2 str4"));
     }
 
-    static Predicate<String> parse2(String source, Map<String, String> variables) {
+    record Contains(Predicate<String> predicate, String string) implements Predicate<String> {
+
+        @Override
+        public boolean test(String t) {
+            return predicate.test(t);
+        }
+
+        @Override
+        public String toString() {
+            return string;
+        }
+
+        Contains and(Contains c) {
+            return new Contains(predicate.and(c.predicate), "and(" + string + ", " + c.string + ")");
+        }
+
+        Contains or(Contains c) {
+            return new Contains(predicate.or(c.predicate), "or(" + string + ", " + c.string + ")");
+        }
+
+        Contains not() {
+            return new Contains(predicate.negate(), "not(" + string + ")");
+        }
+    }
+
+    static Contains parse2(String source, Map<String, String> variables) {
         enum TokenType { LP, RP, AND, OR, NOT, IDENTIFIER, EOS }
         return new Object() {
             int length = source.length();
             int index = 0;
             TokenType token = getToken();
             String tokenString;
-            
+
             int getCh() {
                 return index < length ? source.charAt(index) : -1;
             }
@@ -127,7 +152,7 @@ class TestBooleanExpressionParser {
             RuntimeException error(String format, Object... args) {
                 return new RuntimeException(String.format(format, args));
             }
-            
+
             TokenType getToken() {
                 while (Character.isWhitespace(getCh()))
                     ++index;
@@ -151,20 +176,20 @@ class TestBooleanExpressionParser {
                         default: return token = TokenType.IDENTIFIER;
                         }
                     } else
-                        throw error("unknown token '%c'", getCh());
+                        throw error("unknown character '%c'", getCh());
                 }
             }
-            
-            Predicate<String> identifier() {
+
+            Contains identifier() {
                 String v = variables.get(tokenString);
                 if (v == null)
                     throw error("variable '%s' not defined", tokenString);
-                return s -> s.contains(v);
+                return new Contains(s -> s.contains(v), "s -> s.contains(" + v + ")");
             }
 
-            Predicate<String> factor() {
+            Contains factor() {
                 boolean not = false;
-                Predicate<String> r;
+                Contains r;
                 if (token == TokenType.NOT) {
                     getToken();
                     not = true;
@@ -181,12 +206,12 @@ class TestBooleanExpressionParser {
                 } else
                     throw error("unknown token '%s'", token);
                 if (not)
-                    r = r.negate();
+                    r = r.not();
                 return r;
             }
 
-            Predicate<String> term() {
-                Predicate<String> r = factor();
+            Contains term() {
+                Contains r = factor();
                 while (token == TokenType.AND) {
                     getToken();
                     r = r.and(factor());
@@ -194,8 +219,8 @@ class TestBooleanExpressionParser {
                 return r;
             }
 
-            Predicate<String> expression() {
-                Predicate<String> r = term();
+            Contains expression() {
+                Contains r = term();
                 while (token == TokenType.OR) {
                     getToken();
                     r = r.or(term());
@@ -203,8 +228,8 @@ class TestBooleanExpressionParser {
                 return r;
             }
 
-            Predicate<String> parse() {
-                Predicate<String> result = expression();
+            Contains parse() {
+                Contains result = expression();
                 if (token != TokenType.EOS)
                     throw error("extra token " + token);
                 return result;
@@ -225,6 +250,7 @@ class TestBooleanExpressionParser {
             "t5", "str5"
         );
         Predicate<String> p = parse2(s, map);
+        System.out.println(p);
         assertTrue(p.test("str5"));
         assertTrue(p.test("str3"));
         assertTrue(p.test("str1 str3"));

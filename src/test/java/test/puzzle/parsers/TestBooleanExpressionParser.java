@@ -3,6 +3,7 @@ package test.puzzle.parsers;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -20,8 +21,11 @@ import org.junit.jupiter.api.Test;
 class TestBooleanExpressionParser {
 
     /**
-     * トークン化を行わないパーサ。
-     * "and"や"or"で始まる識別子を"and", "or"と誤認識する可能性がある。
+     * トークン化を行わないパーサです。
+     * "and"や"or"で始まる識別子を"and", "or"と誤認識する可能性があります。
+     * 構文解析の結果としてPredicate<String>を返します。
+     * これは与えられた文字列がmapで定義されている変数の値を含むかどうかを返す
+     * Predicateです。
      */
     static Predicate<String> parse0(String s, Map<String, String> map) {
         return new Object() {
@@ -118,6 +122,10 @@ class TestBooleanExpressionParser {
         assertFalse(p.test("str2 str4"));
     }
 
+    /**
+     * toStringで文字列表現を返すことのできるPredicate<String>の
+     * 実装です。
+     */
     record Contains(Predicate<String> predicate, String string) implements Predicate<String> {
 
         @Override
@@ -132,31 +140,31 @@ class TestBooleanExpressionParser {
 
         Contains and(Contains c) {
             return new Contains(predicate.and(c.predicate),
-                "and(" + string + ", " + c.string + ")");
+                "(" + string + " and " + c.string + ")");
         }
 
         Contains or(Contains c) {
-            return new Contains(predicate.or(c.predicate), "or(" + string + ", " + c.string + ")");
+            return new Contains(predicate.or(c.predicate), "(" + string + " or " + c.string + ")");
         }
 
         Contains not() {
-            return new Contains(predicate.negate(), "not(" + string + ")");
+            return new Contains(predicate.negate(), "not (" + string + ")");
         }
     }
 
     /**
      * トークン化を行わないパーサ。
-     * "and"や"or"で始まる識別子を"and", "or"と誤認識する可能性がある。
-     * 返すPredicate<String>はtoString()で意味のある文字列に変換できる。
+     * "and"や"or"で始まる識別子を"and", "or"と誤認識する可能性があります。
+     * 返すPredicate<String>はtoString()で意味のある文字列に変換できます。
      */
     static Contains parse2(String source, Map<String, String> variables) {
-        enum TokenType {
+        enum Token {
             LP, RP, AND, OR, NOT, IDENTIFIER, EOS
         }
         return new Object() {
             int length = source.length();
             int index = 0;
-            TokenType token = getToken();
+            Token token = getToken();
             String tokenString;
 
             int getCh() {
@@ -167,18 +175,18 @@ class TestBooleanExpressionParser {
                 return new RuntimeException(String.format(format, args));
             }
 
-            TokenType getToken() {
+            Token getToken() {
                 while (Character.isWhitespace(getCh()))
                     ++index;
                 if (index >= length)
-                    return token = TokenType.EOS;
+                    return token = Token.EOS;
                 switch (getCh()) {
                 case '(':
                     ++index;
-                    return token = TokenType.LP;
+                    return token = Token.LP;
                 case ')':
                     ++index;
-                    return token = TokenType.RP;
+                    return token = Token.RP;
                 default:
                     if (Character.isAlphabetic(getCh())) {
                         StringBuilder sb = new StringBuilder();
@@ -189,13 +197,13 @@ class TestBooleanExpressionParser {
                         tokenString = sb.toString();
                         switch (tokenString) {
                         case "and":
-                            return token = TokenType.AND;
+                            return token = Token.AND;
                         case "or":
-                            return token = TokenType.OR;
+                            return token = Token.OR;
                         case "not":
-                            return token = TokenType.NOT;
+                            return token = Token.NOT;
                         default:
-                            return token = TokenType.IDENTIFIER;
+                            return token = Token.IDENTIFIER;
                         }
                     } else
                         throw error("unknown character '%c'", getCh());
@@ -203,26 +211,33 @@ class TestBooleanExpressionParser {
             }
 
             Contains identifier() {
-                String v = variables.get(tokenString);
-                if (v == null)
-                    throw error("variable '%s' not defined", tokenString);
-                return new Contains(s -> s.contains(v), "s -> s.contains(" + v + ")");
+//                String v = variables.get(tokenString);
+//                if (v == null)
+//                    throw error("variable '%s' not defined", tokenString);
+//                return new Contains(s -> s.contains(v), "s -> s.contains(" + v + ")");
+                String identifier = tokenString;
+                return new Contains(s -> {
+                    String value = variables.get(identifier);
+                    if (value == null)
+                        throw error("variable '%s' not defined", identifier);
+                    return s.contains(value);
+                }, identifier);
             }
 
             Contains factor() {
                 boolean not = false;
                 Contains r;
-                if (token == TokenType.NOT) {
+                if (token == Token.NOT) {
                     getToken();
                     not = true;
                 }
-                if (token == TokenType.LP) {
+                if (token == Token.LP) {
                     getToken();
                     r = expression();
-                    if (token != TokenType.RP)
+                    if (token != Token.RP)
                         throw error("')' expected");
                     getToken();
-                } else if (token == TokenType.IDENTIFIER) {
+                } else if (token == Token.IDENTIFIER) {
                     r = identifier();
                     getToken();
                 } else
@@ -234,7 +249,7 @@ class TestBooleanExpressionParser {
 
             Contains term() {
                 Contains r = factor();
-                while (token == TokenType.AND) {
+                while (token == Token.AND) {
                     getToken();
                     r = r.and(factor());
                 }
@@ -243,7 +258,7 @@ class TestBooleanExpressionParser {
 
             Contains expression() {
                 Contains r = term();
-                while (token == TokenType.OR) {
+                while (token == Token.OR) {
                     getToken();
                     r = r.or(term());
                 }
@@ -252,7 +267,7 @@ class TestBooleanExpressionParser {
 
             Contains parse() {
                 Contains result = expression();
-                if (token != TokenType.EOS)
+                if (token != Token.EOS)
                     throw error("extra token " + token);
                 return result;
             }
@@ -264,12 +279,12 @@ class TestBooleanExpressionParser {
         String s = "not ((t1 and not t3) or (t4 and t2)) or t5";
         // String s = "(not (t1 and not t3) and not (t4 and t2)) or t5";
         // String s = "(not t1 or t3) and not t4 and not t2 or t5";
-        Map<String, String> map = Map.of(
+        Map<String, String> map = new HashMap<>(Map.of(
             "t1", "str1",
             "t2", "str2",
             "t3", "str3",
             "t4", "str4",
-            "t5", "str5");
+            "t5", "str5"));
         Predicate<String> p = parse2(s, map);
         System.out.println(p);
         assertTrue(p.test("str5"));
@@ -277,6 +292,9 @@ class TestBooleanExpressionParser {
         assertTrue(p.test("str1 str3"));
         assertFalse(p.test("str1"));
         assertFalse(p.test("str2 str4"));
+        map.put("t5", "FOO");
+        assertTrue(p.test("FOO"));
+        assertTrue(p.test("str3"));
     }
 
     enum TokenType { LP, RP, AND, OR, NOT, IDENTIFIER, END }
@@ -349,7 +367,7 @@ class TestBooleanExpressionParser {
     }
 
     /**
-     * トークン化を独立させたパーサ。
+     * トークン化を独立させたパーサです。
      */
     static Contains parse3(String source, Map<String, String> variables) {
         return new Object() {
@@ -435,7 +453,8 @@ class TestBooleanExpressionParser {
     }
 
     /**
-     * 正規表現によってトークン化を行うパーサ。
+     * 正規表現によってトークン化を行うパーサです。
+     * 遅延評価をするので、後からmapの値を変更することができます。
      * expression = term { "or" term }.
      * term       = factor { "and" factor }.
      * factor     = [ "not" ] ( "(" expression ")" | identifier ).
@@ -464,11 +483,13 @@ class TestBooleanExpressionParser {
 
             Predicate<String> identifier() {
                 String id = token;
-                String value = map.get(id);
-                if (value == null)
-                    throw new RuntimeException(
-                        "identifier '" + id + "' undefined");
-                return s -> s.contains(value);
+                return s -> {
+                    String value = map.get(id);
+                    if (value == null)
+                        throw new RuntimeException(
+                            "identifier '" + id + "' undefined");
+                    return s.contains(value);
+                };
             }
 
             Predicate<String> factor() {
@@ -521,23 +542,27 @@ class TestBooleanExpressionParser {
     @Test
     public void testParse() {
         String s = "not ((t1 and not t3) or (t4 and t2)) or t5";
-        Map<String, String> map = Map.of(
+        Map<String, String> map = new HashMap<>(Map.of(
             "t1", "str1",
             "t2", "str2",
             "t3", "str3",
             "t4", "str4",
-            "t5", "str5");
+            "t5", "str5"));
         Predicate<String> p = parse(s, map);
         assertTrue(p.test("str5"));
         assertTrue(p.test("str3"));
         assertTrue(p.test("str1 str3"));
         assertFalse(p.test("str1"));
         assertFalse(p.test("str2 str4"));
+        // you can change value of variables.
+        assertFalse(p.test("str1 FOO"));
+        map.put("t5", "FOO");
+        assertTrue(p.test("str1 FOO"));
     }
 
     /**
      * Predicate<T>のand(Predicate<T> r)とor(Predicate<T> r)
-     * はショートカット演算子である。
+     * はショートカット演算子です。
      */
     @Test
     public void testPredicateAndOr() {

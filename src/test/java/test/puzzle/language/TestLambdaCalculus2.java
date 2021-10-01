@@ -1,7 +1,13 @@
 package test.puzzle.language;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static puzzle.language.LambdaCalculus2.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import static puzzle.language.LambdaCalculus2.DEFINE;
+import static puzzle.language.LambdaCalculus2.bindToString;
+import static puzzle.language.LambdaCalculus2.get;
+import static puzzle.language.LambdaCalculus2.parse;
+import static puzzle.language.LambdaCalculus2.repl;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -13,26 +19,17 @@ import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
 
+import puzzle.Common;
 import puzzle.language.LambdaCalculus2.Bind;
 import puzzle.language.LambdaCalculus2.Expression;
 
 class TestLambdaCalculus2 {
 
-    static String LOG_FORMAT_KEY = "java.util.logging.SimpleFormatter.format";
-    static String LOG_FORMAT = "%1$tFT%1$tT.%1$tL %4$s %3$s %5$s %6$s%n";
-    static {
-        System.setProperty(LOG_FORMAT_KEY, LOG_FORMAT);
-    }
-
-    static final Logger logger = Logger.getLogger(TestLambdaCalculus.class.getSimpleName());
-
-    static void methodName() {
-        logger.info("*** " + Thread.currentThread().getStackTrace()[2].getMethodName());
-    }
+    static final Logger logger = Common.getLogger(TestLambdaCalculus2.class);
 
     @Test
     void testBind() {
-        methodName();
+        Common.methodName();
         assertEquals("{}", bindToString(null));
         Bind<String, String> bind = new Bind<>(null, "a", "A");
         assertEquals("{a=A}", bindToString(bind));
@@ -45,7 +42,7 @@ class TestLambdaCalculus2 {
 
     @Test
     void testToString() {
-        methodName();
+        Common.methodName();
         assertEquals("λx.x", parse("λ x . x").toString());
         assertEquals("λx.x x", parse("λ x . x x").toString());
         assertEquals("λx.λx.x x", parse("λx x.x x").toString());
@@ -60,7 +57,7 @@ class TestLambdaCalculus2 {
 
     @Test
     void testToNormalizedString() {
-        methodName();
+        Common.methodName();
         assertEquals("λ%0.(λ%1.%1) %0", parse("λx.(λx.x) x").toNormalizedString());
         assertEquals("(λ%0.%0) a", parse("(λx.x) a").toNormalizedString());
         testToNormalizedString("λ a . a a", "λx.x x");
@@ -77,7 +74,7 @@ class TestLambdaCalculus2 {
 
     @Test
     void testParseError() {
-        methodName();
+        Common.methodName();
         try {
             parse("λx y");
             fail();
@@ -134,7 +131,7 @@ class TestLambdaCalculus2 {
      */
     @Test
     void testChurchNumerals() {
-        methodName();
+        Common.methodName();
         define("0", "λf x.x");
         define("1", "λf x.f x");
         define("2", "λf x.f(f x)");
@@ -173,7 +170,7 @@ class TestLambdaCalculus2 {
      */
     @Test
     void testCharchBooleans() {
-        methodName();
+        Common.methodName();
         define("true", "λt f.t");
         define("false", "λt f.f");
         define("test", "λp t f.p t f");
@@ -209,7 +206,7 @@ class TestLambdaCalculus2 {
      */
     @Test
     void testChurchPairs() {
-        methodName();
+        Common.methodName();
         define("true", "λt f.t");
         define("false", "λt f.f");
         define("cons", "λs b f.f s b");
@@ -238,7 +235,7 @@ class TestLambdaCalculus2 {
      */
     @Test
     void testListEncodings() {
-        methodName();
+        Common.methodName();
         define("true", "λt f.t");
         define("false", "λt f.f");
         define("nil", "false");
@@ -268,7 +265,7 @@ class TestLambdaCalculus2 {
      */
     @Test
     void testSKICombinator() {
-        methodName();
+        Common.methodName();
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
         define("I", "λx.x");
@@ -301,7 +298,7 @@ class TestLambdaCalculus2 {
      */
     @Test
     void testUniversalIotaCombinator() {
-        methodName();
+        Common.methodName();
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
         define("I", "λx.x");
@@ -351,7 +348,7 @@ class TestLambdaCalculus2 {
      */
     @Test
     void testIotaCombinator() {
-        methodName();
+        Common.methodName();
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
         define("I", "λx.x");
@@ -367,7 +364,7 @@ class TestLambdaCalculus2 {
      */
     @Test
     void testFixedPointCombinatorY() {
-        methodName();
+        Common.methodName();
         try {
             define("Y", "(λf.(λx.f (x x)) (λx.f (x x)))");
             assertEquivalent("g (Y g)", "Y g");
@@ -382,7 +379,7 @@ class TestLambdaCalculus2 {
      */
     @Test
     void testFixedPointCombinatorZ() {
-        methodName();
+        Common.methodName();
         try {
             define("Z", "λf.(λx.f (λy.x x y)) (λx.f (λy.x x y))");
             // globals.put("Z", parse("λf.(λx.f (λy. x x y)) (λx.f (λy.x x y))"));

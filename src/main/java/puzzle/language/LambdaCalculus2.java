@@ -22,6 +22,7 @@ public class LambdaCalculus2 {
 
     public static class LambdaCalculusException extends RuntimeException {
         private static final long serialVersionUID = 1L;
+
         public LambdaCalculusException(String message) {
             super(message);
         }
@@ -70,8 +71,7 @@ public class LambdaCalculus2 {
 
     public static abstract class Expression {
 
-        abstract void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
-            StringBuilder sb);
+        abstract void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb);
 
         public String toNormalizedString() {
             StringBuilder sb = new StringBuilder();
@@ -79,9 +79,7 @@ public class LambdaCalculus2 {
             return sb.toString();
         }
 
-        abstract Expression reduce(
-            Bind<BoundVariable, Expression> bind,
-            Map<String, Expression> context);
+        abstract Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context);
 
         public Expression reduce(Map<String, Expression> context) {
             return reduce(null, context);
@@ -113,14 +111,12 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
-            StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
             sb.append(get(bind, this));
         }
 
         @Override
-        public Expression reduce(Bind<BoundVariable, Expression> bind,
-            Map<String, Expression> context) {
+        public Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context) {
             Expression expression = get(bind, this);
             if (expression != null)
                 return expression;
@@ -141,14 +137,12 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
-            StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
             sb.append(name);
         }
 
         @Override
-        public Expression reduce(Bind<BoundVariable, Expression> bind,
-            Map<String, Expression> context) {
+        public Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context) {
             Expression subst = context.get(name);
             return subst != null ? subst.reduce(context) : this;
         }
@@ -170,16 +164,14 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
-            StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
             String name = "%" + number.value++;
             sb.append("λ").append(name).append(".");
             body.toNormalizedString(bind(bind, variable, name), number, sb);
         }
 
         @Override
-        public Expression reduce(Bind<BoundVariable, Expression> bind,
-            Map<String, Expression> context) {
+        public Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context) {
             BoundVariable newVariable = new BoundVariable(variable.name);
             Expression newBody = body.reduce(bind(bind, variable, newVariable), context);
             return new Lambda(newVariable, newBody);
@@ -215,8 +207,7 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
-            StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
             if (function instanceof Lambda)
                 sb.append("(");
             function.toNormalizedString(bind, number, sb);
@@ -231,25 +222,21 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        public Expression reduce(Bind<BoundVariable, Expression> bind,
-            Map<String, Expression> context) {
+        public Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context) {
             Expression newFunction = function.reduce(bind, context);
             Expression newArgument = argument.reduce(bind, context);
-            if (newFunction instanceof Lambda) {
-                Lambda lambda = (Lambda) newFunction;
+            if (newFunction instanceof Lambda lambda)
                 return lambda.body.reduce(bind(bind, lambda.variable, newArgument), context);
-            } else if (newFunction instanceof Command) {
-                Command command = (Command) newFunction;
+            else if (newFunction instanceof Command command)
                 return command.reduce(bind, context, newArgument);
-            }
             return new Application(newFunction, newArgument);
         }
     }
 
     public static abstract class Command extends Expression {
 
-        abstract Expression reduce(Bind<BoundVariable, Expression> bind,
-            Map<String, Expression> context, Expression argument);
+        abstract Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context,
+                Expression argument);
 
         @Override
         Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context) {
@@ -257,8 +244,7 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
-            StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
             sb.append(toString());
         }
     }
@@ -271,8 +257,7 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context,
-            Expression argument) {
+        Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context, Expression argument) {
             if (!(argument instanceof FreeVariable))
                 throw new LambdaCalculusException("usage: define FREE_VARIABLE EXPRESSION");
             return new Command() {
@@ -285,14 +270,44 @@ public class LambdaCalculus2 {
                 }
 
                 @Override
-                Expression reduce(Bind<BoundVariable, Expression> bind,
-                    Map<String, Expression> context, Expression argument) {
+                Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context,
+                        Expression argument) {
                     context.put(name, argument);
                     return argument;
                 }
             };
         }
     };
+
+    public static Expression reduceFull(Expression expression, Bind<BoundVariable, Expression> bind,
+            Map<String, Expression> context) {
+        if (expression instanceof BoundVariable variable) {
+            Expression e = get(bind, variable);
+            if (e != null)
+                return e;
+            return variable;
+        } else if (expression instanceof FreeVariable variable) {
+            Expression subst = context.get(variable.name);
+            return subst != null ? subst.reduce(context) : variable;
+        } else if (expression instanceof Lambda lambda) {
+            BoundVariable newVariable = new BoundVariable(lambda.variable.name);
+            Expression newBody = lambda.body.reduce(bind(bind, lambda.variable, newVariable), context);
+            return new Lambda(newVariable, newBody);
+        } else if (expression instanceof Application application) {
+            Expression head = application.function.reduce(bind, context);
+            Expression tail = application.argument.reduce(bind, context);
+            if (head instanceof Lambda lambda)
+                return lambda.body.reduce(bind(bind, lambda.variable, tail), context);
+            else if (head instanceof Command command)
+                return command.reduce(bind, context, tail);
+            return new Application(head, tail);
+        } else
+            throw new RuntimeException("unknown expression: " + expression);
+    }
+
+    public static Expression reduce(Expression expression, Map<String, Expression> context) {
+        return reduceFull(expression, null, context);
+    }
 
     public static Expression parse(String source) {
         return new Object() {
@@ -370,7 +385,8 @@ public class LambdaCalculus2 {
                 switch (ch) {
                 case -1:
                     throw new LambdaCalculusException("unexpected end of string");
-                case 'λ': case '\\':
+                case 'λ':
+                case '\\':
                     next(); // skip 'λ' or '\\'
                     return parseLambda(bind);
                 case '(':
@@ -378,8 +394,8 @@ public class LambdaCalculus2 {
                     return parseParen(bind);
                 default:
                     if (!isVariableChar(ch))
-                        throw new LambdaCalculusException(new StringBuilder("unexpected char '")
-                            .appendCodePoint(ch).append("'").toString());
+                        throw new LambdaCalculusException(
+                                new StringBuilder("unexpected char '").appendCodePoint(ch).append("'").toString());
                     return parseVariable(bind);
                 }
             }
@@ -398,15 +414,15 @@ public class LambdaCalculus2 {
             Expression parse() {
                 Expression expression = parse(null);
                 if (ch != -1)
-                    throw new LambdaCalculusException("extra string '"
-                        + new String(codePoints, index - 1, length - index + 1) + "'");
+                    throw new LambdaCalculusException(
+                            "extra string '" + new String(codePoints, index - 1, length - index + 1) + "'");
                 return expression;
             }
         }.parse();
     }
 
-    public static void repl(Reader reader, Writer writer,
-        Map<String, Expression> context, boolean echo, boolean prompt) throws IOException {
+    public static void repl(Reader reader, Writer writer, Map<String, Expression> context, boolean echo, boolean prompt)
+            throws IOException {
         String promptStr = "> ";
         BufferedReader input = new BufferedReader(reader);
         PrintWriter output = new PrintWriter(writer, true);
@@ -437,10 +453,8 @@ public class LambdaCalculus2 {
     }
 
     /**
-     * 入力       echo    prompt
-     * 標準入力   false   true
-     * ファイル   false   false
-     * ファイル   true    true
+     * 入力 echo prompt 標準入力 false true ファイル false false ファイル true true
+     * 
      * @param args
      * @throws IOException
      */

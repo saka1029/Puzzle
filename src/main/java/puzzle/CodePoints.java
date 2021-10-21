@@ -8,6 +8,10 @@ public class CodePoints {
         return s.codePointCount(0, s.length());
     }
 
+    public int codePointAt(String s, int index) {
+        return s.codePointAt(s.offsetByCodePoints(0, index));
+    }
+
     public static String substring(String s, int start, int end) {
         int from = s.offsetByCodePoints(0, start);
         int to = s.offsetByCodePoints(from, end - start);

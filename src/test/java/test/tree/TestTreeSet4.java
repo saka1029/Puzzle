@@ -101,8 +101,7 @@ class TestTreeSet4 {
 
         @Override
         public boolean contains(Object o) {
-            Node<E> node = getEntry((E) o);
-            return node != null;
+            return  getEntry(o) != null;
         }
     }
 

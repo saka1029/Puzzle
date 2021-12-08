@@ -1,5 +1,6 @@
-package puzzle;
+package puzzle.fractal;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +52,7 @@ public class LSystem {
             Map<String, Consumer<Graphics2D>> actions) throws IOException {
         try (ImageWriter iw = new ImageWriter(width, height)) {
             Graphics2D g = iw.graphics;
+            g.setColor(Color.BLUE);
             start.accept(g);
             for (char c : input.toCharArray()) {
                 Consumer<Graphics2D> action = actions.get(Character.toString(c));

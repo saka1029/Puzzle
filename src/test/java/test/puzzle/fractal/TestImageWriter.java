@@ -1,4 +1,4 @@
-package test.puzzle;
+package test.puzzle.fractal;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -14,7 +14,7 @@ import javax.imageio.ImageIO;
 
 import org.junit.Test;
 
-import puzzle.ImageWriter;
+import puzzle.fractal.ImageWriter;
 
 public class TestImageWriter {
 

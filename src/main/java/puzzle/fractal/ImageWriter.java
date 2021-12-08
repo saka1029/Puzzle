@@ -1,4 +1,4 @@
-package puzzle;
+package puzzle.fractal;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -34,5 +34,4 @@ public class ImageWriter implements Closeable {
     public void close() {
         graphics.dispose();
     }
-
 }

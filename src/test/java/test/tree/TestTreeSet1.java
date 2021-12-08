@@ -24,7 +24,6 @@ class TestTreeSet1 {
         public int size() {
             return size;
         }
-
     }
 
     @Test

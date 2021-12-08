@@ -1,11 +1,7 @@
 package test.tree;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.util.AbstractSet;
 import java.util.Iterator;
-
-import org.junit.jupiter.api.Test;
 
 class TestTreeSet0 {
 
@@ -22,12 +18,5 @@ class TestTreeSet0 {
             // TODO Auto-generated method stub
             return 0;
         }
-
     }
-
-    @Test
-    void test() {
-        fail("Not yet implemented");
-    }
-
 }

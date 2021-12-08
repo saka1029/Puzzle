@@ -9,10 +9,11 @@ import java.util.AbstractSet;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
-class TestTreeSet3 {
+class TestTreeSet4 {
 
     public class TreeSet<E extends Comparable<E>> extends AbstractSet<E> {
 
@@ -80,6 +81,29 @@ class TestTreeSet3 {
             root = add(root, e);
             return size != oldSize;
         }
+
+        Node<E> getEntry(Object value) {
+            Node<E> current = root;
+            Objects.requireNonNull(value);
+            @SuppressWarnings("unchecked")
+            Comparable<? super E> v = (Comparable<? super E>)value;
+            while (current != null) {
+                int compare = v.compareTo(current.value);
+                if (compare < 0)
+                    current = current.left;
+                else if (compare > 0)
+                    current = current.right;
+                else
+                    return current;
+            }
+            return current;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            Node<E> node = getEntry((E) o);
+            return node != null;
+        }
     }
 
     TreeSet<Integer> emptySet = new TreeSet<>();
@@ -142,5 +166,18 @@ class TestTreeSet3 {
         assertEquals(1, set.root.right.value);
         assertEquals(2, set.root.right.right.value);
         assertEquals("[0, 1, 2]", set.toString());
+    }
+
+    @Test
+    void testContains() {
+        TreeSet<Integer> set = new TreeSet<Integer>();
+        assertTrue(set.add(1));
+        assertTrue(set.add(0));
+        assertTrue(set.add(2));
+        assertFalse(set.contains(-1));
+        assertTrue(set.contains(0));
+        assertTrue(set.contains(1));
+        assertTrue(set.contains(2));
+        assertFalse(set.contains(3));
     }
 }

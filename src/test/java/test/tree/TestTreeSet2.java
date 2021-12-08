@@ -44,13 +44,13 @@ class TestTreeSet2 {
 
                 @Override
                 public boolean hasNext() {
-                    return stack.peek() != null;
+                    return !stack.isEmpty();
                 }
 
                 @Override
                 public E next() {
                     Node<E> node = stack.pop();
-                    advance(node.left);
+                    advance(node.right);
                     return node.value;
                 }
             };
@@ -60,16 +60,14 @@ class TestTreeSet2 {
         public int size() {
             return size;
         }
-
-    }
-
-    @Test
-    void testSizeEmpty() {
-        TreeSet<Integer> set = new TreeSet<>();
-        assertEquals(0, set.size());
     }
 
     TreeSet<Integer> emptySet = new TreeSet<>();
+
+    @Test
+    void testSizeEmpty() {
+        assertEquals(0, emptySet.size());
+    }
 
     @Test
     void testIsEmptyEmpty() {

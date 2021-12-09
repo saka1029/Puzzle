@@ -87,6 +87,13 @@ public class Primes {
             .toArray();
     }
 
+    public static IntStream primes3(int max) {
+        return IntStream.range(2, max)
+            .filter(IntStream.rangeClosed(2, (int)Math.sqrt(max)).boxed()
+                .reduce(n -> true,
+                    (p, n) -> p.and(i -> i == n || i % n != 0), (p, q) -> p));
+    }
+
     public static Set<Integer> factors(int n) {
         return (Set<Integer>) IntStream.rangeClosed(1, (int) Math.sqrt(n))
             .filter(i -> n % i == 0)

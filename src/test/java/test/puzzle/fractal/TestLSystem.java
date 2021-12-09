@@ -6,15 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
-import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 import puzzle.fractal.ImageWriter;
 import puzzle.fractal.LSystem;
+import puzzle.fractal.Point;
 
 class TestLSystem {
 
@@ -72,15 +71,18 @@ class TestLSystem {
         Color[] colors = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW};
         try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
             TurtleGraphics turtle = new TurtleGraphics(iw.graphics);
-            Map<String, Runnable> actions = Map.of("F", () -> turtle.forward(), "G", () -> turtle.forward(), "+",
-                () -> turtle.rotate(90), "-", () -> turtle.rotate(-90));
-            Point unit = Point.of(0, 4);
+            Map<String, Runnable> actions = Map.of(
+                "F", () -> turtle.forward(),
+                "G", () -> turtle.forward(),
+                "+", () -> turtle.rotate(90),
+                "-", () -> turtle.rotate(-90));
+            int direction = 0;
+            int step = 4;
             for (Color color : colors) {
-                turtle.go(start);
-                turtle.unit(unit);
-                turtle.color(color);
+                turtle.reset(start, direction, step);
+                turtle.color = color;
                 turtle.run(gen, actions);
-                unit = unit.rotate(90);
+                direction += 90;
             }
             iw.writeTo(new File("data/dragon.png"));
         }
@@ -88,7 +90,7 @@ class TestLSystem {
 
     /**
      * Example 7: Fractal plant
-     * 
+     *
      * <pre>
      * See also: Barnsley fern
      * variables : X F
@@ -97,39 +99,55 @@ class TestLSystem {
      * rules  : (X → F+[[X]-X]-F[-FX]+X), (F → FF)
      * angle  : 25°
      * </pre>
-     * 
+     *
      * Here, F means "draw forward", − means "turn right 25°", and + means "turn
      * left 25°". X does not correspond to any drawing action and is used to control
      * the evolution of the curve. The square bracket "[" corresponds to saving the
      * current values for position and angle, which are restored when the
      * corresponding "]" is executed.
-     * 
+     *
      * @throws IOException
      */
     @Test
-    void testFractalPlant() throws IOException {
+    void testFractalPlantImage() throws IOException {
         LSystem plant = LSystem.of("X", "X", "F+[[X]-X]-F[-FX]+X", "F", "FF");
-        int size = 800;
-        Point area = Point.of(size, size);
+        Point size = Point.of(800, 800);
         String gen = plant.generation(6);
-        System.out.println(gen);
-        try (ImageWriter iw = new ImageWriter((int) area.x, (int) area.y)) {
+        try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
             TurtleGraphics turtle = new TurtleGraphics(iw.graphics);
-            Deque<Point> sc = new LinkedList<>();
-            Deque<Point> su = new LinkedList<>();
             Map<String, Runnable> actions = Map.of(
                 "F", () -> turtle.forward(),
                 "X", () -> {},
                 "+", () -> turtle.rotate(25),
                 "-", () -> turtle.rotate(-25),
-                "[", () -> { sc.push(turtle.current); su.push(turtle.unit); },
-                "]", () -> { turtle.go(sc.pop()); turtle.unit(su.pop()); });
-            turtle.color(new Color(0x008000));
-            turtle.go(Point.of(size / 2, size));
-            turtle.unit(Point.of(0, -4));
+                "[", () -> turtle.push(),
+                "]", () -> turtle.pop());
+            turtle.color = new Color(0x008000);
+            turtle.position = Point.of(size.x / 2, size.y);
+            turtle.direction = -90;
             turtle.run(gen, actions);
             iw.writeTo(new File("data/plant.png"));
         }
+    }
 
+    static void dragon(TurtleGraphics t, int level, int rotate) {
+        if (level <= 0)
+            t.forward();
+        else {
+            dragon(t, level - 1, 90);
+            t.rotate(rotate);
+            dragon(t, level - 1, -90);
+        }
+    }
+
+    @Test
+    void testDragonCurveRecursive() throws IOException {
+        Point size = Point.of(3200, 3200);
+        try (ImageWriter iw = new ImageWriter((int)size.x, (int)size.y)) {
+            TurtleGraphics t = new TurtleGraphics(iw.graphics);
+            t.reset(size.divide(2), 0, 5);
+            dragon(t, 16, 90);
+            iw.writeTo(new File("data/dragon-recursive.png"));
+        }
     }
 }

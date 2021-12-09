@@ -1,4 +1,4 @@
-package test.puzzle.fractal;
+package puzzle.fractal;
 
 public class Point {
     

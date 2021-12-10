@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import puzzle.fractal.ImageWriter;
 import puzzle.fractal.LSystem;
 import puzzle.fractal.Point;
+import puzzle.fractal.TurtleGraphics;
 
 class TestLSystem {
 
@@ -74,12 +75,13 @@ class TestLSystem {
             Map<String, Runnable> actions = Map.of(
                 "F", () -> turtle.forward(),
                 "G", () -> turtle.forward(),
-                "+", () -> turtle.rotate(90),
-                "-", () -> turtle.rotate(-90));
-            int direction = 0;
-            int step = 4;
+                "+", () -> turtle.left(),
+                "-", () -> turtle.right());
+            double direction = 0;
+            turtle.step = 4;
             for (Color color : colors) {
-                turtle.reset(start, direction, step);
+                turtle.position = start;
+                turtle.direction = direction;
                 turtle.color = color;
                 turtle.run(gen, actions);
                 direction += 90;
@@ -118,10 +120,11 @@ class TestLSystem {
             Map<String, Runnable> actions = Map.of(
                 "F", () -> turtle.forward(),
                 "X", () -> {},
-                "+", () -> turtle.rotate(25),
-                "-", () -> turtle.rotate(-25),
+                "+", () -> turtle.left(),
+                "-", () -> turtle.right(),
                 "[", () -> turtle.push(),
                 "]", () -> turtle.pop());
+            turtle.rotation = 25;
             turtle.color = new Color(0x008000);
             turtle.position = Point.of(size.x / 2, size.y);
             turtle.direction = -90;
@@ -145,7 +148,9 @@ class TestLSystem {
         Point size = Point.of(3200, 3200);
         try (ImageWriter iw = new ImageWriter((int)size.x, (int)size.y)) {
             TurtleGraphics t = new TurtleGraphics(iw.graphics);
-            t.reset(size.divide(2), 0, 5);
+            t.position = size.divide(2);
+            t.direction = 0;
+            t.step = 5;
             dragon(t, 16, 90);
             iw.writeTo(new File("data/dragon-recursive.png"));
         }

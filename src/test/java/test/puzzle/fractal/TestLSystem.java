@@ -155,4 +155,38 @@ class TestLSystem {
             iw.writeTo(new File("data/dragon-recursive.png"));
         }
     }
+    
+    static String F(int n) {
+        if (n == 0)
+            return "F";
+        else
+            return F(n - 1) + "+" + G(n -1);
+    }
+    
+    static String G(int n) {
+        if (n == 0)
+            return "G";
+        else
+            return F(n - 1) + "-" + G(n -1);
+    }
+
+    @Test
+    void testDragonCurveAsStaticFunction() {
+        assertEquals("F", F(0));
+        assertEquals("F+G", F(1));
+        assertEquals("F+G+F-G", F(2));
+        assertEquals("F+G+F-G+F+G-F-G", F(3));
+    }
+    
+    @Test
+    void testDragonCurveAsLambdaFunction() {
+        interface IntStr { String apply(Integer i); }
+        IntStr[] f = new IntStr[2];
+        f[0] = n -> n == 0 ? "F" : f[0].apply(n - 1) + "+" + f[1].apply(n - 1);
+        f[1] = n -> n == 0 ? "G" : f[0].apply(n - 1) + "-" + f[1].apply(n - 1);
+        assertEquals("F", f[0].apply(0));
+        assertEquals("F+G", f[0].apply(1));
+        assertEquals("F+G+F-G", f[0].apply(2));
+        assertEquals("F+G+F-G+F+G-F-G", f[0].apply(3));
+    }
 }

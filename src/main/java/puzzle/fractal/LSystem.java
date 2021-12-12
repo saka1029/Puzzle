@@ -3,7 +3,6 @@ package puzzle.fractal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class LSystem {
     public final String start;
@@ -37,7 +36,4 @@ public class LSystem {
         return s;
     }
 
-    public Stream<String> stream(int limit) {
-        return Stream.iterate(start, this::next).limit(limit);
-    }
 }

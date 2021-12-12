@@ -1,6 +1,5 @@
 package test.puzzle.fractal;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.awt.Color;
@@ -44,13 +43,12 @@ class TestLSystem {
     @Test
     void test藻類() {
         LSystem 藻類 = LSystem.of("A", "A", "AB", "B", "A");
-        Iterator<String> it = 藻類.stream(5).iterator();
+        Iterator<String> it = Stream.iterate(藻類.start, s -> 藻類.next(s)).iterator();
         assertEquals("A", it.next());
         assertEquals("AB", it.next());
         assertEquals("ABA", it.next());
         assertEquals("ABAAB", it.next());
         assertEquals("ABAABABA", it.next());
-        assertFalse(it.hasNext());
     }
 
     @Test
@@ -59,13 +57,12 @@ class TestLSystem {
         assertEquals("F", dragon.generation(0));
         assertEquals("F+G", dragon.generation(1));
         assertEquals("F+G+F-G", dragon.generation(2));
-        Iterator<String> it = dragon.stream(5).iterator();
+        Iterator<String> it = Stream.iterate(dragon.start, s -> dragon.next(s)).iterator();
         assertEquals("F", it.next());
         assertEquals("F+G", it.next());
         assertEquals("F+G+F-G", it.next());
         assertEquals("F+G+F-G+F+G-F-G", it.next());
         assertEquals("F+G+F-G+F+G-F-G+F+G+F-G-F+G-F-G", it.next());
-        assertFalse(it.hasNext());
     }
 
     @Test

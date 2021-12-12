@@ -281,10 +281,10 @@ class TestLSystem {
         }
     }
 
-    static IntConsumer cond(IntConsumer then, IntConsumer... otherwise) {
+    static IntConsumer branch(IntConsumer ifZero, IntConsumer... otherwise) {
         return n -> {
             if (n == 0)
-                then.accept(n);
+                ifZero.accept(n);
             else
                 Stream.of(otherwise).forEach(f -> f.accept(n - 1));
         };
@@ -300,9 +300,9 @@ class TestLSystem {
         try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
             TurtleGraphics t = new TurtleGraphics(iw.graphics);
             Map<String, IntConsumer> map = new HashMap<>();
-            map.put("F", cond(m -> t.forward(5),
+            map.put("F", branch(m -> t.forward(5),
                 call(map, "F"), m -> t.rotate(90), call(map, "G")));
-            map.put("G", cond(m -> t.forward(5),
+            map.put("G", branch(m -> t.forward(5),
                 call(map, "F"), m -> t.rotate(-90), call(map, "G")));
             t.position = size.divide(2);
             t.color = Color.red;
@@ -315,9 +315,9 @@ class TestLSystem {
     void testDragonCurveAsIntConsumer() {
         Map<String, IntConsumer> map = new HashMap<>();
         StringBuilder sb = new StringBuilder();
-        map.put("F", cond(n -> sb.append("F"),
+        map.put("F", branch(n -> sb.append("F"),
             call(map, "F"), n -> sb.append("+"), call(map, "G")));
-        map.put("G", cond(n -> sb.append("G"),
+        map.put("G", branch(n -> sb.append("G"),
             call(map, "F"), n -> sb.append("-"), call(map, "G")));
         IntConsumer forg = map.get("F");
         Function<Integer, String> f = n -> {

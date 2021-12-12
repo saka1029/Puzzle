@@ -1,13 +1,7 @@
 package puzzle.fractal;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,21 +39,5 @@ public class LSystem {
 
     public Stream<String> stream(int limit) {
         return Stream.iterate(start, this::next).limit(limit);
-    }
-    
-    public static void image(String input, int width, int height, File output,
-            Consumer<Graphics2D> start,
-            Map<String, Consumer<Graphics2D>> actions) throws IOException {
-        try (ImageWriter iw = new ImageWriter(width, height)) {
-            Graphics2D g = iw.graphics;
-            g.setColor(Color.BLUE);
-            start.accept(g);
-            for (char c : input.toCharArray()) {
-                Consumer<Graphics2D> action = actions.get(Character.toString(c));
-                Objects.requireNonNull(action, "No action for '" + c + "'");
-                action.accept(g);
-            }
-            iw.writeTo(output);
-        }
     }
 }

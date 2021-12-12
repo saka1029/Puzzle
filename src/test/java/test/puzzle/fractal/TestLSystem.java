@@ -6,8 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.IntConsumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -103,10 +108,10 @@ class TestLSystem {
      * </pre>
      *
      * Here, F means "draw forward", − means "turn right 25°", and + means "turn
-     * left 25°". X does not correspond to any drawing action and is used to control
-     * the evolution of the curve. The square bracket "[" corresponds to saving the
-     * current values for position and angle, which are restored when the
-     * corresponding "]" is executed.
+     * left 25°". X does not correspond to any drawing action and is used to
+     * control the evolution of the curve. The square bracket "[" corresponds to
+     * saving the current values for position and angle, which are restored when
+     * the corresponding "]" is executed.
      *
      * @throws IOException
      */
@@ -119,7 +124,8 @@ class TestLSystem {
             TurtleGraphics turtle = new TurtleGraphics(iw.graphics);
             Map<String, Runnable> actions = Map.of(
                 "F", () -> turtle.forward(),
-                "X", () -> {},
+                "X", () -> {
+                },
                 "+", () -> turtle.left(),
                 "-", () -> turtle.right(),
                 "[", () -> turtle.push(),
@@ -146,7 +152,7 @@ class TestLSystem {
     @Test
     void testDragonCurveRecursive() throws IOException {
         Point size = Point.of(3200, 3200);
-        try (ImageWriter iw = new ImageWriter((int)size.x, (int)size.y)) {
+        try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
             TurtleGraphics t = new TurtleGraphics(iw.graphics);
             t.position = size.divide(2);
             t.direction = 0;
@@ -155,19 +161,19 @@ class TestLSystem {
             iw.writeTo(new File("data/dragon-recursive.png"));
         }
     }
-    
+
     static String F(int n) {
         if (n == 0)
             return "F";
         else
-            return F(n - 1) + "+" + G(n -1);
+            return F(n - 1) + "+" + G(n - 1);
     }
-    
+
     static String G(int n) {
         if (n == 0)
             return "G";
         else
-            return F(n - 1) + "-" + G(n -1);
+            return F(n - 1) + "-" + G(n - 1);
     }
 
     @Test
@@ -177,10 +183,12 @@ class TestLSystem {
         assertEquals("F+G+F-G", F(2));
         assertEquals("F+G+F-G+F+G-F-G", F(3));
     }
-    
+
     @Test
     void testDragonCurveAsLambdaFunction() {
-        interface IntStr { String apply(Integer i); }
+        interface IntStr {
+            String apply(int i);
+        }
         IntStr[] f = new IntStr[2];
         f[0] = n -> n == 0 ? "F" : f[0].apply(n - 1) + "+" + f[1].apply(n - 1);
         f[1] = n -> n == 0 ? "G" : f[0].apply(n - 1) + "-" + f[1].apply(n - 1);
@@ -189,4 +197,138 @@ class TestLSystem {
         assertEquals("F+G+F-G", f[0].apply(2));
         assertEquals("F+G+F-G+F+G-F-G", f[0].apply(3));
     }
+
+    @Test
+    void testDragonCurveAsLambdaFunctionWithMap() {
+        interface IntStr {
+            String apply(int i);
+        }
+        Map<String, IntStr> f = new HashMap<>();
+        f.put("F", n -> n == 0 ? "F" : f.get("F").apply(n - 1) + "+" + f.get("G").apply(n - 1));
+        f.put("G", n -> n == 0 ? "G" : f.get("F").apply(n - 1) + "-" + f.get("G").apply(n - 1));
+        assertEquals("F", f.get("F").apply(0));
+        assertEquals("F+G", f.get("F").apply(1));
+        assertEquals("F+G+F-G", f.get("F").apply(2));
+        assertEquals("F+G+F-G+F+G-F-G", f.get("F").apply(3));
+    }
+
+    @FunctionalInterface
+    interface IntStr {
+
+        String apply(int n);
+
+        static IntStr cond(String then, IntStr... otherwise) {
+            return n -> n == 0 ? then
+                : Stream.of(otherwise)
+                    .map(f -> f.apply(n - 1))
+                    .collect(Collectors.joining());
+        }
+
+        static IntStr constant(String string) {
+            return n -> string;
+        }
+
+        static IntStr call(Map<String, IntStr> map, String functionName) {
+            return n -> map.get(functionName).apply(n);
+        }
+    }
+
+    @Test
+    void testDragonCurveAsLambda() {
+        Map<String, IntStr> map = new HashMap<>();
+        map.put("F", IntStr.cond("F",
+            IntStr.call(map, "F"),
+            IntStr.constant("+"),
+            IntStr.call(map, "G")));
+        map.put("G", IntStr.cond("G",
+            IntStr.call(map, "F"),
+            IntStr.constant("-"),
+            IntStr.call(map, "G")));
+        IntStr f = map.get("F");
+        assertEquals("F", f.apply(0));
+        assertEquals("F+G", f.apply(1));
+        assertEquals("F+G+F-G", f.apply(2));
+        assertEquals("F+G+F-G+F+G-F-G", f.apply(3));
+    }
+
+    @Test
+    void testDragonCurveRecursiveLambda() throws IOException {
+        Point size = Point.of(3200, 3200);
+        try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
+            TurtleGraphics t = new TurtleGraphics(iw.graphics);
+            Map<String, IntConsumer> map = new HashMap<>();
+            map.put("F", n -> {
+                if (n == 0)
+                    t.forward(5);
+                else {
+                    map.get("F").accept(n);
+                    t.rotate(90);
+                    map.get("G").accept(n);
+                } ;
+            });
+            map.put("G", n -> {
+                if (n == 0)
+                    t.forward(5);
+                else {
+                    map.get("F").accept(n);
+                    t.rotate(-90);
+                    map.get("G").accept(n);
+                } ;
+            });
+            t.position = size.divide(2);
+            dragon(t, 16, 90);
+            iw.writeTo(new File("data/dragon-recursive-lambda.png"));
+        }
+    }
+
+    static IntConsumer cond(IntConsumer then, IntConsumer... otherwise) {
+        return n -> {
+            if (n == 0)
+                then.accept(n);
+            else
+                Stream.of(otherwise).forEach(f -> f.accept(n - 1));
+        };
+    }
+
+    static IntConsumer call(Map<String, IntConsumer> functions, String functionName) {
+        return n -> functions.get(functionName).accept(n);
+    }
+
+    @Test
+    void testDragonCurveRecursiveLambdaWithStaticMethods() throws IOException {
+        Point size = Point.of(3200, 3200);
+        try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
+            TurtleGraphics t = new TurtleGraphics(iw.graphics);
+            Map<String, IntConsumer> map = new HashMap<>();
+            map.put("F", cond(m -> t.forward(5),
+                call(map, "F"), m -> t.rotate(90), call(map, "G")));
+            map.put("G", cond(m -> t.forward(5),
+                call(map, "F"), m -> t.rotate(-90), call(map, "G")));
+            t.position = size.divide(2);
+            t.color = Color.red;
+            map.get("F").accept(16);
+            iw.writeTo(new File("data/dragon-recursive-lambda-static.png"));
+        }
+    }
+
+    @Test
+    void testDragonCurveAsIntConsumer() {
+        Map<String, IntConsumer> map = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+        map.put("F", cond(n -> sb.append("F"),
+            call(map, "F"), n -> sb.append("+"), call(map, "G")));
+        map.put("G", cond(n -> sb.append("G"),
+            call(map, "F"), n -> sb.append("-"), call(map, "G")));
+        IntConsumer forg = map.get("F");
+        Function<Integer, String> f = n -> {
+            sb.setLength(0);
+            forg.accept(n);
+            return sb.toString();
+        };
+        assertEquals("F", f.apply(0));
+        assertEquals("F+G", f.apply(1));
+        assertEquals("F+G+F-G", f.apply(2));
+        assertEquals("F+G+F-G+F+G-F-G", f.apply(3));
+    }
+
 }

@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 
 import puzzle.fractal.ImageWriter;
 import puzzle.fractal.LSystem;
-import puzzle.fractal.Point;
 import puzzle.fractal.TurtleGraphics;
 
 class TestLSystem {
@@ -68,11 +67,11 @@ class TestLSystem {
     @Test
     void testDragonCurveImage() throws IOException {
         LSystem dragon = LSystem.of("F", "F", "F+G", "G", "F-G");
-        Point size = Point.of(3200, 3200);
-        Point start = size.divide(2);
+        int size = 3200;
+        double start = size / 2;
         String gen = dragon.generation(16);
         Color[] colors = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW};
-        try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
+        try (ImageWriter iw = new ImageWriter(size, size)) {
             TurtleGraphics turtle = new TurtleGraphics(iw.graphics);
             Map<String, Runnable> actions = Map.of(
                 "F", () -> turtle.forward(),
@@ -82,7 +81,8 @@ class TestLSystem {
             double direction = 0;
             turtle.step = 4;
             for (Color color : colors) {
-                turtle.position = start;
+                turtle.x = start;
+                turtle.y = start;
                 turtle.direction = direction;
                 turtle.color = color;
                 turtle.run(gen, actions);
@@ -115,21 +115,21 @@ class TestLSystem {
     @Test
     void testFractalPlantImage() throws IOException {
         LSystem plant = LSystem.of("X", "X", "F+[[X]-X]-F[-FX]+X", "F", "FF");
-        Point size = Point.of(800, 800);
+        int size = 800;
         String gen = plant.generation(6);
-        try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
+        try (ImageWriter iw = new ImageWriter(size, size)) {
             TurtleGraphics turtle = new TurtleGraphics(iw.graphics);
             Map<String, Runnable> actions = Map.of(
                 "F", () -> turtle.forward(),
-                "X", () -> {
-                },
+                "X", () -> {},
                 "+", () -> turtle.left(),
                 "-", () -> turtle.right(),
                 "[", () -> turtle.push(),
                 "]", () -> turtle.pop());
             turtle.rotation = 25;
             turtle.color = new Color(0x008000);
-            turtle.position = Point.of(size.x / 2, size.y);
+            turtle.x = size / 2.0;
+            turtle.y = size;
             turtle.direction = -90;
             turtle.run(gen, actions);
             iw.writeTo(new File("data/plant.png"));
@@ -148,10 +148,11 @@ class TestLSystem {
 
     @Test
     void testDragonCurveRecursive() throws IOException {
-        Point size = Point.of(3200, 3200);
-        try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
+        int size = 3200;
+        try (ImageWriter iw = new ImageWriter(size, size)) {
             TurtleGraphics t = new TurtleGraphics(iw.graphics);
-            t.position = size.divide(2);
+            t.x = size / 2.0;
+            t.y = size / 2.0;
             t.direction = 0;
             t.step = 5;
             dragon(t, 16, 90);
@@ -250,8 +251,8 @@ class TestLSystem {
 
     @Test
     void testDragonCurveRecursiveLambda() throws IOException {
-        Point size = Point.of(3200, 3200);
-        try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
+        int size = 3200;
+        try (ImageWriter iw = new ImageWriter(size, size)) {
             TurtleGraphics t = new TurtleGraphics(iw.graphics);
             Map<String, IntConsumer> map = new HashMap<>();
             map.put("F", n -> {
@@ -272,7 +273,8 @@ class TestLSystem {
                     map.get("G").accept(n);
                 } ;
             });
-            t.position = size.divide(2);
+            t.x = size / 2.0;
+            t.y = size / 2.0;
             dragon(t, 16, 90);
             iw.writeTo(new File("data/dragon-recursive-lambda.png"));
         }
@@ -293,15 +295,18 @@ class TestLSystem {
 
     @Test
     void testDragonCurveRecursiveLambdaWithStaticMethods() throws IOException {
-        Point size = Point.of(3200, 3200);
-        try (ImageWriter iw = new ImageWriter((int) size.x, (int) size.y)) {
+        int size = 3200;
+        try (ImageWriter iw = new ImageWriter(size, size)) {
             TurtleGraphics t = new TurtleGraphics(iw.graphics);
             Map<String, IntConsumer> map = new HashMap<>();
-            map.put("F", branch(m -> t.forward(5),
-                call(map, "F"), m -> t.rotate(90), call(map, "G")));
-            map.put("G", branch(m -> t.forward(5),
-                call(map, "F"), m -> t.rotate(-90), call(map, "G")));
-            t.position = size.divide(2);
+            double step = 5;
+            double angle = 90;
+            map.put("F", branch(m -> t.forward(step),
+                call(map, "F"), m -> t.rotate(angle), call(map, "G")));
+            map.put("G", branch(m -> t.forward(step),
+                call(map, "F"), m -> t.rotate(-angle), call(map, "G")));
+            t.x = size / 2.0;
+            t.y = size / 2.0;
             t.color = Color.red;
             map.get("F").accept(16);
             iw.writeTo(new File("data/dragon-recursive-lambda-static.png"));
@@ -326,6 +331,48 @@ class TestLSystem {
         assertEquals("F+G", f.apply(1));
         assertEquals("F+G+F-G", f.apply(2));
         assertEquals("F+G+F-G+F+G-F-G", f.apply(3));
+    }
+
+    @Test
+    void testDragonCurveLSystemGeneration() throws IOException {
+        int size = 3200;
+        LSystem ls = LSystem.of("F", "F", "F+G", "G", "F-G");
+        try (ImageWriter iw = new ImageWriter(size, size)) {
+            TurtleGraphics t = new TurtleGraphics(iw.graphics);
+            double step = 5;
+            double angle = 90;
+            Map<String, Runnable> map = Map.of(
+                "F", () -> t.forward(step),
+                "G", () -> t.forward(step),
+                "+", () -> t.rotate(angle),
+                "-", () -> t.rotate(-angle));
+            t.x = size / 2;
+            t.y = size / 2;
+            t.color = Color.GREEN;
+            ls.generation(16, map).stream().forEach(Runnable::run);
+            iw.writeTo(new File("data/dragon-lsystem-generation.png"));
+        }
+    }
+
+    @Test
+    void testDragonCurveLSystemRun() throws IOException {
+        int size = 3200;
+        LSystem ls = LSystem.of("F", "F", "F+G", "G", "F-G");
+        try (ImageWriter iw = new ImageWriter(size, size)) {
+            TurtleGraphics t = new TurtleGraphics(iw.graphics);
+            double step = 5;
+            double angle = 90;
+            Map<String, Runnable> map = Map.of(
+                "F", () -> t.forward(step),
+                "G", () -> t.forward(step),
+                "+", () -> t.rotate(angle),
+                "-", () -> t.rotate(-angle));
+            t.x = size / 2;
+            t.y = size / 2;
+            t.color = new Color(0x008000);
+            t.run(ls.generation(16), map);
+            iw.writeTo(new File("data/dragon-lsystem-run.png"));
+        }
     }
 
 }

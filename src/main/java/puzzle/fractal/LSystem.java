@@ -1,6 +1,7 @@
 package puzzle.fractal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -12,7 +13,7 @@ public class LSystem {
         this.start = start;
         this.rules = rules;
     }
-    
+
     public static LSystem of (String start, String... rules) {
         Map<String, String> map = new HashMap<>();
         for (int i = 0, m = rules.length; i < m; i += 2)
@@ -36,4 +37,9 @@ public class LSystem {
         return s;
     }
 
+    public <T> List<T> generation(int n, Map<String, T> map) {
+        return generation(n).chars()
+            .mapToObj(c -> map.get(Character.toString(c)))
+            .toList();
+    }
 }

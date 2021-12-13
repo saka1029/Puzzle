@@ -10,15 +10,15 @@ import java.util.Map;
 public class TurtleGraphics {
 
     public final Graphics2D g;
-    public Point position = Point.of(0, 0);
+    public double x = 0;
+    public double y = 0;
     public double direction = 0;
     public double step = 5;
     public double rotation = 90;
     public double width = 1;
     public boolean penDown = true;
     public Color color = Color.BLACK;
-    public Deque<Point> positionStack = new LinkedList<>();
-    public Deque<Double> directionStack = new LinkedList<>();
+    public Deque<Double> stack = new LinkedList<>();
 
     public TurtleGraphics(Graphics2D g) {
         this.g = g;
@@ -29,23 +29,27 @@ public class TurtleGraphics {
         forward();
     }
 
+    int round(double d) {
+        return (int)Math.round(d);
+    }
+
     public void forward() {
-        Point next = position.add(
-            Point.of(step * Math.cos(Math.toRadians(direction)),
-                step * Math.sin(Math.toRadians(direction))));
+        double x1 = x + step * Math.cos(Math.toRadians(direction));
+        double y1 = y + step * Math.sin(Math.toRadians(direction));
         if (penDown) {
-            g.setStroke(new BasicStroke((int)width));
+            g.setStroke(new BasicStroke(round(width)));
             g.setColor(color);
-            g.drawLine((int)position.x, (int)position.y, (int)next.x, (int)next.y);
+            g.drawLine(round(x), round(y), round(x1), round(y1));
         }
-        position = next;
+        x = x1;
+        y = y1;
     }
 
     public void rotate(double degree) {
         rotation = degree;
         left();
     }
-    
+
     public void left() {
         direction = (direction + rotation) % 360;
     }
@@ -55,18 +59,19 @@ public class TurtleGraphics {
     }
 
     public void push() {
-        positionStack.push(position);
-        directionStack.push(direction);
+        stack.push(x);
+        stack.push(y);
+        stack.push(direction);
     }
 
     public void pop() {
-        position = positionStack.pop();
-        direction = directionStack.pop();
+        direction = stack.pop();
+        y = stack.pop();
+        x = stack.pop();
     }
 
     public void crearStack() {
-        positionStack.clear();
-        directionStack.clear();
+        stack.clear();
     }
 
     public void run(String input, Map<String, Runnable> actions) {

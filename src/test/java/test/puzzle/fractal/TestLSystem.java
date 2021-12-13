@@ -126,7 +126,7 @@ class TestLSystem {
                 "-", () -> turtle.right(),
                 "[", () -> turtle.push(),
                 "]", () -> turtle.pop());
-            turtle.rotation = 25;
+            turtle.angle = 25;
             turtle.color = new Color(0x008000);
             turtle.x = size / 2.0;
             turtle.y = size;
@@ -257,25 +257,27 @@ class TestLSystem {
             Map<String, IntConsumer> map = new HashMap<>();
             map.put("F", n -> {
                 if (n == 0)
-                    t.forward(5);
+                    t.forward();
                 else {
-                    map.get("F").accept(n);
-                    t.rotate(90);
-                    map.get("G").accept(n);
+                    map.get("F").accept(n - 1);
+                    t.left();
+                    map.get("G").accept(n - 1);
                 } ;
             });
             map.put("G", n -> {
                 if (n == 0)
-                    t.forward(5);
+                    t.forward();
                 else {
-                    map.get("F").accept(n);
-                    t.rotate(-90);
-                    map.get("G").accept(n);
+                    map.get("F").accept(n - 1);
+                    t.right();
+                    map.get("G").accept(n - 1);
                 } ;
             });
             t.x = size / 2.0;
             t.y = size / 2.0;
-            dragon(t, 16, 90);
+            t.step = 5;
+            t.angle = 90;
+            map.get("F").accept(16);
             iw.writeTo(new File("data/dragon-recursive-lambda.png"));
         }
     }

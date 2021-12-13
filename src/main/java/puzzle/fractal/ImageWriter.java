@@ -2,6 +2,7 @@ package puzzle.fractal;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.File;
@@ -21,6 +22,9 @@ public class ImageWriter implements Closeable {
     public ImageWriter(int width, int height) {
         this.image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         this.graphics = this.image.createGraphics();
+        this.graphics.setRenderingHint(
+            RenderingHints.KEY_ANTIALIASING,
+            RenderingHints.VALUE_ANTIALIAS_ON);
         this.graphics.setColor(BACK_COLOR);
         this.graphics.fillRect(0, 0, width, height);
         this.graphics.setColor(FORE_COLOR);

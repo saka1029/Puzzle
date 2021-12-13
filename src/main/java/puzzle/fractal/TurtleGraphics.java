@@ -14,7 +14,7 @@ public class TurtleGraphics {
     public double y = 0;
     public double direction = 0;
     public double step = 5;
-    public double rotation = 90;
+    public double angle = 90;
     public double width = 1;
     public boolean penDown = true;
     public Color color = Color.BLACK;
@@ -24,16 +24,11 @@ public class TurtleGraphics {
         this.g = g;
     }
 
-    public void forward(double step) {
-        this.step = step;
-        forward();
-    }
-
     int round(double d) {
         return (int)Math.round(d);
     }
 
-    public void forward() {
+    public void forward(double step) {
         double x1 = x + step * Math.cos(Math.toRadians(direction));
         double y1 = y + step * Math.sin(Math.toRadians(direction));
         if (penDown) {
@@ -45,17 +40,20 @@ public class TurtleGraphics {
         y = y1;
     }
 
+    public void forward() {
+        forward(step);
+    }
+
     public void rotate(double degree) {
-        rotation = degree;
-        left();
+        direction = (direction + degree) % 360;
     }
 
     public void left() {
-        direction = (direction + rotation) % 360;
+        rotate(angle);
     }
 
     public void right() {
-        direction = (direction - rotation) % 360;
+        rotate(-angle);
     }
 
     public void push() {

@@ -47,6 +47,8 @@ public abstract class Turtle implements Closeable {
     public void position(double x, double y) { this.x = x; this.y = y; }
     public abstract void forward(double step);
     public void forward() { forward(step); }
+    public void backward(double step) { forward(-step); }
+    public void backward() { backward(step); }
     public void step(double step) { this.step = step; }
     public double step() { return step; }
     public double direction() { return direction; }

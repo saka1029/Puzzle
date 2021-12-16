@@ -96,4 +96,33 @@ class TestSVGTurtle {
         }
     }
 
+    @Test
+    void testヒルベルト曲線() throws IOException {
+        int size = 130;
+        try (Writer w = new FileWriter("data/SVGTurtle/ヒルベルト曲線.svg");
+            SVGTurtle t = new SVGTurtle(w, size, size)) {
+            t.position(2, 2);
+            t.step(2);
+            double angle = 90;
+            var obj = new Object() {
+                void hilbert(int rule, int dept) {
+                    if (dept <= 0)
+                        return;
+                    t.right(angle * rule);
+                    hilbert(-rule, dept - 1);
+                    t.forward();
+                    t.left(angle * rule);
+                    hilbert(rule, dept - 1);
+                    t.forward();
+                    hilbert(rule, dept - 1);
+                    t.left(angle * rule);
+                    t.forward();
+                    hilbert(-rule, dept - 1);
+                    t.right(angle * rule);
+                }
+            };
+            obj.hilbert(1, 6);
+        }
+    }
+
 }

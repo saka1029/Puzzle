@@ -43,11 +43,11 @@ public class SVGTurtle extends Turtle {
         if (writing()) {
             if (path.length() == 0 || penWidth() != prevPenWidth || !penColor().equals(prevPenColor)) {
                 endPath();
-                path.append("<path fill='none' stroke='%s' stroke-width='%d' stroke-linecap='%s' d='M %d %d"
+                path.append("<path fill='none' stroke='%s' stroke-width='%d' stroke-linecap='%s' d='M%d %d"
                     .formatted(color(penColor()), penWidth(), LINE_CAP, round(x), round(y)));
             } else if (round(x) != round(prevX) || round(y) != round(prevY))
-                path.append(" M %d %d".formatted(round(x), round(y)));
-            path.append(" L %d %d".formatted(round(x1), round(y1)));
+                path.append(" M%d %d".formatted(round(x), round(y)));
+            path.append(" L%d %d".formatted(round(x1), round(y1)));
         }
         prevX = x1; prevY = y1;
         prevPenColor = penColor();

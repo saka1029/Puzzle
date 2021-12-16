@@ -48,12 +48,24 @@ public class TurtleGraphics {
         direction = (direction + degree) % 360;
     }
 
+    public void rotate() {
+        rotate(angle);
+    }
+
     public void left() {
         rotate(angle);
     }
 
+    public void left(double degree) {
+        rotate(degree);
+    }
+
     public void right() {
         rotate(-angle);
+    }
+
+    public void right(double degree) {
+        rotate(-degree);
     }
 
     public void push() {

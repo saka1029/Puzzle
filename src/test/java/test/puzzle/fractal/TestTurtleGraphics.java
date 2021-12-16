@@ -1,5 +1,6 @@
 package test.puzzle.fractal;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -97,8 +98,7 @@ class TestTurtleGraphics {
 
     @Test
     /**
-     *  start  : F−G−G
-     *  rules  : (F → F−G+F+G−F), (G → GG)
+     * start : F−G−G rules : (F → F−G+F+G−F), (G → GG)
      */
     void testLSystemSielpinskiTriangle() throws IOException {
         LSystem ls = LSystem.of("F-G-G", "F", "F-G+F+G-F", "G", "GG");
@@ -131,6 +131,78 @@ class TestTurtleGraphics {
                 t.rotate(360.0 / n);
             }
             iw.writeTo(new File("data/polygon.png"));
+        }
+    }
+
+    /**
+     * Example 7: Fractal plant
+     *
+     * <pre>
+     * See also: Barnsley fern
+     * variables : X F
+     * constants : + − [ ]
+     * start  : X
+     * rules  : (X → F+[[X]-X]-F[-FX]+X), (F → FF)
+     * angle  : 25°
+     * </pre>
+     *
+     * Here, F means "draw forward", − means "turn right 25°", and + means "turn
+     * left 25°". X does not correspond to any drawing action and is used to
+     * control the evolution of the curve. The square bracket "[" corresponds to
+     * saving the current values for position and angle, which are restored when
+     * the corresponding "]" is executed.
+     * @throws IOException
+     */
+    @Test
+    public void testFractalPlant() throws IOException {
+        try (ImageWriter iw = new ImageWriter(4000, 4000)) {
+            TurtleGraphics t = new TurtleGraphics(iw.graphics);
+            t.x = 2000;
+            t.y = 4000;
+            t.step = 20;
+            t.direction = -90;
+            t.width = 5;
+            t.angle = 25;
+            t.color = new Color(0x00ff00);
+            new Object() {
+
+                void X(int n) {
+                    if (n == 0)
+                        /* do nothing */;
+                    else {
+                        F(n - 1);
+                        t.left();
+                        t.push();
+                        t.push();
+                        X(n - 1);
+                        t.pop();
+                        t.right();
+                        X(n - 1);
+                        t.pop();
+                        t.right();
+                        F(n - 1);
+                        t.push();
+                        t.right();
+                        F(n - 1);
+                        X(n - 1);
+                        t.pop();
+                        t.left();
+                        X(n - 1);
+                    }
+                }
+
+                void F(int n) {
+                    if (n == 0)
+                        t.forward();
+                    else {
+                        F(n - 1);
+                        F(n - 1);
+                    }
+//                    for (int i = 0, m = 1 << n; i < m; ++i)
+//                        t.forward();
+                }
+            }.X(6);
+            iw.writeTo(new File("data/fractal-plant.png"));
         }
     }
 

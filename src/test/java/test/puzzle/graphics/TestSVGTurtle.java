@@ -1,14 +1,18 @@
 package test.puzzle.graphics;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.awt.Color;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 import puzzle.graphics.SVGTurtle;
+import puzzle.graphics.Turtle;
 
 class TestSVGTurtle {
 
@@ -23,7 +27,7 @@ class TestSVGTurtle {
     void test正多角形() throws IOException {
         int size = 800;
         try (Writer w = new FileWriter("data/SVGTurtle/正多角形.svg");
-            SVGTurtle t = new SVGTurtle(w, size, size)) {
+            Turtle t = new SVGTurtle(w, size, size)) {
             t.step(100);
             t.penColor(Color.BLUE);
             for (int i = 3; i <= 20; ++i) {
@@ -42,7 +46,7 @@ class TestSVGTurtle {
     void testドラゴン曲線() throws IOException {
         int size = 800;
         try (Writer w = new FileWriter("data/SVGTurtle/ドラゴン曲線.svg");
-            SVGTurtle t = new SVGTurtle(w, size, size)) {
+            Turtle t = new SVGTurtle(w, size, size)) {
             t.step(4);
             double angle = 90;
             var obj = new Object() {
@@ -68,10 +72,33 @@ class TestSVGTurtle {
     }
 
     @Test
+    void testドラゴン曲線LSystem() throws IOException {
+        int size = 800;
+        try (Writer w = new FileWriter("data/SVGTurtle/ドラゴン曲線LSystem.svg");
+            Turtle t = new SVGTurtle(w, size, size)) {
+            t.step(4);
+            double angle = 90;
+            Map<String, String> rules = Map.of("F", "F+G", "G", "F-G");
+            String gen = Turtle.lsystem("F", rules, 12);
+            Map<String, Runnable> map = Map.of(
+                "F", () -> t.forward(), "G", () -> t.forward(),
+                "+", () -> t.left(), "-", () -> t.right());
+            double dir = 0;
+            for (Color c : new Color[] {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW}) {
+                t.position(size / 2, size / 2);
+                t.direction(dir);
+                t.penColor(c);
+                gen.chars().forEach(x -> map.get(Character.toString(x)).run());
+                dir += 90;
+            }
+        }
+    }
+
+    @Test
     void test対称木() throws IOException {
         int size = 700;
         try (Writer w = new FileWriter("data/SVGTurtle/対称木.svg");
-            SVGTurtle t = new SVGTurtle(w, size, size)) {
+            Turtle t = new SVGTurtle(w, size, size)) {
             t.position(size / 2, size / 2);
             t.step(20);
             t.penWidth(2);
@@ -100,7 +127,7 @@ class TestSVGTurtle {
     void testヒルベルト曲線() throws IOException {
         int size = 130;
         try (Writer w = new FileWriter("data/SVGTurtle/ヒルベルト曲線.svg");
-            SVGTurtle t = new SVGTurtle(w, size, size)) {
+            Turtle t = new SVGTurtle(w, size, size)) {
             t.position(2, 2);
             t.step(2);
             double angle = 90;
@@ -122,6 +149,33 @@ class TestSVGTurtle {
                 }
             };
             obj.hilbert(1, 6);
+        }
+    }
+
+    @Test
+    void testLSystem() throws IOException {
+        Map<String, String> rules = Map.of("A", "-BF+AFA+FB-", "B", "+AF-BFB-FA+");
+        assertEquals("A", Turtle.lsystem("A", rules, 0));
+        assertEquals("-BF+AFA+FB-", Turtle.lsystem("A", rules, 1));
+        assertEquals("-+AF-BFB-FA+F+-BF+AFA+FB-F-BF+AFA+FB-+F+AF-BFB-FA+-", Turtle.lsystem("A", rules, 2));
+    }
+
+    void testヒルベルト曲線LSystem() throws IOException {
+        Map<String, String> rules = Map.of("A", "-BF+AFA+FB-", "B", "+AF-BFB-FA+");
+        int size = 130;
+        try (Writer w = new FileWriter("data/SVGTurtle/ヒルベルト曲線-LSystem.svg");
+            Turtle t = new SVGTurtle(w, size, size)) {
+            t.position(2, 2);
+            t.step(2);
+            t.angle(90);
+            Map<String, Runnable> run = Map.of(
+                "A", () -> {},
+                "B", () -> {},
+                "F", () -> t.forward(),
+                "+", () -> t.left(),
+                "-", () -> t.right());
+            Turtle.lsystem("A", rules, 6).chars()
+                .forEach(c -> run.get(Character.toString(c)).run());
         }
     }
 

@@ -377,4 +377,27 @@ class TestLSystem {
         }
     }
 
+    @Test
+    void testHilbertCurve() throws IOException {
+        int size = 1300;
+        LSystem ls = LSystem.of("A", "A", "-BF+AFA+FB-", "B", "+AF-BFB-FA+");
+        try (ImageWriter iw = new ImageWriter(size, size)) {
+            TurtleGraphics t = new TurtleGraphics(iw.graphics);
+            double step = 5;
+            double angle = 90;
+            Map<String, Runnable> map = Map.of(
+                "A", () -> {},
+                "B", () -> {},
+                "F", () -> t.forward(step),
+                "G", () -> t.forward(step),
+                "+", () -> t.rotate(angle),
+                "-", () -> t.rotate(-angle));
+            t.x = 10;
+            t.y = size - 10;
+            t.color = new Color(0x008000);
+            t.run(ls.generation(8), map);
+            iw.writeTo(new File("data/hilbert-lsystem-run.png"));
+        }
+    }
+
 }

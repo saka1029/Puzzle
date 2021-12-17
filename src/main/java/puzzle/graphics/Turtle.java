@@ -5,6 +5,7 @@ import java.io.Closeable;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * 座標系はX座標が右方向、Y座標が下方向です。
@@ -73,9 +74,9 @@ public abstract class Turtle implements Closeable {
     public void push() { stack.push(x); stack.push(y); stack.push(direction); }
     public void pop() { direction = stack.pop(); y = stack.pop(); x = stack.pop(); }
 
-    public static String lsystem(String start, Map<String, String> rules, int n) {
+    public static String lsystem(String start, int level, Map<String, String> rules) {
         StringBuilder in = new StringBuilder(start);
-        for (int i = 0; i < n; ++i) {
+        for (int i = 0; i < level; ++i) {
             StringBuilder out = new StringBuilder();
             for (int p = 0, size = in.length(); p < size; ++p) {
                 String key = Character.toString(in.charAt(p));
@@ -84,5 +85,11 @@ public abstract class Turtle implements Closeable {
             in = out;
         }
         return in.toString();
+    }
+    
+    public void lsystem(String start, int level, Map<String, String> rules, Map<String, Consumer<Turtle>> commands) {
+        lsystem(start, level, rules).chars()
+            .mapToObj(Character::toString)
+            .forEach(c -> commands.getOrDefault(c, t -> {}).accept(this));
     }
 }

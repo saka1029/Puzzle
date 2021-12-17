@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 
@@ -79,7 +80,7 @@ class TestSVGTurtle {
             t.step(4);
             double angle = 90;
             Map<String, String> rules = Map.of("F", "F+G", "G", "F-G");
-            String gen = Turtle.lsystem("F", rules, 12);
+            String gen = Turtle.lsystem("F", 12, rules);
             Map<String, Runnable> map = Map.of(
                 "F", () -> t.forward(), "G", () -> t.forward(),
                 "+", () -> t.left(), "-", () -> t.right());
@@ -155,27 +156,27 @@ class TestSVGTurtle {
     @Test
     void testLSystem() throws IOException {
         Map<String, String> rules = Map.of("A", "-BF+AFA+FB-", "B", "+AF-BFB-FA+");
-        assertEquals("A", Turtle.lsystem("A", rules, 0));
-        assertEquals("-BF+AFA+FB-", Turtle.lsystem("A", rules, 1));
-        assertEquals("-+AF-BFB-FA+F+-BF+AFA+FB-F-BF+AFA+FB-+F+AF-BFB-FA+-", Turtle.lsystem("A", rules, 2));
+        assertEquals("A", Turtle.lsystem("A", 0, rules));
+        assertEquals("-BF+AFA+FB-", Turtle.lsystem("A", 1, rules));
+        assertEquals("-+AF-BFB-FA+F+-BF+AFA+FB-F-BF+AFA+FB-+F+AF-BFB-FA+-", Turtle.lsystem("A", 2, rules));
     }
 
     void testヒルベルト曲線LSystem() throws IOException {
-        Map<String, String> rules = Map.of("A", "-BF+AFA+FB-", "B", "+AF-BFB-FA+");
+        String start = "A";
+        Map<String, String> rules = Map.of(
+            "A", "-BF+AFA+FB-",
+            "B", "+AF-BFB-FA+");
+        Map<String, Consumer<Turtle>> commands = Map.of(
+            "F", x -> x.forward(),
+            "+", x -> x.left(),
+            "-", x -> x.right());
         int size = 130;
         try (Writer w = new FileWriter("data/SVGTurtle/ヒルベルト曲線-LSystem.svg");
             Turtle t = new SVGTurtle(w, size, size)) {
             t.position(2, 2);
             t.step(2);
             t.angle(90);
-            Map<String, Runnable> run = Map.of(
-                "A", () -> {},
-                "B", () -> {},
-                "F", () -> t.forward(),
-                "+", () -> t.left(),
-                "-", () -> t.right());
-            Turtle.lsystem("A", rules, 6).chars()
-                .forEach(c -> run.get(Character.toString(c)).run());
+            t.lsystem(start, 6, rules, commands);
         }
     }
 

@@ -48,10 +48,10 @@ public class SVGTurtle extends Turtle {
             } else if (round(x) != round(prevX) || round(y) != round(prevY))
                 path.append(" M%d %d".formatted(round(x), round(y)));
             path.append(" L%d %d".formatted(round(x1), round(y1)));
+            prevX = x1; prevY = y1;
+            prevPenColor = penColor();
+            prevPenWidth = penWidth();
         }
-        prevX = x1; prevY = y1;
-        prevPenColor = penColor();
-        prevPenWidth = penWidth();
         position(x1, y1);
     }
 

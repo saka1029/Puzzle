@@ -227,4 +227,60 @@ class TestSVGTurtle {
             t.lsystem(start, 6, rules, commands);
         }
     }
+
+    /**
+     * Example 5: Sierpinski triangle
+     * The Sierpinski triangle drawn using an L-system.
+     *
+     * <pre>
+     * variables : F G
+     * constants : + −
+     * start  : F−G−G
+     * rules  : (F → F−G+F+G−F), (G → GG)
+     * angle  : 120°
+     * </pre>
+     * Here, F means "draw forward", G means "draw forward", + means "turn left by angle", and − means "turn right by angle".
+     */
+    @Test
+    void testSierpinskiGasket() throws IOException {
+        String start = "F-G-G";
+        Map<String, String> rules = Map.of(
+            "F", "F-G+F+G-F",
+            "G", "GG");
+        Map<String, Consumer<Turtle>> commands = Map.of(
+            "F", t -> t.forward(),
+            "G", t -> t.forward(),
+            "+", t -> t.left(),
+            "-", t -> t.right());
+        int size = 600;
+        try (Writer w = new FileWriter("data/SVGTurtle/sierpinski-gasket.svg");
+            Turtle t = new SVGTurtle(w, size, size)) {
+            t.position(4, 4);
+            t.step(8);
+            t.angle(120);
+            t.penColor(Color.RED);
+            t.direction(0);
+            t.lsystem(start, 6, rules, commands);
+        }
+    }
+
+    @Test
+    void testSpiral() throws IOException {
+        String start = "A";
+        Map<String, String> rules = Map.of(
+            "A", "-A",
+            "-", "F-");
+        Map<String, Consumer<Turtle>> commands = Map.of(
+            "F", t -> t.forward(),
+            "-", t -> t.right());
+        int size = 400;
+        try (Writer w = new FileWriter("data/SVGTurtle/Spiral.svg");
+            Turtle t = new SVGTurtle(w, size, size)) {
+            t.position(2, 2);
+            t.step(4);
+            t.angle(90);
+            t.direction(0);
+            t.lsystem(start, 100, rules, commands);
+        }
+    }
 }

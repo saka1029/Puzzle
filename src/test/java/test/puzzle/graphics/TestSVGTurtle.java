@@ -263,24 +263,4 @@ class TestSVGTurtle {
             t.lsystem(start, 6, rules, commands);
         }
     }
-
-    @Test
-    void testSpiral() throws IOException {
-        String start = "A";
-        Map<String, String> rules = Map.of(
-            "A", "-A",
-            "-", "F-");
-        Map<String, Consumer<Turtle>> commands = Map.of(
-            "F", t -> t.forward(),
-            "-", t -> t.right());
-        int size = 400;
-        try (Writer w = new FileWriter("data/SVGTurtle/Spiral.svg");
-            Turtle t = new SVGTurtle(w, size, size)) {
-            t.position(2, 2);
-            t.step(4);
-            t.angle(90);
-            t.direction(0);
-            t.lsystem(start, 100, rules, commands);
-        }
-    }
 }

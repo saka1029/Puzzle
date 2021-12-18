@@ -219,7 +219,7 @@ class TestSVGTurtle {
         int size = 800;
         try (Writer w = new FileWriter("data/SVGTurtle/FractalPlant-LSystem.svg");
             Turtle t = new SVGTurtle(w, size, size)) {
-            t.position(0, size);
+            t.position(100, size);
             t.step(5);
             t.angle(25);
             t.penColor(Color.GREEN);

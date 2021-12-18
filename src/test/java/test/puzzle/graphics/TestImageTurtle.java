@@ -228,7 +228,7 @@ class TestImageTurtle {
         try (OutputStream os = new FileOutputStream("data/ImageTurtle/FractalPlant-LSystem.png");
             ImageWriter iw = new ImageWriter(os, size, size);
             Turtle t = new ImageTurtle(iw)) {
-            t.position(0, size);
+            t.position(100, size);
             t.step(5);
             t.angle(25);
             t.penColor(Color.GREEN);

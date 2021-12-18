@@ -1,6 +1,5 @@
 package puzzle.graphics;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -12,10 +11,10 @@ import javax.imageio.ImageIO;
 
 public class ImageWriter implements Closeable {
 
-    public final OutputStream os;
     public final int width, height;
-    public final BufferedImage image;
-    public final Graphics2D graphics;
+    private final OutputStream os;
+    private final BufferedImage image;
+    private final Graphics2D graphics;
 
     public ImageWriter(OutputStream os, int width, int height) {
         this.os = os;
@@ -28,9 +27,8 @@ public class ImageWriter implements Closeable {
             RenderingHints.VALUE_ANTIALIAS_ON);
     }
 
-    public void fillBackground(Color bgColor) {
-        graphics.setBackground(bgColor);
-        graphics.fillRect(0, 0, width, height);
+    public Graphics2D graphics() {
+        return this.graphics;
     }
 
     @Override

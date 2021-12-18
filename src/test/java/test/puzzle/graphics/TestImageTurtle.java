@@ -5,21 +5,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.awt.Color;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 
-import puzzle.graphics.SVGTurtle;
+import puzzle.graphics.ImageTurtle;
+import puzzle.graphics.ImageWriter;
 import puzzle.graphics.Turtle;
 
-class TestSVGTurtle {
+class TestImageTurtle {
 
     {
-        new File("data/SVGTurtle").mkdirs();
+        new File("data/ImageTurtle").mkdirs();
     }
 
     /**
@@ -28,8 +29,9 @@ class TestSVGTurtle {
     @Test
     void test正多角形() throws IOException {
         int size = 800;
-        try (Writer w = new FileWriter("data/SVGTurtle/正多角形.svg");
-            Turtle t = new SVGTurtle(w, size, size)) {
+        try (OutputStream os = new FileOutputStream("data/ImageTurtle/正多角形.png");
+            ImageWriter iw = new ImageWriter(os, size, size);
+            Turtle t = new ImageTurtle(iw)) {
             t.step(100);
             t.penColor(Color.BLUE);
             for (int i = 3; i <= 20; ++i) {
@@ -47,8 +49,9 @@ class TestSVGTurtle {
     @Test
     void testドラゴン曲線() throws IOException {
         int size = 800;
-        try (Writer w = new FileWriter("data/SVGTurtle/ドラゴン曲線.svg");
-            Turtle t = new SVGTurtle(w, size, size)) {
+        try (OutputStream os = new FileOutputStream("data/ImageTurtle/ドラゴン曲線.png");
+            ImageWriter iw = new ImageWriter(os, size, size);
+            Turtle t = new ImageTurtle(iw)) {
             t.step(4);
             double angle = 90;
             var obj = new Object() {
@@ -82,8 +85,9 @@ class TestSVGTurtle {
             "F", t -> t.forward(), "G", t -> t.forward(),
             "+", t -> t.left(), "-", t -> t.right());
         int size = 800;
-        try (Writer w = new FileWriter("data/SVGTurtle/ドラゴン曲線LSystem.svg");
-            Turtle t = new SVGTurtle(w, size, size)) {
+        try (OutputStream os = new FileOutputStream("data/ImageTurtle/ドラゴン曲線LSystem.png");
+            ImageWriter w = new ImageWriter(os, size, size);
+            Turtle t = new ImageTurtle(w)) {
             t.step(4);
             t.angle(90);
             double dir = 0;
@@ -101,8 +105,9 @@ class TestSVGTurtle {
     @Test
     void test対称木() throws IOException {
         int size = 700;
-        try (Writer w = new FileWriter("data/SVGTurtle/対称木.svg");
-            Turtle t = new SVGTurtle(w, size, size)) {
+        try (OutputStream os = new FileOutputStream("data/ImageTurtle/対称木.png");
+            ImageWriter iw = new ImageWriter(os, size, size);
+            Turtle t = new ImageTurtle(iw)) {
             t.position(size / 2, size / 2);
             t.step(20);
             t.penWidth(2);
@@ -130,8 +135,9 @@ class TestSVGTurtle {
     @Test
     void testヒルベルト曲線() throws IOException {
         int size = 130;
-        try (Writer w = new FileWriter("data/SVGTurtle/ヒルベルト曲線.svg");
-            Turtle t = new SVGTurtle(w, size, size)) {
+        try (OutputStream os = new FileOutputStream("data/ImageTurtle/ヒルベルト曲線.png");
+            ImageWriter iw = new ImageWriter(os, size, size);
+            Turtle t = new ImageTurtle(iw)) {
             t.position(2, 2);
             t.step(2);
             double angle = 90;
@@ -161,7 +167,8 @@ class TestSVGTurtle {
         Map<String, String> rules = Map.of("A", "-BF+AFA+FB-", "B", "+AF-BFB-FA+");
         assertEquals("A", Turtle.lsystem("A", 0, rules));
         assertEquals("-BF+AFA+FB-", Turtle.lsystem("A", 1, rules));
-        assertEquals("-+AF-BFB-FA+F+-BF+AFA+FB-F-BF+AFA+FB-+F+AF-BFB-FA+-", Turtle.lsystem("A", 2, rules));
+        assertEquals("-+AF-BFB-FA+F+-BF+AFA+FB-F-BF+AFA+FB-+F+AF-BFB-FA+-",
+            Turtle.lsystem("A", 2, rules));
     }
 
     void testヒルベルト曲線LSystem() throws IOException {
@@ -174,8 +181,9 @@ class TestSVGTurtle {
             "+", x -> x.left(),
             "-", x -> x.right());
         int size = 130;
-        try (Writer w = new FileWriter("data/SVGTurtle/ヒルベルト曲線-LSystem.svg");
-            Turtle t = new SVGTurtle(w, size, size)) {
+        try (OutputStream os = new FileOutputStream("data/ImageTurtle/ヒルベルト曲線-LSystem.png");
+            ImageWriter iw = new ImageWriter(os, size, size);
+            Turtle t = new ImageTurtle(iw)) {
             t.position(2, 2);
             t.step(2);
             t.angle(90);
@@ -205,7 +213,7 @@ class TestSVGTurtle {
      * @throws FileNotFoundException
      */
     @Test
-    void testFractalPlant() throws IOException {
+    void testFractalPlant() throws FileNotFoundException, IOException {
         String start = "X";
         Map<String, String> rules = Map.of(
             "X", "F+[[X]-X]-F[-FX]+X",
@@ -217,8 +225,9 @@ class TestSVGTurtle {
             "[", t -> t.push(),
             "]", t -> t.pop());
         int size = 800;
-        try (Writer w = new FileWriter("data/SVGTurtle/FractalPlant-LSystem.svg");
-            Turtle t = new SVGTurtle(w, size, size)) {
+        try (OutputStream os = new FileOutputStream("data/ImageTurtle/FractalPlant-LSystem.png");
+            ImageWriter iw = new ImageWriter(os, size, size);
+            Turtle t = new ImageTurtle(iw)) {
             t.position(0, size);
             t.step(5);
             t.angle(25);
@@ -227,4 +236,5 @@ class TestSVGTurtle {
             t.lsystem(start, 6, rules, commands);
         }
     }
+
 }

@@ -86,10 +86,14 @@ public abstract class Turtle implements Closeable {
         }
         return in.toString();
     }
-    
-    public void lsystem(String start, int level, Map<String, String> rules, Map<String, Consumer<Turtle>> commands) {
-        lsystem(start, level, rules).chars()
+
+    public void run(String s, Map<String, Consumer<Turtle>> commands) {
+        s.chars()
             .mapToObj(Character::toString)
             .forEach(c -> commands.getOrDefault(c, t -> {}).accept(this));
+    }
+
+    public void lsystem(String start, int level, Map<String, String> rules, Map<String, Consumer<Turtle>> commands) {
+        run(lsystem(start, level, rules), commands);
     }
 }

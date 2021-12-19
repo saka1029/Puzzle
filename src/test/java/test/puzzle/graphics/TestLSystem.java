@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,7 @@ import puzzle.graphics.SVGTurtle;
 import puzzle.graphics.Turtle;
 
 class TestLSystem {
-    
+
     static final File DIR = new File("data/LSystem");
     static {
         DIR.mkdirs();
@@ -28,9 +28,9 @@ class TestLSystem {
         Map<String, String> rules = Map.of(
             "A", "-A",
             "-", "F-");
-        Map<String, Consumer<Turtle>> commands = Map.of(
-            "F", t -> t.forward(),
-            "-", t -> t.right());
+        Map<String, BiConsumer<Turtle, Integer>> commands = Map.of(
+            "F", (t, i) -> t.forward(t.step() * i),
+            "-", (t, i) -> t.right(t.angle() * i));
         assertEquals("A", Turtle.lsystem(start, 0, rules));
         assertEquals("-A", Turtle.lsystem(start, 1, rules));
         assertEquals("F--A", Turtle.lsystem(start, 2, rules));
@@ -44,7 +44,7 @@ class TestLSystem {
             t.step(4);
             t.angle(360.0 / n);
             t.direction(0);
-            t.lsystem(start, 60, rules, commands);
+            t.lsystem2(start, 60, rules, commands);
         }
     }
 
@@ -55,9 +55,9 @@ class TestLSystem {
         Map<String, String> rules = Map.of(
             "A", "A-",
             "-", "F-");
-        Map<String, Consumer<Turtle>> commands = Map.of(
-            "F", t -> t.forward(),
-            "-", t -> t.right());
+        Map<String, BiConsumer<Turtle, Integer>> commands = Map.of(
+            "F", (t, i) -> t.forward(t.step() * i),
+            "-", (t, i) -> t.right(t.angle() * i));
         assertEquals("A", Turtle.lsystem(start, 0, rules));
         assertEquals("A-", Turtle.lsystem(start, 1, rules));
         assertEquals("A-F-", Turtle.lsystem(start, 2, rules));
@@ -71,7 +71,36 @@ class TestLSystem {
             t.step(4);
             t.angle(360.0 / n);
             t.direction(0);
-            t.lsystem(start, 60, rules, commands);
+            t.lsystem2(start, 60, rules, commands);
+        }
+    }
+
+    @Test
+    void testSpiral_1_1_2_2_3_3() throws IOException {
+        int n = 4;
+        String start = "A";
+        Map<String, String> rules = Map.of(
+            "A", "A--",
+            "-", "F-");
+        Map<String, BiConsumer<Turtle, Integer>> commands = Map.of(
+            "F", (t, i) -> t.forward(t.step() * i),
+            "-", (t, i) -> t.right(t.angle() * i));
+        assertEquals("A", Turtle.lsystem(start, 0, rules));
+        assertEquals("A--", Turtle.lsystem(start, 1, rules));
+        assertEquals("A--F-F-", Turtle.lsystem(start, 2, rules));
+        assertEquals("A--F-F-FF-FF-", Turtle.lsystem(start, 3, rules));
+        assertEquals("A--F-F-FF-FF-FFF-FFF-", Turtle.lsystem(start, 4, rules));
+        assertEquals("A--F-F-FF-FF-FFF-FFF-FFFF-FFFF-", Turtle.lsystem(start, 5, rules));
+        for (int i = 0; i < 8; ++i)
+            System.out.println(Turtle.lsystem(start, i, rules));
+        int size = 400;
+        try (Writer w = new FileWriter(new File(DIR, "Spiral_1_1_2_2_3_3.svg"));
+            Turtle t = new SVGTurtle(w, size, size)) {
+            t.position(size / 2.0, size / 2.0);
+            t.step(4);
+            t.angle(360.0 / n);
+            t.direction(0);
+            t.lsystem2(start, 52, rules, commands);
         }
     }
 

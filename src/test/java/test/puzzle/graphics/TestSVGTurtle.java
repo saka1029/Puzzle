@@ -170,9 +170,9 @@ class TestSVGTurtle {
             "A", "-BF+AFA+FB-",
             "B", "+AF-BFB-FA+");
         Map<String, Consumer<Turtle>> commands = Map.of(
-            "F", x -> x.forward(),
-            "+", x -> x.left(),
-            "-", x -> x.right());
+            "F", Turtle::forward,
+            "+", Turtle::left,
+            "-", Turtle::right);
         int size = 130;
         try (Writer w = new FileWriter("data/SVGTurtle/ヒルベルト曲線-LSystem.svg");
             Turtle t = new SVGTurtle(w, size, size)) {
@@ -211,11 +211,11 @@ class TestSVGTurtle {
             "X", "F+[[X]-X]-F[-FX]+X",
             "F", "FF");
         Map<String, Consumer<Turtle>> commands = Map.of(
-            "F", t -> t.forward(),
-            "+", t -> t.left(),
-            "-", t -> t.right(),
-            "[", t -> t.push(),
-            "]", t -> t.pop());
+            "F", Turtle::forward,
+            "+", Turtle::left,
+            "-", Turtle::right,
+            "[", Turtle::push,
+            "]", Turtle::pop);
         int size = 800;
         try (Writer w = new FileWriter("data/SVGTurtle/FractalPlant-LSystem.svg");
             Turtle t = new SVGTurtle(w, size, size)) {
@@ -248,14 +248,15 @@ class TestSVGTurtle {
             "F", "F-G+F+G-F",
             "G", "GG");
         Map<String, Consumer<Turtle>> commands = Map.of(
-            "F", t -> t.forward(),
-            "G", t -> t.forward(),
-            "+", t -> t.left(),
-            "-", t -> t.right());
+            "F", Turtle::forward,
+            "G", Turtle::forward,
+            "+", Turtle::left,
+            "-", Turtle::right);
         int size = 600;
         try (Writer w = new FileWriter("data/SVGTurtle/sierpinski-gasket.svg");
             Turtle t = new SVGTurtle(w, size, size)) {
             t.position(4, 4);
+            t.penWidth(1);
             t.step(8);
             t.angle(120);
             t.penColor(Color.RED);

@@ -5,7 +5,10 @@ import java.io.Closeable;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 座標系はX座標が右方向、Y座標が下方向です。
@@ -93,7 +96,23 @@ public abstract class Turtle implements Closeable {
             .forEach(c -> commands.getOrDefault(c, t -> {}).accept(this));
     }
 
+    static final Pattern COMMAND_SEQUENCE = Pattern.compile("(.)\\1*");
+
+    public void run2(String s, Map<String, BiConsumer<Turtle, Integer>> commands) {
+        Matcher m = COMMAND_SEQUENCE.matcher(s);
+        while (m.find()) {
+            String c = m.group();
+            BiConsumer<Turtle, Integer> command = commands.get(c.substring(0, 1));
+            if (command != null)
+                command.accept(this, c.length());
+        }
+    }
+
     public void lsystem(String start, int level, Map<String, String> rules, Map<String, Consumer<Turtle>> commands) {
         run(lsystem(start, level, rules), commands);
+    }
+
+    public void lsystem2(String start, int level, Map<String, String> rules, Map<String, BiConsumer<Turtle, Integer>> commands) {
+        run2(lsystem(start, level, rules), commands);
     }
 }

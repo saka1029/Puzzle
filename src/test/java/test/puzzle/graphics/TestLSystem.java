@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
 
@@ -75,8 +76,11 @@ class TestLSystem {
         }
     }
 
+    /**
+     * 1, 1, 2, 3, 3, 4, 4, 5, 5,
+     */
     @Test
-    void testSpiral_1_1_2_2_3_3() throws IOException {
+    void test_1_1_2_2_3_3() throws IOException {
         int n = 4;
         String start = "A";
         Map<String, String> rules = Map.of(
@@ -104,5 +108,44 @@ class TestLSystem {
         }
     }
 
+    /**
+     * 1, 2, 4, 6, 8
+     * A0 = 1
+     * An = (An - 1) * 2
+     * @throws IOException
+     */
+    @Test
+    void testX2() throws IOException {
+        String start = "A";
+        Map<String, String> rules = Map.of(
+            "A", "A-",
+            "-", "FF-");
+        assertEquals("A", Turtle.lsystem(start, 0, rules));
+        assertEquals("A-", Turtle.lsystem(start, 1, rules));
+        assertEquals("A-FF-", Turtle.lsystem(start, 2, rules));
+        assertEquals("A-FF-FFFF-", Turtle.lsystem(start, 3, rules));
+        assertEquals("A-FF-FFFF-FFFFFF-", Turtle.lsystem(start, 4, rules));
+        assertEquals("A-FF-FFFF-FFFFFF-FFFFFFFF-", Turtle.lsystem(start, 5, rules));
+    }
+
+    /**
+     * 1, 3, 7, 15
+     * A0 = 1
+     * An = An-1 * 2 + 1
+     * @throws IOException
+     */
+    @Test
+    void testX2plus1() throws IOException {
+        String start = "A";
+        Map<String, String> rules = Map.of(
+            "A", "A-",
+            "-", "F-",
+            "F", "FF");
+        for (int i = 0; i < 8; ++i) {
+            String g = Turtle.lsystem(start, i, rules);
+            System.out.print(g);
+            System.out.println(" " + Pattern.compile("F+").matcher(g).replaceAll(m -> "" + m.group().length()));
+        }
+    }
 
 }

@@ -125,7 +125,9 @@ class TestLSystem {
         assertEquals("A-3-6-9-12-15-", seq("A", 6, Map.of( "A", "A-", "-", "FFF-")));
         // An = (1 / 4) * (2 * n + (-1)^(n + 1) + 1)
         assertEquals("A--1-1-2-2-3-3-4-4-5-5-", seq("A", 6, Map.of( "A", "A--", "-", "F-")));
+        //
         assertEquals("-7-6-5-4-3-2-1-A", seq("A", 8, Map.of( "A", "-A", "-", "-F")));
+        //
         assertEquals("5-4-3-2-1--A-1-2-3-4-5-", seq("A", 6, Map.of( "A", "-A-", "-", "F-")));
         // An = 2^n -1
         assertEquals("A-1-3-7-15-31-63-127-", seq("A", 8, Map.of( "A", "A-", "-", "F-", "F", "FF")));

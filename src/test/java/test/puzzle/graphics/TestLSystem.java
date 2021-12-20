@@ -108,44 +108,25 @@ class TestLSystem {
         }
     }
 
-    /**
-     * 1, 2, 4, 6, 8
-     * A0 = 1
-     * An = (An - 1) * 2
-     * @throws IOException
-     */
-    @Test
-    void testX2() throws IOException {
-        String start = "A";
-        Map<String, String> rules = Map.of(
-            "A", "A-",
-            "-", "FF-");
-        assertEquals("A", Turtle.lsystem(start, 0, rules));
-        assertEquals("A-", Turtle.lsystem(start, 1, rules));
-        assertEquals("A-FF-", Turtle.lsystem(start, 2, rules));
-        assertEquals("A-FF-FFFF-", Turtle.lsystem(start, 3, rules));
-        assertEquals("A-FF-FFFF-FFFFFF-", Turtle.lsystem(start, 4, rules));
-        assertEquals("A-FF-FFFF-FFFFFF-FFFFFFFF-", Turtle.lsystem(start, 5, rules));
+    static final Pattern FS = Pattern.compile("F+");
+    static String seq(String start, int n, Map<String, String> rules) {
+        return FS.matcher(Turtle.lsystem(start, n, rules)).replaceAll(m -> "" + m.group().length());
     }
 
     /**
-     * 1, 3, 7, 15
-     * A0 = 1
-     * An = An-1 * 2 + 1
-     * @throws IOException
      */
     @Test
-    void testX2plus1() throws IOException {
-        String start = "A";
-        Map<String, String> rules = Map.of(
-            "A", "A-",
-            "-", "F-",
-            "F", "FF");
-        for (int i = 0; i < 8; ++i) {
-            String g = Turtle.lsystem(start, i, rules);
-            System.out.print(g);
-            System.out.println(" " + Pattern.compile("F+").matcher(g).replaceAll(m -> "" + m.group().length()));
-        }
+    void testSequence() throws IOException {
+        assertEquals("A-1-2-3-4-5-", seq("A", 6, Map.of( "A", "A-", "-", "F-")));
+        assertEquals("A-2-4-6-8-10-", seq("A", 6, Map.of( "A", "A-", "-", "FF-")));
+        assertEquals("A-3-6-9-12-15-", seq("A", 6, Map.of( "A", "A-", "-", "FFF-")));
+        assertEquals("A--1-1-2-2-3-3-4-4-5-5-", seq("A", 6, Map.of( "A", "A--", "-", "F-")));
+        assertEquals("-7-6-5-4-3-2-1-A", seq("A", 8, Map.of( "A", "-A", "-", "-F")));
+        assertEquals("5-4-3-2-1--A-1-2-3-4-5-", seq("A", 6, Map.of( "A", "-A-", "-", "F-")));
+        // An = 2^n -1
+        assertEquals("A-1-3-7-15-31-63-127-", seq("A", 8, Map.of( "A", "A-", "-", "F-", "F", "FF")));
+        // An = (1 / 2) * (3^n -1)
+        assertEquals("A-1-4-13-40-121-364-1093-", seq("A", 8, Map.of( "A", "A-", "-", "F-", "F", "FFF")));
     }
 
 }

@@ -117,9 +117,13 @@ class TestLSystem {
      */
     @Test
     void testSequence() throws IOException {
+        // An = n
         assertEquals("A-1-2-3-4-5-", seq("A", 6, Map.of( "A", "A-", "-", "F-")));
+        // An = 2 * n
         assertEquals("A-2-4-6-8-10-", seq("A", 6, Map.of( "A", "A-", "-", "FF-")));
+        // An = 3 * n
         assertEquals("A-3-6-9-12-15-", seq("A", 6, Map.of( "A", "A-", "-", "FFF-")));
+        // An = (1 / 4) * (2 * n + (-1)^(n + 1) + 1)
         assertEquals("A--1-1-2-2-3-3-4-4-5-5-", seq("A", 6, Map.of( "A", "A--", "-", "F-")));
         assertEquals("-7-6-5-4-3-2-1-A", seq("A", 8, Map.of( "A", "-A", "-", "-F")));
         assertEquals("5-4-3-2-1--A-1-2-3-4-5-", seq("A", 6, Map.of( "A", "-A-", "-", "F-")));

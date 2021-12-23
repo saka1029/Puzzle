@@ -116,8 +116,22 @@ class TestLSystem {
         return FS.matcher(Turtle.lsystem(start, n, map)).replaceAll(m -> "" + m.group().length());
     }
 
-    /**
-     */
+    @Test
+    void testNumbers() throws IOException {
+        // An = n
+        assertEquals("A6", seq("A", 6, "A", "AF"));
+        // An = 2 * n
+        assertEquals("A12", seq("A", 6, "A", "AFF"));
+        // An = 3 * n
+        assertEquals("A18", seq("A", 6, "A", "AFFF"));
+        // An = 2 ^ n - 1
+        assertEquals("A3", seq("A", 2, "A", "AF", "F", "FF"));
+        assertEquals("A63", seq("A", 6, "A", "AF", "F", "FF"));
+        // An = 2 ^ (n + 1) - 2
+        assertEquals("A6", seq("A", 2, "A", "AFF", "F", "FF"));
+        assertEquals("A126", seq("A", 6, "A", "AFF", "F", "FF"));
+    }
+
     @Test
     void testSequence() throws IOException {
         // An = n
@@ -145,7 +159,7 @@ class TestLSystem {
     void test紗綾形() throws IOException {
         String start = "S";
         Map<String, String> rules = Map.of(
-            "S", "A-B-B+A+C-C-A-B-B+A+C-C",
+            "S", "A-B-B+A+C-C-A-B-B+A+C-C-",
             "A", "FFFFFFF",
             "B", "F-F+F",
             "C", "F+F-F"

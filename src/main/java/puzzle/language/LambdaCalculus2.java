@@ -309,6 +309,10 @@ public class LambdaCalculus2 {
         return reduceFull(expression, null, context);
     }
 
+    public static Expression reduce(Expression expression) {
+        return reduce(expression, Collections.emptyMap());
+    }
+
     public static Expression parse(String source) {
         return new Object() {
 
@@ -440,7 +444,7 @@ public class LambdaCalculus2 {
             if (line.equals("exit"))
                 break;
             try {
-                Expression result = parse(line).reduce(context);
+                Expression result = reduce(parse(line), context);
                 output.println(result);
             } catch (LambdaCalculusException e) {
                 output.println(e.getMessage());
@@ -454,7 +458,7 @@ public class LambdaCalculus2 {
 
     /**
      * 入力 echo prompt 標準入力 false true ファイル false false ファイル true true
-     * 
+     *
      * @param args
      * @throws IOException
      */

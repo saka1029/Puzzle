@@ -7,6 +7,7 @@ import static puzzle.language.LambdaCalculus2.DEFINE;
 import static puzzle.language.LambdaCalculus2.bindToString;
 import static puzzle.language.LambdaCalculus2.get;
 import static puzzle.language.LambdaCalculus2.parse;
+import static puzzle.language.LambdaCalculus2.reduce;
 import static puzzle.language.LambdaCalculus2.repl;
 
 import java.io.IOException;
@@ -69,7 +70,7 @@ class TestLambdaCalculus2 {
 
     @Test
     void testReduce() {
-        assertEquals("a", parse("(λx.x) a").reduce().toNormalizedString());
+        assertEquals("a", reduce(parse("(λx.x) a")).toNormalizedString());
     }
 
     @Test
@@ -120,8 +121,8 @@ class TestLambdaCalculus2 {
     }
 
     void assertEquivalent(String expected, String actual) {
-        assertEquals(parse(expected).reduce(context).toNormalizedString(),
-            parse(actual).reduce(context).toNormalizedString());
+        assertEquals(reduce(parse(expected), context).toNormalizedString(),
+            reduce(parse(actual), context).toNormalizedString());
     }
 
     /**

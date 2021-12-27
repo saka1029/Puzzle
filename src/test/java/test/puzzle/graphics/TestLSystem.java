@@ -127,9 +127,17 @@ class TestLSystem {
         // An = 2 ^ n - 1
         assertEquals("A3", seq("A", 2, "A", "AF", "F", "FF"));
         assertEquals("A63", seq("A", 6, "A", "AF", "F", "FF"));
-        // An = 2 ^ (n + 1) - 2
+        // An = 2 ^ (n + 1)
         assertEquals("A6", seq("A", 2, "A", "AFF", "F", "FF"));
         assertEquals("A126", seq("A", 6, "A", "AFF", "F", "FF"));
+        //
+        assertEquals("B1", seq("A", 1, "A", "BF", "B", "AFF", "F", "FF"));
+        assertEquals("A4", seq("A", 2, "A", "BF", "B", "AFF", "F", "FF"));
+        assertEquals("B9", seq("A", 3, "A", "BF", "B", "AFF", "F", "FF"));
+        assertEquals("A20", seq("A", 4, "A", "BF", "B", "AFF", "F", "FF"));
+        assertEquals("B41", seq("A", 5, "A", "BF", "B", "AFF", "F", "FF"));
+        assertEquals("A84", seq("A", 6, "A", "BF", "B", "AFF", "F", "FF"));
+        assertEquals("B169", seq("A", 7, "A", "BF", "B", "AFF", "F", "FF"));
     }
 
     @Test

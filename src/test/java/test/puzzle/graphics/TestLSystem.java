@@ -25,6 +25,33 @@ class TestLSystem {
     }
 
     @Test
+    void testBinaryTree() throws IOException {
+        String start = "0";
+        Map<String, String> rules = Map.of(
+            "1", "11",
+            "0", "1[0]0");
+        Map<String, BiConsumer<Turtle, Integer>> commands = Map.of(
+            "0", (t, i) -> t.forward(t.step() * i),
+            "1", (t, i) -> t.forward(t.step() * i),
+            "[", (t, i) -> { t.push(); t.left(); },
+            "]", (t, i) -> { t.pop(); t.right(); });
+        assertEquals("0", Turtle.lsystem(start, 0, rules));
+        assertEquals("1[0]0", Turtle.lsystem(start, 1, rules));
+        assertEquals("11[1[0]0]1[0]0", Turtle.lsystem(start, 2, rules));
+        assertEquals("1111[11[1[0]0]1[0]0]11[1[0]0]1[0]0", Turtle.lsystem(start, 3, rules));
+        assertEquals("11111111[1111[11[1[0]0]1[0]0]11[1[0]0]1[0]0]1111[11[1[0]0]1[0]0]11[1[0]0]1[0]0", Turtle.lsystem(start, 4, rules));
+        int size = 800;
+        try (Writer w = new FileWriter(new File(DIR, "BinaryTree.svg"));
+            Turtle t = new SVGTurtle(w, size, size)) {
+            t.position(size / 2.0, size - 2);
+            t.step(4);
+            t.angle(45);
+            t.direction(-90);
+            t.lsystem2(start, 7, rules, commands);
+        }
+    }
+
+    @Test
     void testSpiralReverse() throws IOException {
         int n = 5;
         String start = "A";
@@ -150,7 +177,7 @@ class TestLSystem {
         assertEquals("A-3-6-9-12-15-", seq("A", 6, "A", "A-", "-", "FFF-"));
         // An = (1 / 4) * (2 * n + (-1)^(n + 1) + 1)
         assertEquals("A--1-1-2-2-3-3-4-4-5-5-", seq("A", 6, "A", "A--", "-", "F-"));
-        //
+        // An = 8 - n
         assertEquals("-7-6-5-4-3-2-1-A", seq("A", 8, "A", "-A", "-", "-F"));
         //
         assertEquals("5-4-3-2-1--A-1-2-3-4-5-", seq("A", 6, "A", "-A-", "-", "F-"));

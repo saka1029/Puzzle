@@ -14,6 +14,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 public class LambdaCalculus2 {
 
@@ -71,7 +73,8 @@ public class LambdaCalculus2 {
 
     public static abstract class Expression {
 
-        abstract void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb);
+        abstract void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
+            StringBuilder sb);
 
         public String toNormalizedString() {
             StringBuilder sb = new StringBuilder();
@@ -101,7 +104,8 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
+            StringBuilder sb) {
             sb.append(get(bind, this));
         }
     }
@@ -119,7 +123,8 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
+            StringBuilder sb) {
             sb.append(name);
         }
     }
@@ -140,18 +145,12 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
+            StringBuilder sb) {
             String name = "%" + number.value++;
             sb.append("λ").append(name).append(".");
             body.toNormalizedString(bind(bind, variable, name), number, sb);
         }
-
-//        @Override
-//        public Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context) {
-//            BoundVariable newVariable = new BoundVariable(variable.name);
-//            Expression newBody = body.reduce(bind(bind, variable, newVariable), context);
-//            return new Lambda(newVariable, newBody);
-//        }
     }
 
     public static class Application extends Expression {
@@ -183,7 +182,8 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
+            StringBuilder sb) {
             if (function instanceof Lambda)
                 sb.append("(");
             function.toNormalizedString(bind, number, sb);
@@ -200,11 +200,13 @@ public class LambdaCalculus2 {
 
     public static abstract class Command extends Expression {
 
-        abstract Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context,
-                Expression argument);
+        abstract Expression reduce(Bind<BoundVariable, Expression> bind,
+            Map<String, Expression> context,
+            Expression argument);
 
         @Override
-        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number, StringBuilder sb) {
+        void toNormalizedString(Bind<BoundVariable, String> bind, IntHolder number,
+            StringBuilder sb) {
             sb.append(toString());
         }
     }
@@ -217,7 +219,8 @@ public class LambdaCalculus2 {
         }
 
         @Override
-        Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context, Expression argument) {
+        Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context,
+            Expression argument) {
             if (!(argument instanceof FreeVariable))
                 throw new LambdaCalculusException("usage: define FREE_VARIABLE EXPRESSION");
             return new Command() {
@@ -230,8 +233,9 @@ public class LambdaCalculus2 {
                 }
 
                 @Override
-                Expression reduce(Bind<BoundVariable, Expression> bind, Map<String, Expression> context,
-                        Expression argument) {
+                Expression reduce(Bind<BoundVariable, Expression> bind,
+                    Map<String, Expression> context,
+                    Expression argument) {
                     context.put(name, argument);
                     return argument;
                 }
@@ -240,7 +244,7 @@ public class LambdaCalculus2 {
     };
 
     public static Expression reduceFull(Expression expression, Bind<BoundVariable, Expression> bind,
-            Map<String, Expression> context) {
+        Map<String, Expression> context) {
         if (expression instanceof BoundVariable variable) {
             Expression e = get(bind, variable);
             if (e != null)
@@ -251,7 +255,8 @@ public class LambdaCalculus2 {
             return subst != null ? reduceFull(subst, null, context) : variable;
         } else if (expression instanceof Lambda lambda) {
             BoundVariable newVariable = new BoundVariable(lambda.variable.name);
-            Expression newBody = reduceFull(lambda.body, bind(bind, lambda.variable, newVariable), context);
+            Expression newBody = reduceFull(lambda.body, bind(bind, lambda.variable, newVariable),
+                context);
             return new Lambda(newVariable, newBody);
         } else if (expression instanceof Application application) {
             Expression head = reduceFull(application.function, bind, context);
@@ -267,12 +272,12 @@ public class LambdaCalculus2 {
             throw new RuntimeException("unknown expression: " + expression);
     }
 
-    public static Expression reduce(Expression expression, Map<String, Expression> context) {
+    public static Expression reduceFull(Expression expression, Map<String, Expression> context) {
         return reduceFull(expression, null, context);
     }
 
-    public static Expression reduce(Expression expression) {
-        return reduce(expression, Collections.emptyMap());
+    public static Expression reduceFull(Expression expression) {
+        return reduceFull(expression, Collections.emptyMap());
     }
 
     public static Expression parse(String source) {
@@ -361,7 +366,8 @@ public class LambdaCalculus2 {
                 default:
                     if (!isVariableChar(ch))
                         throw new LambdaCalculusException(
-                                new StringBuilder("unexpected char '").appendCodePoint(ch).append("'").toString());
+                            new StringBuilder("unexpected char '").appendCodePoint(ch).append("'")
+                                .toString());
                     return parseVariable(bind);
                 }
             }
@@ -381,14 +387,49 @@ public class LambdaCalculus2 {
                 Expression expression = parse(null);
                 if (ch != -1)
                     throw new LambdaCalculusException(
-                            "extra string '" + new String(codePoints, index - 1, length - index + 1) + "'");
+                        "extra string '" + new String(codePoints, index - 1, length - index + 1)
+                            + "'");
                 return expression;
             }
         }.parse();
     }
 
-    public static void repl(Reader reader, Writer writer, Map<String, Expression> context, boolean echo, boolean prompt)
-            throws IOException {
+    public static class ConsumerWriter extends Writer {
+
+        final Consumer<String> consumer;
+        final StringBuilder sb = new StringBuilder();
+
+        public ConsumerWriter(Consumer<String> consumer) {
+            this.consumer = consumer;
+        }
+
+        void writeLine() {
+            if (sb.length() <= 0)
+                return;
+            consumer.accept(sb.toString());
+            sb.setLength(0);
+        }
+
+        @Override
+        public void write(char[] cbuf, int off, int len) throws IOException {
+            String line = new String(cbuf, off, len);
+            sb.append(line.replaceAll("[\r\n]", ""));
+            if (line.endsWith("\n") || line.endsWith("\r"))
+                writeLine();
+        }
+
+        @Override
+        public void flush() throws IOException {
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
+    }
+
+    public static void repl(BiFunction<Expression, Map<String, Expression>, Expression> reducer, Reader reader, Writer writer,
+        Map<String, Expression> context, boolean echo, boolean prompt)
+        throws IOException {
         String promptStr = "> ";
         BufferedReader input = new BufferedReader(reader);
         PrintWriter output = new PrintWriter(writer, true);
@@ -406,7 +447,7 @@ public class LambdaCalculus2 {
             if (line.equals("exit"))
                 break;
             try {
-                Expression result = reduce(parse(line), context);
+                Expression result = reducer.apply(parse(line), context);
                 output.println(result);
             } catch (LambdaCalculusException e) {
                 output.println(e.getMessage());
@@ -458,6 +499,6 @@ public class LambdaCalculus2 {
             writer = new OutputStreamWriter(System.out);
         Map<String, Expression> context = new HashMap<>();
         context.put("define", DEFINE);
-        repl(reader, writer, context, echo, prompt);
+        repl(LambdaCalculus2::reduceFull, reader, writer, context, echo, prompt);
     }
 }

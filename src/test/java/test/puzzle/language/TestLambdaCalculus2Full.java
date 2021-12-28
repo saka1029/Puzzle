@@ -7,26 +7,34 @@ import static puzzle.language.LambdaCalculus2.DEFINE;
 import static puzzle.language.LambdaCalculus2.bindToString;
 import static puzzle.language.LambdaCalculus2.get;
 import static puzzle.language.LambdaCalculus2.parse;
-import static puzzle.language.LambdaCalculus2.reduce;
+import static puzzle.language.LambdaCalculus2.reduceFull;
 import static puzzle.language.LambdaCalculus2.repl;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
 
 import puzzle.Common;
 import puzzle.language.LambdaCalculus2.Bind;
+import puzzle.language.LambdaCalculus2.ConsumerWriter;
 import puzzle.language.LambdaCalculus2.Expression;
 
-class TestLambdaCalculus2 {
+class TestLambdaCalculus2Full {
 
-    static final Logger logger = Common.getLogger(TestLambdaCalculus2.class);
+    static final Logger logger = Common.getLogger(TestLambdaCalculus2Full.class);
+
+    /** このテストケースにおけるreduce */
+    static Expression reduce(Expression e, Map<String, Expression> context) {
+        return reduceFull(e, context);
+    }
+
+    static Expression reduce(Expression e) {
+        return reduceFull(e);
+    }
 
     @Test
     void testBind() {
@@ -162,7 +170,6 @@ class TestLambdaCalculus2 {
         assertEquivalent("0", "pred2 1");
         assertEquivalent("2", "pred2 3");
     }
-
 
     /**
      * @see <a href=
@@ -383,7 +390,8 @@ class TestLambdaCalculus2 {
         Common.methodName();
         try {
             define("Z", "λf.(λx.f (λy.x x y)) (λx.f (λy.x x y))");
-            // globals.put("Z", parse("λf.(λx.f (λy. x x y)) (λx.f (λy.x x y))"));
+            // globals.put("Z", parse("λf.(λx.f (λy. x x y)) (λx.f (λy.x x
+            // y))"));
             assertEquivalent("g (Z g)", "Z g");
             fail();
         } catch (StackOverflowError e) {
@@ -398,42 +406,8 @@ class TestLambdaCalculus2 {
         assertEquivalent("λa b c.b (a b c)", "define succ λn f x.f (n f x)");
         assertEquivalent("λa b.b", context.get("0").toString());
         assertEquivalent("1", "succ 0");
-        System.out.println(context);
     }
 
-    static class ConsumerWriter extends Writer {
-
-        final Consumer<String> consumer;
-        final StringBuilder sb = new StringBuilder();
-
-        public ConsumerWriter(Consumer<String> consumer) {
-            this.consumer = consumer;
-        }
-
-        void writeLine() {
-            if (sb.length() <= 0)
-                return;
-            consumer.accept(sb.toString());
-            sb.setLength(0);
-        }
-
-        @Override
-        public void write(char[] cbuf, int off, int len) throws IOException {
-            String line = new String(cbuf, off, len);
-            sb.append(line.replaceAll("[\r\n]", ""));
-            if (line.endsWith("\n") || line.endsWith("\r"))
-                writeLine();
-        }
-
-        @Override
-        public void flush() throws IOException {
-        }
-
-        @Override
-        public void close() throws IOException {
-        }
-
-    }
     @Test
     public void testRepl() throws IOException {
         String source = "define 0 λf x.x\n"
@@ -463,12 +437,69 @@ class TestLambdaCalculus2 {
             + "pred (succ 2)\n"
             + "define pred2 λn.n(λg k.(g 1)(λu.+(g k)1)k)(λv.0)0\n"
             + "pred2 1\n"
-            + "pred2 3\n"
-            ;
+            + "pred2 3\n";
         Map<String, Expression> context = new HashMap<>();
         context.put("define", DEFINE);
-//        repl(new StringReader(source), new OutputStreamWriter(System.out), context, true);
-        repl(new StringReader(source), new ConsumerWriter(logger::info), context, true, true);
+        StringBuilder sb = new StringBuilder();
+        repl(TestLambdaCalculus2Full::reduce, new StringReader(source),
+            new ConsumerWriter(s -> sb.append(s).append('\n')),
+            context, true, true);
+        String expected = "> define 0 λf x.x\n"
+            + "λf.λx.x\n"
+            + "> define 1 λf x.f x\n"
+            + "λf.λx.f x\n"
+            + "> define 2 λf x.f(f x)\n"
+            + "λf.λx.f (f x)\n"
+            + "> define 3 λf x.f(f(f x))\n"
+            + "λf.λx.f (f (f x))\n"
+            + "> define succ λn f x.f(n f x)\n"
+            + "λn.λf.λx.f (n f x)\n"
+            + "> succ 0\n"
+            + "λf.λx.f x\n"
+            + "> succ 1\n"
+            + "λf.λx.f (f x)\n"
+            + "> succ 2\n"
+            + "λf.λx.f (f (f x))\n"
+            + "> define + λm n f x.m f(n f x)\n"
+            + "λm.λn.λf.λx.m f (n f x)\n"
+            + "> + 0 1\n"
+            + "λf.λx.f x\n"
+            + "> + 1 0\n"
+            + "λf.λx.f x\n"
+            + "> + 1 1\n"
+            + "λf.λx.f (f x)\n"
+            + "> + 1 2\n"
+            + "λf.λx.f (f (f x))\n"
+            + "> + 2 1\n"
+            + "λf.λx.f (f (f x))\n"
+            + "> define * λm n f.m(n f)\n"
+            + "λm.λn.λf.m (n f)\n"
+            + "> * 0 1\n"
+            + "λf.λx.x\n"
+            + "> * 1 0\n"
+            + "λf.λx.x\n"
+            + "> * 1 2\n"
+            + "λf.λx.f (f x)\n"
+            + "> * 2 1\n"
+            + "λf.λx.f (f x)\n"
+            + "> * 1 3\n"
+            + "λf.λx.f (f (f x))\n"
+            + "> * 3 1\n"
+            + "λf.λx.f (f (f x))\n"
+            + "> define pred λn f x.n(λg h.h(g f)) (λu.x) (λu.u)\n"
+            + "λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)\n"
+            + "> pred 1\n"
+            + "λf.λx.x\n"
+            + "> pred 2\n"
+            + "λf.λx.f x\n"
+            + "> pred (succ 2)\n"
+            + "λf.λx.f (f x)\n"
+            + "> define pred2 λn.n(λg k.(g 1)(λu.+(g k)1)k)(λv.0)0\n"
+            + "λn.n (λg.λk.g (λf.λx.f x) (λu.λf.λx.g k f (f x)) k) (λv.λf.λx.x) (λf.λx.x)\n"
+            + "> pred2 1\n"
+            + "λf.λx.x\n"
+            + "> pred2 3\n"
+            + "λf.λx.f (f x)\n";
+        assertEquals(expected, sb.toString());
     }
-
 }

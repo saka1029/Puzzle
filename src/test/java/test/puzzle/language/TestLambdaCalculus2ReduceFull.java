@@ -23,9 +23,9 @@ import puzzle.language.LambdaCalculus2.Bind;
 import puzzle.language.LambdaCalculus2.ConsumerWriter;
 import puzzle.language.LambdaCalculus2.Expression;
 
-class TestLambdaCalculus2Full {
+class TestLambdaCalculus2ReduceFull {
 
-    static final Logger logger = Common.getLogger(TestLambdaCalculus2Full.class);
+    static final Logger logger = Common.getLogger(TestLambdaCalculus2ReduceFull.class);
 
     /** このテストケースにおけるreduce */
     static Expression reduce(Expression e, Map<String, Expression> context) {
@@ -441,7 +441,7 @@ class TestLambdaCalculus2Full {
         Map<String, Expression> context = new HashMap<>();
         context.put("define", DEFINE);
         StringBuilder sb = new StringBuilder();
-        repl(TestLambdaCalculus2Full::reduce, new StringReader(source),
+        repl(TestLambdaCalculus2ReduceFull::reduce, new StringReader(source),
             new ConsumerWriter(s -> sb.append(s).append('\n')),
             context, true, true);
         String expected = "> define 0 λf x.x\n"

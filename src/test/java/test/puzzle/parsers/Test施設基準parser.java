@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 class Test施設基準parser {
 
-    static final String 数字 = "[0-9０－９]+";
+    static final String 数字 = "[0-9０-９]+";
     static final String 丸数字 = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳";
     static final String イロハ = "イロハニホヘトチリヌルヲワカヨタレソツネ"
         + "ナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス";
@@ -21,8 +21,10 @@ class Test施設基準parser {
 
     interface 項番 {
         Pattern pattern();
-
         int number(String 項番);
+        default boolean isNext(String a, String b) {
+            return number(a) + 1 == number(b);
+        }
     }
 
     static class 数字 implements 項番 {
@@ -33,7 +35,7 @@ class Test施設基準parser {
         }
 
         数字() {
-            this(数字);
+            this("^" + 数字 + "$");
         }
 
         public Pattern pattern() {
@@ -42,15 +44,15 @@ class Test施設基準parser {
 
         public int number(String s) {
             Matcher m = pat.matcher(s);
-            if (m.find())
+            if (!m.find())
                 return -1;
-            return Integer.parseInt(m.group().replaceAll("\\D", ""));
+            return Integer.parseInt(m.group().replaceAll("[^0-9０-９]", ""));
         }
     }
 
     static class 括弧数字 extends 数字 {
         括弧数字() {
-            super("[(（]" + 数字 + "[)）]");
+            super("^[(（]" + 数字 + "[)）]$");
         }
     }
 
@@ -60,7 +62,7 @@ class Test施設基準parser {
 
         単一文字項番(String all) {
             this.all = all;
-            this.pat = Pattern.compile("[" + all + "]");
+            this.pat = Pattern.compile("^[" + all + "]$");
         }
 
         public Pattern pattern() {
@@ -68,7 +70,10 @@ class Test施設基準parser {
         }
 
         public int number(String s) {
-            return all.indexOf(s) + 1;
+            if (s.length() != 1)
+                return -1;
+            int n = all.indexOf(s);
+            return n == -1 ? -1 : n + 1;
         }
     }
 
@@ -92,12 +97,25 @@ class Test施設基準parser {
     }
     
     @Test
-    void tes丸数字() {
+    void test数字() {
+        assertEquals(12, new 数字().number("12"));
+        assertEquals(12, new 数字().number("１２"));
+    }
+    
+    @Test
+    void test括弧数字() {
+        assertEquals(12, new 括弧数字().number("(12)"));
+        assertEquals(12, new 括弧数字().number("（12）"));
+        assertEquals(12, new 括弧数字().number("（１２）"));
+    }
+    
+    @Test
+    void test丸数字() {
         assertEquals(12, new 丸数字().number("⑫"));
     }
     
     @Test
-    void tesイロハ() {
+    void testイロハ() {
         assertEquals(12, new イロハ().number("ヲ"));
     }
 

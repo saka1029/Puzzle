@@ -1,8 +1,8 @@
 package test.puzzle.parsers;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.text.Normalizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,66 +10,95 @@ import org.junit.jupiter.api.Test;
 
 class Test施設基準parser {
 
-    static final String S空白 = "[ \t　]*";
-    static final String S表題 = "(?<T>.*)";
-    static final String S数字 = "(?<N>[0-9０-９]+)";
-    static final String Sイロハ = "(?<N>イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス)";
-    static final String S漢数字 = "一二三四五六七八九";
-    static final String S漢数字OR = "[" + S漢数字 + "]";
-    static final String S漢番号 = "(" + S漢数字OR + "?十)?" + S漢数字OR;
-    static final String S番号 = "(?<N>" + S漢番号 + "(の" + S漢番号 + ")*)";
-    static final Pattern 漢番号 = Pattern.compile(S漢番号);
-    static final Pattern 番号 = Pattern.compile("^" + S空白 + S番号 + S空白 + S表題);
-    static final Pattern 章番号 = Pattern.compile("^" + S空白 + S番号 + "章" + S空白 + S表題);
+    static final String 数字 = "[0-9０－９]+";
+    static final String 丸数字 = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳";
+    static final String イロハ = "イロハニホヘトチリヌルヲワカヨタレソツネ"
+        + "ナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス";
+
+    static String 半角変換(String target) {
+        return Normalizer.normalize(target, Normalizer.Form.NFKD);
+    }
 
     interface 項番 {
         Pattern pattern();
-    }
-    static String[] header(Pattern pat, String input) {
-        Matcher m = pat.matcher(input);
-        return m.find() ? new String[] {m.group("N"), m.group("T")} : new String[2];
+
+        int number(String 項番);
     }
 
-    static String 漢番号(String input) {
-        int number = 0;
-        for (char c : input.toCharArray())
-            if (c == '十')
-                number = number == 0 ? 1 : number;
-            else {
-                int index = S漢数字.indexOf(c);
-                if (index >= 0)
-                    number = number * 10 + index + 1;
-                else
-                    throw new IllegalArgumentException("input");
-            }
-        return "" + number;
-    }
+    static class 数字 implements 項番 {
+        final Pattern pat;
 
-    static String number(String input) {
-        StringBuilder sb = new StringBuilder();
-        Matcher m = 漢番号.matcher(input);
-        while (m.find()) {
-            sb.append(".");
-            sb.append(漢番号(m.group()));
+        数字(String pat) {
+            this.pat = Pattern.compile(pat);
         }
-        return sb.substring(1);
+
+        数字() {
+            this(数字);
+        }
+
+        public Pattern pattern() {
+            return pat;
+        }
+
+        public int number(String s) {
+            Matcher m = pat.matcher(s);
+            if (m.find())
+                return -1;
+            return Integer.parseInt(m.group().replaceAll("\\D", ""));
+        }
+    }
+
+    static class 括弧数字 extends 数字 {
+        括弧数字() {
+            super("[(（]" + 数字 + "[)）]");
+        }
+    }
+
+    static class 単一文字項番 implements 項番 {
+        final String all;
+        final Pattern pat;
+
+        単一文字項番(String all) {
+            this.all = all;
+            this.pat = Pattern.compile("[" + all + "]");
+        }
+
+        public Pattern pattern() {
+            return pat;
+        }
+
+        public int number(String s) {
+            return all.indexOf(s) + 1;
+        }
+    }
+
+    static class 丸数字 extends 単一文字項番 {
+        丸数字() {
+            super(丸数字);
+        }
+    }
+
+    static class イロハ extends 単一文字項番 {
+        イロハ() {
+            super(イロハ);
+        }
     }
 
     @Test
-    void testHeader() {
-        assertArrayEquals(new String[] {"一の二の三", "タイトル"}, header(番号, "  一の二の三     タイトル"));
-        assertArrayEquals(new String[] {"二十三", "タイトル たいとる"}, header(番号, "  二十三     タイトル たいとる"));
-        assertArrayEquals(new String[] {"二", "タイトル"}, header(章番号, "  二章　タイトル"));
-        assertArrayEquals(new String[] {"十一の二", "タイトル"}, header(章番号, "  十一の二章　タイトル"));
+    void test半角変換() {
+        assertEquals("abc", 半角変換("ａｂｃ"));
+        assertEquals("123", 半角変換("１２３"));
+        assertEquals("(12)", 半角変換("（１２）"));
     }
-
+    
     @Test
-    void testNumber() {
-        assertEquals("1.2.3", number("一の二の三"));
-        assertEquals("23", number("二十三"));
-        assertEquals("2", number("二"));
-        assertEquals("11.2", number("十一の二"));
-        assertEquals("99.99.99", number("九十九の九十九の九十九"));
+    void tes丸数字() {
+        assertEquals(12, new 丸数字().number("⑫"));
+    }
+    
+    @Test
+    void tesイロハ() {
+        assertEquals(12, new イロハ().number("ヲ"));
     }
 
 }

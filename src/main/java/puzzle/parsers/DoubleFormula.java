@@ -17,8 +17,10 @@ public class DoubleFormula {
      * SYNTAX:
      *   formula  = term { term }
      *   term     = [ "+" | "-" ] ( variable | constant )
-     *   variable = [ DIGITS ] "x" [ "^" DIGITS ]
-     *   constant = DIGITS
+     *   variable = [ number ] "x" [ "^" number ]
+     *   constant = number
+     *   number   = DIGIT { DIGIT }
+     *   DIGIT    = "0" | "1" | "2" | ... | "9"
      * </pre>
      * SYNTAX:
      */

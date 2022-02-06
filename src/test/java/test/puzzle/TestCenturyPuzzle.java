@@ -1,14 +1,15 @@
 package test.puzzle;
 
-import static puzzle.Iterables.*;
+import static puzzle.Iterables.forEach;
+import static puzzle.Iterables.permutation;
+import static puzzle.Iterables.rangeClosed;
+import static puzzle.Iterables.reduce;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
-import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -280,7 +281,7 @@ class TestCenturyPuzzle {
         centuryPuzzle(rangeClosed(0, 9));
     }
 
-    @Test
+//    @Test
     void test() {
         centuryPuzzle();
     }

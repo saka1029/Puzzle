@@ -243,6 +243,18 @@ public class LambdaCalculus2 {
         }
     };
 
+    /**
+     * 完全ベータ簡約します。
+     * 
+     * <ul>
+     * <li>内側から外側に向かって簡約します。</li>
+     * <li>ラムダ式の内部も簡約します。</li>
+     * </ul>
+     * @param expression 簡約化する式を指定します。
+     * @param bind 束縛変数と値のペアを指定します。
+     * @param context 自由変数と値のペアを指定します。
+     * @return 簡約化された式を返します。
+     */
     public static Expression reduceFull(Expression expression, Bind<BoundVariable, Expression> bind,
         Map<String, Expression> context) {
         if (expression instanceof BoundVariable variable) {
@@ -277,6 +289,55 @@ public class LambdaCalculus2 {
     }
 
     public static Expression reduceFull(Expression expression) {
+        return reduceFull(expression, Collections.emptyMap());
+    }
+
+    /**
+     * 名前呼び戦略でベータ簡約します。
+     * 
+     * <ul>
+     * <li>外側から内側に向かって簡約します。</li>
+     * <li>ラムダ式の内部は簡約しません。</li>
+     * </ul>
+     * @param expression 簡約化する式を指定します。
+     * @param bind 束縛変数と値のペアを指定します。
+     * @param context 自由変数と値のペアを指定します。
+     * @return 簡約化された式を返します。
+     */
+    public static Expression reduceByName(Expression expression, Bind<BoundVariable, Expression> bind,
+        Map<String, Expression> context) {
+        if (expression instanceof BoundVariable variable) {
+            Expression e = get(bind, variable);
+            if (e != null)
+                return e;
+            return variable;
+        } else if (expression instanceof FreeVariable variable) {
+            Expression subst = context.get(variable.name);
+            return subst != null ? reduceFull(subst, null, context) : variable;
+        } else if (expression instanceof Lambda lambda) {
+            BoundVariable newVariable = new BoundVariable(lambda.variable.name);
+            Expression newBody = reduceFull(lambda.body, bind(bind, lambda.variable, newVariable),
+                context);
+            return new Lambda(newVariable, newBody);
+        } else if (expression instanceof Application application) {
+            Expression head = reduceFull(application.function, bind, context);
+            Expression tail = reduceFull(application.argument, bind, context);
+            if (head instanceof Lambda lambda)
+                return reduceFull(lambda.body, bind(bind, lambda.variable, tail), context);
+            else if (head instanceof Command command)
+                return command.reduce(bind, context, tail);
+            return new Application(head, tail);
+        } else if (expression instanceof Command command) {
+            return command;
+        } else
+            throw new RuntimeException("unknown expression: " + expression);
+    }
+
+    public static Expression reduceByName(Expression expression, Map<String, Expression> context) {
+        return reduceFull(expression, null, context);
+    }
+
+    public static Expression reduceByName(Expression expression) {
         return reduceFull(expression, Collections.emptyMap());
     }
 

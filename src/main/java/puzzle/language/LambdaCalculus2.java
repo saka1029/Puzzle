@@ -313,17 +313,17 @@ public class LambdaCalculus2 {
             return variable;
         } else if (expression instanceof FreeVariable variable) {
             Expression subst = context.get(variable.name);
-            return subst != null ? reduceFull(subst, null, context) : variable;
+            return subst != null ? reduceByName(subst, null, context) : variable;
         } else if (expression instanceof Lambda lambda) {
             BoundVariable newVariable = new BoundVariable(lambda.variable.name);
-            Expression newBody = reduceFull(lambda.body, bind(bind, lambda.variable, newVariable),
+            Expression newBody = reduceByName(lambda.body, bind(bind, lambda.variable, newVariable),
                 context);
             return new Lambda(newVariable, newBody);
         } else if (expression instanceof Application application) {
-            Expression head = reduceFull(application.function, bind, context);
-            Expression tail = reduceFull(application.argument, bind, context);
+            Expression head = reduceByName(application.function, bind, context);
+            Expression tail = reduceByName(application.argument, bind, context);
             if (head instanceof Lambda lambda)
-                return reduceFull(lambda.body, bind(bind, lambda.variable, tail), context);
+                return reduceByName(lambda.body, bind(bind, lambda.variable, tail), context);
             else if (head instanceof Command command)
                 return command.reduce(bind, context, tail);
             return new Application(head, tail);

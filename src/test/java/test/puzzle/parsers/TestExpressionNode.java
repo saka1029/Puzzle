@@ -1,14 +1,14 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class TestExpressionNode {
+public class TestExpressionNode {
 
     static final Map<Integer, Integer> PRIORITY = Map.of(
         (int)'+',1, (int)'-', 1, (int)'*', 2, (int)'/', 2, (int)'%', 2, (int)'^', 3);
@@ -135,7 +135,7 @@ class TestExpressionNode {
     }
 
     @Test
-    void test() {
+    public void test() {
         assertEquals(b('-', b('+', n(1), b('*', n(2), b('^', n(3), n(4)))), n(5)), parse("1 + 2 * 3 ^ 4 - 5"));
         assertEquals("1 2 3 4 ^ * + 5 -", parse("1 + 2 * 3 ^ 4 - 5").postfix());
         assertEquals("(- (+ 1 (* 2 (^ 3 4))) 5)", parse("1 + 2 * 3 ^ 4 - 5").prefix());

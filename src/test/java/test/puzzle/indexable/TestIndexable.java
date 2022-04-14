@@ -1,20 +1,20 @@
 package test.puzzle.indexable;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static puzzle.Common.methodName;
+import static org.junit.Assert.assertEquals;
+import static puzzle.core.Common.methodName;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 import puzzle.indexable.IndexComparator;
 import puzzle.indexable.IndexSwapper;
 import puzzle.indexable.SimpleIndexable;
 
-class TestIndexable {
+public class TestIndexable {
 
     static final Logger logger = Common.getLogger(TestIndexable.class);
 
@@ -31,7 +31,7 @@ class TestIndexable {
     }
 
     @Test
-    void testBinarySearch() {
+    public void testBinarySearch() {
         logger.info(methodName());
         int[] ints = IntStream.range(0, 8).map(i -> i * 2).toArray();
         logger.info(Arrays.toString(ints));

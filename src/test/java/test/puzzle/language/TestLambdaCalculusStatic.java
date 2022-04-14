@@ -5,7 +5,7 @@ import static puzzle.language.LambdaCalculus.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.language.LambdaCalculus.Application;
 import puzzle.language.LambdaCalculus.Bind;
@@ -14,7 +14,7 @@ import puzzle.language.LambdaCalculus.Expression;
 import puzzle.language.LambdaCalculus.FreeVariable;
 import puzzle.language.LambdaCalculus.Lambda;
 
-class TestLambdaCalculusStatic {
+public class TestLambdaCalculusStatic {
 
     public static Expression expand(Expression expression, Map<String, Expression> globals) {
         return expand(expression, globals, null);
@@ -64,7 +64,7 @@ class TestLambdaCalculusStatic {
     }
 
     @Test
-    void testExpand() {
+    public void testExpand() {
         define("0", "λf x.x");
         define("succ", "λn f x.f(n f x)");
         System.out.println(expand(parse("succ 0"), globals));

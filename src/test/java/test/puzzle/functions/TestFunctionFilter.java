@@ -1,6 +1,6 @@
 package test.puzzle.functions;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 import static puzzle.functions.FunctionFilter.*;
 
 import java.util.HashMap;
@@ -9,11 +9,11 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 
-class TestFunctionFilter {
+public class TestFunctionFilter {
 
     static final Logger logger = Common.getLogger(TestFunctionFilter.class);
 
@@ -24,7 +24,7 @@ class TestFunctionFilter {
             self.apply(n - 1) + self.apply(n - 2);
 
     @Test
-    void testTrace() {
+    public void testTrace() {
         StringBuilder sb = new StringBuilder();
         function(trace("fibonacci", s -> sb.append(s).append("\n"), fibonacci)).apply(4);
         String expected =
@@ -50,7 +50,7 @@ class TestFunctionFilter {
     }
 
     @Test
-    void testMemoize() {
+    public void testMemoize() {
         Map<Integer, Integer> cache = new TreeMap<>();
         function(memoize(cache, fibonacci)).apply(4);
         Map<Integer, Integer> expected = Map.of(0, 0, 1, 1, 2, 1, 3, 2, 4, 3);
@@ -58,7 +58,7 @@ class TestFunctionFilter {
     }
 
     @Test
-    void testMemoizeTrace() {
+    public void testMemoizeTrace() {
         StringBuilder trace = new StringBuilder();
         Map<Integer, Integer> cache = new TreeMap<>();
         function(memoize(cache, trace("fibonacci", s -> trace.append(s).append("\n"), fibonacci))).apply(5);
@@ -79,7 +79,7 @@ class TestFunctionFilter {
     }
 
     @Test
-    void testStatistics() {
+    public void testStatistics() {
         Map<Integer, Integer> stat = new TreeMap<>();
         function(statistics(stat, fibonacci)).apply(5);
         Map<Integer, Integer> expected = Map.of(0, 3, 1, 5, 2, 3, 3, 2, 4, 1, 5, 1);
@@ -113,22 +113,22 @@ class TestFunctionFilter {
      * https://ja.wikipedia.org/wiki/%E7%AB%B9%E5%86%85%E9%96%A2%E6%95%B0
      */
     @Test
-    void testTarai() {
+    public void testTarai() {
         // 竹内版
         Map<I3, Integer> taraiStat = new HashMap<>();
-        assertEquals(12, function(statistics(taraiStat, tarai)).apply(new I3(12, 6, 0)));
+        assertEquals(12, (int)function(statistics(taraiStat, tarai)).apply(new I3(12, 6, 0)));
         assertEquals(12604860 + 1, taraiStat.values().stream().mapToInt(i -> i).sum());
         // マッカーシー版
         Map<I3, Integer> takStat = new HashMap<>();
-        assertEquals(1, function(statistics(takStat, tak)).apply(new I3(12, 6, 0)));
+        assertEquals(1, (int)function(statistics(takStat, tak)).apply(new I3(12, 6, 0)));
         assertEquals(63608 + 1, takStat.values().stream().mapToInt(i -> i).sum());
         // 非再帰版
-        assertEquals(12, function(tarai).apply(new I3(12, 6, 0)));
-        assertEquals(12, function(t0).apply(new I3(12, 6, 0)));
+        assertEquals(12, (int)function(tarai).apply(new I3(12, 6, 0)));
+        assertEquals(12, (int)function(t0).apply(new I3(12, 6, 0)));
     }
 
     @Test
-    void testCurriedArguments() {
+    public void testCurriedArguments() {
         Map<Integer, Function<Integer, Function<Integer, Integer>>> cache = new HashMap<>();
         Function<Integer, Function<Integer, Function<Integer, Integer>>> tarai =
             function(memoize(cache, self -> x ->
@@ -137,7 +137,7 @@ class TestFunctionFilter {
                         : self.apply(self.apply(x - 1).apply(y).apply(z))
                               .apply(self.apply(y - 1).apply(z).apply(x))
                               .apply(self.apply(z - 1).apply(x).apply(y))))))));
-        assertEquals(3, tarai.apply(3).apply(2).apply(1));
+        assertEquals(3, (int)tarai.apply(3).apply(2).apply(1));
         assertEquals("{0={3={2=3}}, 1={1={3=1}, 3={2=3}}, 2={1={3=3}, 2={1=2}}, 3={2={1=3}}}", cache.toString());
     }
 }

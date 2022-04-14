@@ -1,7 +1,7 @@
 package test.puzzle.language;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static puzzle.language.LambdaCalculus2.DEFINE;
 import static puzzle.language.LambdaCalculus2.parse;
 import static puzzle.language.LambdaCalculus2.reduceByName;
@@ -13,13 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 import puzzle.language.LambdaCalculus2.ConsumerWriter;
 import puzzle.language.LambdaCalculus2.Expression;
 
-class TestLambdaCalculus2ReduceByName {
+public class TestLambdaCalculus2ReduceByName {
 
     static final Logger logger = Common.getLogger(TestLambdaCalculus2ReduceByName.class);
 
@@ -33,7 +33,7 @@ class TestLambdaCalculus2ReduceByName {
     }
 
     @Test
-    void testReduce() {
+    public void testReduce() {
         assertEquals("a", reduce(parse("(λx.x) a")).toNormalizedString());
     }
 
@@ -54,7 +54,7 @@ class TestLambdaCalculus2ReduceByName {
      *      - Wikipedia</a>
      */
     @Test
-    void testChurchNumerals() {
+    public void testChurchNumerals() {
         Common.methodName();
         define("0", "λf x.x");
         define("1", "λf x.f x");
@@ -92,7 +92,7 @@ class TestLambdaCalculus2ReduceByName {
      *      - Wikipedia</a>
      */
     @Test
-    void testCharchBooleans() {
+    public void testCharchBooleans() {
         Common.methodName();
         define("true", "λt f.t");
         define("false", "λt f.f");
@@ -128,7 +128,7 @@ class TestLambdaCalculus2ReduceByName {
      *      - Wikipedia</a>
      */
     @Test
-    void testChurchPairs() {
+    public void testChurchPairs() {
         Common.methodName();
         define("true", "λt f.t");
         define("false", "λt f.f");
@@ -157,7 +157,7 @@ class TestLambdaCalculus2ReduceByName {
      *      encoding#List encodings - Wikipedia</a>
      */
     @Test
-    void testListEncodings() {
+    public void testListEncodings() {
         Common.methodName();
         define("true", "λt f.t");
         define("false", "λt f.f");
@@ -187,7 +187,7 @@ class TestLambdaCalculus2ReduceByName {
      *      - Wikipedia</a>
      */
     @Test
-    void testSKICombinator() {
+    public void testSKICombinator() {
         Common.methodName();
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
@@ -220,7 +220,7 @@ class TestLambdaCalculus2ReduceByName {
      * https://en.wikipedia.org/wiki/Iota_and_Jot#Universal_iota
      */
     @Test
-    void testUniversalIotaCombinator() {
+    public void testUniversalIotaCombinator() {
         Common.methodName();
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
@@ -259,7 +259,7 @@ class TestLambdaCalculus2ReduceByName {
     }
 
     @Test
-    void testIotaParser() {
+    public void testIotaParser() {
         assertEquals("((ι ι) (ι ι))", parseIota("0011011"));
         assertEquals("(ι (ι (ι ι)))", parseIota("0101011"));
         assertEquals("(((ι ι) ι) ι)", parseIota("0001111"));
@@ -270,7 +270,7 @@ class TestLambdaCalculus2ReduceByName {
      * https://en.wikipedia.org/wiki/Iota_and_Jot#Iota
      */
     @Test
-    void testIotaCombinator() {
+    public void testIotaCombinator() {
         Common.methodName();
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
@@ -286,7 +286,7 @@ class TestLambdaCalculus2ReduceByName {
      * https://ja.wikipedia.org/wiki/%E4%B8%8D%E5%8B%95%E7%82%B9%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF#Y%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF
      */
     @Test
-    void testFixedPointCombinatorY() {
+    public void testFixedPointCombinatorY() {
         Common.methodName();
         try {
             define("Y", "(λf.(λx.f (x x)) (λx.f (x x)))");
@@ -301,7 +301,7 @@ class TestLambdaCalculus2ReduceByName {
      * https://ja.wikipedia.org/wiki/%E4%B8%8D%E5%8B%95%E7%82%B9%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF#Z%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF
      */
     @Test
-    void testFixedPointCombinatorZ() {
+    public void testFixedPointCombinatorZ() {
         Common.methodName();
         try {
             define("Z", "λf.(λx.f (λy.x x y)) (λx.f (λy.x x y))");
@@ -314,7 +314,7 @@ class TestLambdaCalculus2ReduceByName {
     }
 
     @Test
-    void testDefine() {
+    public void testDefine() {
         context.put("define", DEFINE);
         assertEquivalent("λa b.b", "define 0 λf x.x");
         assertEquivalent("λa b.a b", "define 1 λf x.f x");

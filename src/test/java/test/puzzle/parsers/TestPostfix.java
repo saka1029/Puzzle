@@ -1,14 +1,14 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Map;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class TestPostfix {
+public class TestPostfix {
 
     static final Map<Integer, Integer> PRIORITY = Map.of(
         (int) '+', 1, (int) '-', 1, (int) '*', 2, (int) '/', 2, (int) '%', 2, (int) '^', 3);
@@ -93,7 +93,7 @@ class TestPostfix {
     }
 
     @Test
-    void testConvertToPostfix() {
+    public void testConvertToPostfix() {
         assertEquals("6 2 5 * + 8 4 / -", convertToPostfix("6 + 2 * 5 - 8 / 4"));
         assertEquals("6 2 5 ^ % 8 4 / 5 * -", convertToPostfix("6 % 2 ^ 5 - 8 / 4 * 5"));
         assertEquals("654 21 54 87 - * 4 / +", convertToPostfix("654 + 21 * (54 - 87) / 4"));

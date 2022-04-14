@@ -1,6 +1,6 @@
 package test.puzzle.language;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -10,9 +10,9 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class TestBrainFuck {
+public class TestBrainFuck {
 
     static Map<Integer, Integer> jumpTable(String code) {
         Deque<Integer> stack = new ArrayDeque<>();
@@ -84,13 +84,13 @@ class TestBrainFuck {
     }
 
     @Test
-    void testJumpTable() {
+    public void testJumpTable() {
         assertEquals(Map.of(1, 5, 5, 1, 2, 4, 4, 2), jumpTable("+[[+]]++"));
         assertEquals(Map.of(1, 10, 10, 1, 2, 4, 4, 2, 6, 9, 9, 6), jumpTable("+[[+]+[++]]"));
     }
 
     @Test
-    void testRun() throws IOException {
+    public void testRun() throws IOException {
         StringBuilder sb = new StringBuilder();
         run(">+++++++++[<++++++++>-]<.>+++++++[<++++>-]<+.+++++++..+++.[-]>++++++++[<++\n"
             + "++>-]<.>+++++++++++[<+++++>-]<.>++++++++[<+++>-]<.+++.------.--------.[-]>\n"
@@ -106,7 +106,7 @@ class TestBrainFuck {
      * https://en.wikipedia.org/wiki/Brainfuck
      */
     @Test
-    void testRot13() throws IOException {
+    public void testRot13() throws IOException {
         StringReader in = new StringReader("Hello World!");
         StringBuilder out = new StringBuilder();
         String code = "-,+[                         Read first character and start outer character reading loop\n"

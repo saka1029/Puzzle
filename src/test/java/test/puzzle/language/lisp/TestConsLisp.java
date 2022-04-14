@@ -1,6 +1,6 @@
 package test.puzzle.language.lisp;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class TestConsLisp {
+public class TestConsLisp {
 
     public static final Object NIL = "nil";
     public static final Object T = "T";
@@ -331,19 +331,19 @@ class TestConsLisp {
     }
 
     @Test
-    void testCar() {
+    public void testCar() {
         assertEquals("a", car(cons("a", "b")));
         assertEquals("a", car(list("a", "b")));
     }
 
     @Test
-    void testCdr() {
+    public void testCdr() {
         assertEquals("b", cdr(cons("a", "b")));
         assertEquals(list("b"), cdr(list("a", "b")));
     }
 
     @Test
-    void testAtom() {
+    public void testAtom() {
         assertTrue(atom("a"));
         assertTrue(atom(123));
         assertTrue(atom(NIL));
@@ -352,7 +352,7 @@ class TestConsLisp {
     }
 
     @Test
-    void testPrint() {
+    public void testPrint() {
         assertEquals("a", print("a"));
         assertEquals("(a b c)", print(list("a", "b", "c")));
         assertEquals("(a b c)", print(cons("a", cons("b", cons("c", NIL)))));
@@ -371,7 +371,7 @@ class TestConsLisp {
     }
 
     @Test
-    void testEval() {
+    public void testEval() {
         assertEquals("A", eval(read("a"), env("a", "A")));
         assertEquals("a", eval(read("'a"), env("a", "A")));
         assertEquals("a", eval(read("(car '(a b))"), NIL));

@@ -1,20 +1,20 @@
 package test.puzzle.pentomino;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Set;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.pentomino.Board;
 import puzzle.pentomino.Mino;
 import puzzle.pentomino.Point;
 
-class TestBoard {
+public class TestBoard {
 
     @Test
-    void testSetUnset() {
+    public void testSetUnset() {
         int[][] a = new int[3][3];
         for (int[] r : a)
             Arrays.fill(r, Board.VACANT);
@@ -38,7 +38,7 @@ class TestBoard {
     }
 
 //    @Test
-//    void testNext() {
+//    public void testNext() {
 //        int[][] a = new int[3][3];
 //        for (int[] r : a)
 //            Arrays.fill(r, Board.VACANT);

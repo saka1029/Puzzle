@@ -1,25 +1,25 @@
 package test.puzzle.language;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static puzzle.language.LambdaCalculus2.bindToString;
 import static puzzle.language.LambdaCalculus2.get;
 import static puzzle.language.LambdaCalculus2.parse;
 
 import java.util.logging.Logger;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 import puzzle.language.LambdaCalculus2.Bind;
 
-class TestLambdaCalculus2 {
+public class TestLambdaCalculus2 {
 
     static final Logger logger = Common.getLogger(TestLambdaCalculus2.class);
 
     @Test
-    void testBind() {
+    public void testBind() {
         Common.methodName();
         assertEquals("{}", bindToString(null));
         Bind<String, String> bind = new Bind<>(null, "a", "A");
@@ -32,7 +32,7 @@ class TestLambdaCalculus2 {
     }
 
     @Test
-    void testToString() {
+    public void testToString() {
         Common.methodName();
         assertEquals("λx.x", parse("λ x . x").toString());
         assertEquals("λx.x x", parse("λ x . x x").toString());
@@ -47,7 +47,7 @@ class TestLambdaCalculus2 {
     }
 
     @Test
-    void testToNormalizedString() {
+    public void testToNormalizedString() {
         Common.methodName();
         assertEquals("λ%0.(λ%1.%1) %0", parse("λx.(λx.x) x").toNormalizedString());
         assertEquals("(λ%0.%0) a", parse("(λx.x) a").toNormalizedString());
@@ -59,7 +59,7 @@ class TestLambdaCalculus2 {
     }
 
     @Test
-    void testParseError() {
+    public void testParseError() {
         Common.methodName();
         try {
             parse("λx y");

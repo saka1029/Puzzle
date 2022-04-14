@@ -1,19 +1,19 @@
 package test.puzzle.language;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 import static puzzle.language.LambdaCalculus.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
+import org.junit.Ignore;
+import org.junit.Test;
 import puzzle.language.LambdaCalculus.Expression;
 
-class TestLambdaCalculus {
+public class TestLambdaCalculus {
 
     static String LOG_FORMAT_KEY = "java.util.logging.SimpleFormatter.format";
     static String LOG_FORMAT = "%1$tFT%1$tT.%1$tL %4$s %3$s %5$s %6$s%n";
@@ -29,7 +29,7 @@ class TestLambdaCalculus {
     }
 
     @Test
-    void testToStringVerbose() {
+    public void testToStringVerbose() {
         logger.info("***** " + methodName());
         assertEquals("a", parse("a").toString());
         assertEquals("λx.λx.λx.x", parse("λx.λx.λx.x").toString());
@@ -38,9 +38,9 @@ class TestLambdaCalculus {
         assertEquals("a (λx.x)", parse("a λx.x").toString());
     }
 
-    @Disabled
+    @Ignore
     @Test
-    void testToStringCompact() {
+    public void testToStringCompact() {
         logger.info("***** " + methodName());
         assertEquals("a", parse("a").toString());
         assertEquals("λx x x.x", parse("λx.λx.λx.x").toString());
@@ -50,7 +50,7 @@ class TestLambdaCalculus {
     }
 
     @Test
-    void testNormalizeVerbose() {
+    public void testNormalizeVerbose() {
         logger.info("***** " + methodName());
         assertEquals("λA.A", parse("λx.x").normalize());
         assertEquals("λA.λB.B", parse("λx.λx.x").normalize());
@@ -70,9 +70,9 @@ class TestLambdaCalculus {
         assertEquals("a (λA.A b)", parse("a λx.x b").normalize()); // 不要な括弧が付与されるケース
     }
 
-    @Disabled
+    @Ignore
     @Test
-    void testNormalizeCompact() {
+    public void testNormalizeCompact() {
         logger.info("***** " + methodName());
         assertEquals("λA.A", parse("λx.x").normalize());
         assertEquals("λA B.B", parse("λx.λx.x").normalize());
@@ -100,7 +100,7 @@ class TestLambdaCalculus {
     }
 
     @Test
-    void testNormalizeEquals() {
+    public void testNormalizeEquals() {
         logger.info("***** " + methodName());
         assertNormalizeEquals("λx.x", "λa.a");
         assertNormalizeEquals("λx.x", "λa.(a)");
@@ -119,7 +119,7 @@ class TestLambdaCalculus {
     }
 
     @Test
-    void assertReduceEquals() {
+    public void assertReduceEquals() {
         logger.info("***** " + methodName());
         assertReduceEquals("a", "(λx.x) a");
         assertReduceEquals("λx.x", "(λx.λy.y) a");
@@ -137,7 +137,7 @@ class TestLambdaCalculus {
     }
 
     @Test
-    void testTracer() {
+    public void testTracer() {
         logger.info("***** " + methodName());
         Consumer<String> writer = logger::info;
         // parse("(λp t f.p t f) (λt f.t) V W").reduce(writer);
@@ -149,7 +149,7 @@ class TestLambdaCalculus {
     }
 
     @Test
-    void testExceptions() {
+    public void testExceptions() {
         logger.info("***** " + methodName());
         try {
             parse("λ.");
@@ -179,7 +179,7 @@ class TestLambdaCalculus {
      *      - Wikipedia</a>
      */
     @Test
-    void testHaltingProblem() {
+    public void testHaltingProblem() {
         logger.info("***** " + methodName());
         try {
             parse("(λx.x x) (λx.x x)").reduce();
@@ -207,7 +207,7 @@ class TestLambdaCalculus {
      *      - Wikipedia</a>
      */
     @Test
-    void testChurchNumerals() {
+    public void testChurchNumerals() {
         logger.info("***** " + methodName());
         define("0", "λf x.x");
         define("1", "λf x.f x");
@@ -245,7 +245,7 @@ class TestLambdaCalculus {
      *      - Wikipedia</a>
      */
     @Test
-    void testCharchBooleans() {
+    public void testCharchBooleans() {
         logger.info("***** " + methodName());
         define("true", "λt f.t");
         define("false", "λt f.f");
@@ -281,7 +281,7 @@ class TestLambdaCalculus {
      *      - Wikipedia</a>
      */
     @Test
-    void testChurchPairs() {
+    public void testChurchPairs() {
         logger.info("***** " + methodName());
         define("true", "λt f.t");
         define("false", "λt f.f");
@@ -310,7 +310,7 @@ class TestLambdaCalculus {
      *      encoding#List encodings - Wikipedia</a>
      */
     @Test
-    void testListEncodings() {
+    public void testListEncodings() {
         logger.info("***** " + methodName());
         define("true", "λt f.t");
         define("false", "λt f.f");
@@ -340,7 +340,7 @@ class TestLambdaCalculus {
      *      - Wikipedia</a>
      */
     @Test
-    void testSKICombinator() {
+    public void testSKICombinator() {
         logger.info("***** " + methodName());
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
@@ -373,7 +373,7 @@ class TestLambdaCalculus {
      * https://en.wikipedia.org/wiki/Iota_and_Jot#Universal_iota
      */
     @Test
-    void testUniversalIotaCombinator() {
+    public void testUniversalIotaCombinator() {
         logger.info("***** " + methodName());
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
@@ -412,7 +412,7 @@ class TestLambdaCalculus {
     }
 
     @Test
-    void testIotaParser() {
+    public void testIotaParser() {
         assertEquals("((ι ι) (ι ι))", parseIota("0011011"));
         assertEquals("(ι (ι (ι ι)))", parseIota("0101011"));
         assertEquals("(((ι ι) ι) ι)", parseIota("0001111"));
@@ -423,7 +423,7 @@ class TestLambdaCalculus {
      * https://en.wikipedia.org/wiki/Iota_and_Jot#Iota
      */
     @Test
-    void testIotaCombinator() {
+    public void testIotaCombinator() {
         logger.info("***** " + methodName());
         define("S", "λx y z.x z (y z)");
         define("K", "λx y.x");
@@ -438,9 +438,9 @@ class TestLambdaCalculus {
      * 不動点コンビネータ#Yコンビネータ - Wikipedia
      * https://ja.wikipedia.org/wiki/%E4%B8%8D%E5%8B%95%E7%82%B9%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF#Y%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF
      */
-    @Disabled
+    @Ignore
     @Test
-    void testFixedPointCombinatorY() {
+    public void testFixedPointCombinatorY() {
         try {
             define("Y", "(λf.(λx.f (x x)) (λx.f (x x)))");
             assertEquivalent("g (Y g)", "Y g");
@@ -453,9 +453,9 @@ class TestLambdaCalculus {
      * 不動点コンビネータ#Zコンビネータ - Wikipedia
      * https://ja.wikipedia.org/wiki/%E4%B8%8D%E5%8B%95%E7%82%B9%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF#Z%E3%82%B3%E3%83%B3%E3%83%93%E3%83%8D%E3%83%BC%E3%82%BF
      */
-    @Disabled
+    @Ignore
     @Test
-    void testFixedPointCombinatorZ() {
+    public void testFixedPointCombinatorZ() {
         try {
             define("Z", "λf.(λx.f (λy.x x y)) (λx.f (λy.x x y))");
             // globals.put("Z", parse("λf.(λx.f (λy. x x y)) (λx.f (λy.x x y))"));

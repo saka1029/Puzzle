@@ -6,13 +6,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * Javaで不動点コンビネータを活用してメモ化とトレース機能を実現する - Qiita
  * https://qiita.com/saka1029/items/877e7e0d518625e47b23
  */
-class TestFixedPointCombinator {
+public class TestFixedPointCombinator {
 
     /*
      * 不動点コンビネータ - Wikipedia
@@ -43,7 +43,7 @@ class TestFixedPointCombinator {
      * https://rosettacode.org/wiki/Y_combinator#Java_2
      */
     @Test
-    void 不動点コンビネータのテスト() {
+    public void 不動点コンビネータのテスト() {
         Function<Integer, Integer> fib = Y(
             f -> n -> (n <= 2)
                 ? 1
@@ -70,7 +70,7 @@ class TestFixedPointCombinator {
         : n * self.apply(n - 1);
 
     @Test
-    void 単純化した不動点コンビネータのテスト() {
+    public void 単純化した不動点コンビネータのテスト() {
         System.out.println("factorial(10) = " + fixedPointCombinator(factorial).apply(10));
     }
 
@@ -100,7 +100,7 @@ class TestFixedPointCombinator {
         : n == 1 ? 1 : self.apply(n - 1) + self.apply(n - 2);
 
     @Test
-    void メモ化のテスト() {
+    public void メモ化のテスト() {
         Function<Integer, Integer> memoizedFibonacci = memoize(fibonacci);
         System.out.println("fibonacci(10) = " + memoizedFibonacci.apply(10));
         System.out.println(memoizedFibonacci);
@@ -125,7 +125,7 @@ class TestFixedPointCombinator {
             self.apply(new Args(a.z - 1, a.x, a.y))));
 
     @Test
-    void recordによる複数引数のメモ化() {
+    public void recordによる複数引数のメモ化() {
         Function<Args, Integer> memoizedTarai = memoize(tarai);
         System.out.println("tarai(3, 2, 1) = " + memoizedTarai.apply(new Args(3, 2, 1)));
         System.out.println("キャッシュの中身: " + memoizedTarai);
@@ -137,7 +137,7 @@ class TestFixedPointCombinator {
     }
 
     @Test
-    void 通常の関数とrecordによる複数引数のメモ化の性能比較() {
+    public void 通常の関数とrecordによる複数引数のメモ化の性能比較() {
         System.out.println(時間測定(() -> "通常の竹内関数           tarai(15, 7, 1) = " + tarai(15, 7, 1)));
         System.out.println(時間測定(() -> "メモ化竹内関数(record)   tarai(15, 7, 1) = "
             + memoize(tarai).apply(new Args(15, 7, 1))));
@@ -151,7 +151,7 @@ class TestFixedPointCombinator {
      * tarai.apply(3).apply(2).apply(1) -> Integer
      */
     @Test
-    void カリー化による複数引数のメモ化() {
+    public void カリー化による複数引数のメモ化() {
         Function<Integer, Function<Integer, Function<Integer, Integer>>> tarai = memoize(
             self -> x -> memoize(selfy -> y -> memoize(selfz -> z -> x <= y ? y
                 : self.apply(self.apply(x - 1).apply(y).apply(z))
@@ -182,7 +182,7 @@ class TestFixedPointCombinator {
     }
 
     @Test
-    void トレースのテスト() {
+    public void トレースのテスト() {
         System.out.println(
             "fibonacci(6) = " + trace("fibonacci", System.out::println, fibonacci).apply(6));
     }
@@ -217,7 +217,7 @@ class TestFixedPointCombinator {
     }
 
     @Test
-    void メモ化トレース() {
+    public void メモ化トレース() {
         System.out.println("トレース       fibonacci(6) = "
             + trace("fibonacci", System.out::println, fibonacci).apply(6));
         System.out.println("メモ化トレース fibonacci(6) = "
@@ -237,7 +237,7 @@ class TestFixedPointCombinator {
             a.n == 0 ? a.x : self.apply(new A(a.x, a.y, a.n -1)) * (1 + a.y);
 
     @Test
-    void testRecursive() {
+    public void testRecursive() {
         Function<A, Double> r = trace("recursive", System.out::println, recursive);
         r.apply(new A(1, 2, 3));
     }

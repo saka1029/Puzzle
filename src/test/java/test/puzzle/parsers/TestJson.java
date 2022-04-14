@@ -1,6 +1,6 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 import static puzzle.parsers.Json.*;
 
 import java.io.IOException;
@@ -20,16 +20,16 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.parsers.Json.DefaultParseHandler;
 import puzzle.parsers.Json.NullParseHandler;
 import puzzle.parsers.Json.ParseHandler;
 
-class TestJson {
+public class TestJson {
 
     @Test
-    void testKeyword() {
+    public void testKeyword() {
         assertTrue(Character.isLetter('a'));
         assertTrue(Character.isLetter('漢'));
         assertTrue(Character.isLetter('二'));
@@ -41,7 +41,7 @@ class TestJson {
     }
 
     @Test
-    void testParse() throws IOException {
+    public void testParse() throws IOException {
         String json = "{\n"
             + "    \"glossary\": {\n"
             + "        \"title\": \"example glossary\",\n"
@@ -93,13 +93,13 @@ class TestJson {
     }
 
     @Test
-    void testSpace() throws IOException {
+    public void testSpace() throws IOException {
         Object parsed = parse("\"a b  c\"");
         assertEquals("a b  c", parsed);
     }
 
     @Test
-    void testEscape() throws IOException {
+    public void testEscape() throws IOException {
         Object parsed = parse("\"a\\r\\nb\\nc\\fd\\be\"");
         assertEquals("a\r\nb\nc\fd\be", parsed);
         String str = "\"{\\\"name\\\":\\\"Gerson Beahan\\\",\\\"age\\\":70,\\\"balance\\\":424695.03332155856}\"";
@@ -108,7 +108,7 @@ class TestJson {
     }
 
     @Test
-    void testUnicode() throws IOException {
+    public void testUnicode() throws IOException {
         Object parsed = parse("\"\\u6f22123\u5b57\"");
         assertEquals("漢123字", parsed);
     }
@@ -149,7 +149,7 @@ class TestJson {
         + "}]";
 
     @Test
-    void testNullParseHandler() throws IOException {
+    public void testNullParseHandler() throws IOException {
         Map<String, Integer> count = new LinkedHashMap<>();
         ParseHandler h = new NullParseHandler() {
             List<Object> criterial = List.of("selection");
@@ -257,7 +257,7 @@ class TestJson {
     }
 
     @Test
-    void testStackoverflowJsonRegex() throws IOException {
+    public void testStackoverflowJsonRegex() throws IOException {
         String content = "{ \"values\" : [\"AnyValue1\", \"TestValue\", \"Dummy\", \"SomeValue\"], \"key\" : \"value\" }";
         Object result = parse(content, new DefaultParseHandler() {
             @Override

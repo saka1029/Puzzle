@@ -1,19 +1,17 @@
 package test.puzzle.indexable;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import static org.junit.Assert.assertEquals;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import org.junit.jupiter.api.Test;
-
-import puzzle.Common;
+import org.junit.Test;
+import puzzle.core.Common;
 import puzzle.indexable.IndexComparator;
 import puzzle.indexable.IndexSwapper;
 import puzzle.indexable.Indexable;
 import puzzle.indexable.SimpleIndexable;
 
-class TestIndexableString {
+public class TestIndexableString {
 
     static final Logger logger = Common.getLogger(TestIndexableString.class);
 
@@ -30,7 +28,7 @@ class TestIndexableString {
     }
 
     @Test
-    void testInsertionSort() {
+    public void testInsertionSort() {
         logger.info(Common.methodName());
         StringBuilder array = new StringBuilder("fhdcjeaibg");
         new SimpleIndexable(
@@ -41,7 +39,7 @@ class TestIndexableString {
     }
 
     @Test
-    void testInsertionSortRange() {
+    public void testInsertionSortRange() {
         logger.info(Common.methodName());
         StringBuilder array = new StringBuilder("fhdcjeaibg");
         new SimpleIndexable(
@@ -52,7 +50,7 @@ class TestIndexableString {
     }
 
     @Test
-    void testQuickSort() {
+    public void testQuickSort() {
         logger.info(Common.methodName());
         StringBuilder array = new StringBuilder("fhdcjeaibg");
         new SimpleIndexable(
@@ -63,7 +61,7 @@ class TestIndexableString {
     }
 
     @Test
-    void testQuickSortRange() {
+    public void testQuickSortRange() {
         logger.info(Common.methodName());
         StringBuilder array = new StringBuilder("fhdcjeaibg");
         new SimpleIndexable(
@@ -78,7 +76,7 @@ class TestIndexableString {
      * https://www.youtube.com/watch?v=FkiOXGZTmPU
      */
     @Test
-    void testNextPermutation() {
+    public void testNextPermutation() {
         logger.info(Common.methodName());
         StringBuilder array = new StringBuilder("HOSEI");
         Indexable ind = new SimpleIndexable(

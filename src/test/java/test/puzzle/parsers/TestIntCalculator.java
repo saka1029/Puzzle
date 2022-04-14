@@ -1,23 +1,23 @@
 package test.puzzle.parsers;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 
-class TestIntCalculator {
+public class TestIntCalculator {
 
     static final Logger logger = Common.getLogger(TestIntCalculator.class);
 
     @Test
-    void testCharSequence() {
+    public void testCharSequence() {
         class CharSubsequence implements CharSequence {
 
             final String source;

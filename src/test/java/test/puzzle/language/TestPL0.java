@@ -7,7 +7,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * PL/0 – Pascal for small machines
@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
  * factor     = ident | number | '(' expression ')'
  * </pre>
  */
-class TestPL0 {
+public class TestPL0 {
 
     enum InstType {
         lit, opr, lod, sto, cal, inc, jmp, jpc

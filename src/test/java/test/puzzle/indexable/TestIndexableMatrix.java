@@ -1,21 +1,19 @@
 package test.puzzle.indexable;
 
-import static org.junit.Assert.assertArrayEquals;
 
+import static org.junit.Assert.assertArrayEquals;
 import java.util.Arrays;
 import java.util.logging.Logger;
-
-import org.junit.jupiter.api.Test;
-
-import puzzle.Common;
+import org.junit.Test;
+import puzzle.core.Common;
 import puzzle.indexable.SimpleIndexable;
 
-class TestIndexableMatrix {
+public class TestIndexableMatrix {
 
     static final Logger logger = Common.getLogger(TestIndexableMatrix.class);
 
     @Test
-    void testSortRows() {
+    public void testSortRows() {
         logger.info(Common.methodName());
         int[][] array = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         new SimpleIndexable(
@@ -33,7 +31,7 @@ class TestIndexableMatrix {
     }
 
     @Test
-    void testSortColumns() {
+    public void testSortColumns() {
         logger.info(Common.methodName());
         int[][] array = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         int length = array[0].length;
@@ -54,7 +52,7 @@ class TestIndexableMatrix {
     }
 
     @Test
-    void testSortColumnsSimpleIndexable() {
+    public void testSortColumnsSimpleIndexable() {
         logger.info(Common.methodName());
         int[][] array = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         int length = array[0].length;

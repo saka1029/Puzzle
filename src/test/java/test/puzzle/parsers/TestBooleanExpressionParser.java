@@ -1,7 +1,7 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  *
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
  * https://stackoverflow.com/questions/69292555/parse-boolean-expression-in-java/69294374#69294374
  *
  */
-class TestBooleanExpressionParser {
+public class TestBooleanExpressionParser {
 
     /**
      * トークン化を行わないパーサです。

@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class TestTokyoMetro {
+public class TestTokyoMetro {
 
     static final Logger logger = Logger.getLogger(TestTokyoMetro.class.getName());
 

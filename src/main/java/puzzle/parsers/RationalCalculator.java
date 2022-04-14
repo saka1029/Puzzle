@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 
-import puzzle.Rational;
+import puzzle.core.Rational;
 
 public class RationalCalculator extends Parser {
 

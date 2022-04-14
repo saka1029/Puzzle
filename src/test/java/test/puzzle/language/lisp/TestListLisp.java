@@ -1,6 +1,6 @@
 package test.puzzle.language.lisp;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -11,9 +11,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class TestListLisp {
+public class TestListLisp {
 
     public static final Object NIL = Collections.emptyList();
     public static final Object T = "T";

@@ -2,7 +2,7 @@ package test.puzzle.indexable;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,14 +12,14 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 import puzzle.indexable.IndexComparator;
 import puzzle.indexable.IndexSwapper;
 import puzzle.indexable.SimpleIndexable;
 
-class TestIndexableIntArray {
+public class TestIndexableIntArray {
 
     static final Logger logger = Common.getLogger(TestIndexableIntArray.class);
 
@@ -36,7 +36,7 @@ class TestIndexableIntArray {
     }
 
     @Test
-    void testInsertionSort() {
+    public void testInsertionSort() {
         logger.info(Common.methodName());
         int[] array = {5, 7, 3, 2, 9, 4, 0, 8, 1, 6};
         new SimpleIndexable(comp(array), swap(array), 0, array.length).insertionSort();
@@ -44,7 +44,7 @@ class TestIndexableIntArray {
     }
 
     @Test
-    void testInsertionSortRange() {
+    public void testInsertionSortRange() {
         logger.info(Common.methodName());
         int[] array = {5, 7, 3, 2, 9, 4, 0, 8, 1, 6};
         new SimpleIndexable(comp(array), swap(array), 5, array.length).insertionSort();
@@ -53,7 +53,7 @@ class TestIndexableIntArray {
     }
 
     @Test
-    void testQuickSort() {
+    public void testQuickSort() {
         logger.info(Common.methodName());
         int[] array = {5, 7, 3, 2, 9, 4, 0, 8, 1, 6};
         new SimpleIndexable(comp(array), swap(array), 0, array.length).quickSort();
@@ -61,7 +61,7 @@ class TestIndexableIntArray {
     }
 
     @Test
-    void testQuickSortRange() {
+    public void testQuickSortRange() {
         logger.info(Common.methodName());
         int[] array = {5, 7, 3, 2, 9, 4, 0, 8, 1, 6};
         new SimpleIndexable(comp(array), swap(array), 5, array.length).quickSort();
@@ -80,7 +80,7 @@ class TestIndexableIntArray {
     }
 
     @Test
-    void testShffule() {
+    public void testShffule() {
         logger.info(Common.methodName());
         Map<int[], Integer> counts = new TreeMap<>(Arrays::compare);
         for (int i = 0; i < 240000; ++i) {
@@ -97,7 +97,7 @@ class TestIndexableIntArray {
     }
 
     @Test
-    void testReverse() {
+    public void testReverse() {
         logger.info(Common.methodName());
         int[] array = {5, 7, 3, 2, 9, 4, 0, 8, 1, 6};
         new SimpleIndexable(comp(array), swap(array), 0, array.length).reverse();

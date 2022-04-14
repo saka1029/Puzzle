@@ -1,7 +1,7 @@
 package test.puzzle.csp;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 import puzzle.csp.CspIntCompiler;
 import puzzle.csp.CspIntCompiler.Constraint;
 import puzzle.csp.CspIntCompiler.Domain;
@@ -26,7 +26,7 @@ public class TestCspIntCompiler {
     static Logger logger = Common.getLogger(TestCspIntCompiler.class);
 
     @Test
-    void testSolver() throws ClassNotFoundException, IllegalAccessException,
+    public void testSolver() throws ClassNotFoundException, IllegalAccessException,
         IllegalArgumentException, InvocationTargetException,
         NoSuchMethodException, SecurityException, CompileError {
         logger.info(Common.methodName());

@@ -1,7 +1,7 @@
 package test.puzzle.functions;
 
 import static java.math.BigInteger.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 import static puzzle.functions.Memoizer.*;
 
 import java.io.IOException;
@@ -16,11 +16,11 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.functions.Memoizer;
 
-class TestMemoizer {
+public class TestMemoizer {
 
     @Test
     public void testFibonacci() {
@@ -29,16 +29,16 @@ class TestMemoizer {
                 n == 0 ? 0 :
                 n == 1 ? 1 :
                 self.apply(n - 1) + self.apply(n - 2));
-        assertEquals(0, fibonacci.apply(0));
-        assertEquals(1, fibonacci.apply(1));
-        assertEquals(1, fibonacci.apply(2));
-        assertEquals(2, fibonacci.apply(3));
-        assertEquals(3, fibonacci.apply(4));
-        assertEquals(5, fibonacci.apply(5));
-        assertEquals(8, fibonacci.apply(6));
-        assertEquals(13, fibonacci.apply(7));
-        assertEquals(21, fibonacci.apply(8));
-        assertEquals(34, fibonacci.apply(9));
+        assertEquals(0, (int)fibonacci.apply(0));
+        assertEquals(1, (int)fibonacci.apply(1));
+        assertEquals(1, (int)fibonacci.apply(2));
+        assertEquals(2, (int)fibonacci.apply(3));
+        assertEquals(3, (int)fibonacci.apply(4));
+        assertEquals(5, (int)fibonacci.apply(5));
+        assertEquals(8, (int)fibonacci.apply(6));
+        assertEquals(13, (int)fibonacci.apply(7));
+        assertEquals(21, (int)fibonacci.apply(8));
+        assertEquals(34, (int)fibonacci.apply(9));
         System.out.println(fibonacci);
         assertEquals(Map.of(
             0, 0,
@@ -97,7 +97,7 @@ class TestMemoizer {
                         : self.apply(self.apply(x - 1).apply(y).apply(z))
                               .apply(self.apply(y - 1).apply(z).apply(x))
                               .apply(self.apply(z - 1).apply(x).apply(y)))));
-        assertEquals(3, tarai.apply(3).apply(2).apply(1));
+        assertEquals(3, (int)tarai.apply(3).apply(2).apply(1));
         /*
          * <pre>
          * tarai(3, 2, 1)
@@ -161,7 +161,7 @@ class TestMemoizer {
                 : call(self, call(self, args.x - 1, args.y, args.z),
                   call(self, args.y - 1, args.z, args.x),
                   call(self, args.z - 1, args.x, args.y)));
-        assertEquals(3, tarai.apply(new Args(3, 2, 1)));
+        assertEquals(3, (int)tarai.apply(new Args(3, 2, 1)));
         for (Entry<Args, Integer> e : tarai.cache().entrySet())
             System.out.println(e);
         Map<Args, Integer> expected = Map.of(

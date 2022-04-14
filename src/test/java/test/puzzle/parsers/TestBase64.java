@@ -1,14 +1,14 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 import static puzzle.parsers.Base64.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class TestBase64 {
+public class TestBase64 {
 
     static byte[] bytes(String s) {
         return s.getBytes(StandardCharsets.UTF_8);

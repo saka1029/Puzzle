@@ -1,23 +1,23 @@
 package test.puzzle.pentomino;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.pentomino.Board;
 import puzzle.pentomino.Mino;
 import puzzle.pentomino.Point;
 import puzzle.pentomino.Solver;
 
-class TestPentomino {
+public class TestPentomino {
 
 //    @Test
-    void test10x6() {
+    public void test10x6() {
         int[][] matrix = new int[10][6];
         for (int[] row : matrix)
             Arrays.fill(row, Board.VACANT);
@@ -37,7 +37,7 @@ class TestPentomino {
     }
 
     @Test
-    void test12x5() {
+    public void test12x5() {
         int[][] matrix = new int[12][5];
         for (int[] row : matrix)
             Arrays.fill(row, Board.VACANT);
@@ -57,7 +57,7 @@ class TestPentomino {
     }
 
     @Test
-    void test20x3() {
+    public void test20x3() {
         int[][] matrix = new int[20][3];
         for (int[] row : matrix)
             Arrays.fill(row, Board.VACANT);
@@ -77,7 +77,7 @@ class TestPentomino {
     }
 
     @Test
-    void test15x4() {
+    public void test15x4() {
         int[][] matrix = new int[15][4];
         for (int[] row : matrix)
             Arrays.fill(row, Board.VACANT);
@@ -97,7 +97,7 @@ class TestPentomino {
     }
 
     @Test
-    void test8x8VacantCenter() {
+    public void test8x8VacantCenter() {
         int[][] matrix = new int[8][8];
         for (int[] row : matrix)
             Arrays.fill(row, Board.VACANT);

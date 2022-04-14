@@ -1,6 +1,6 @@
 package test.puzzle.language.csp;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,11 +10,11 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 
-class TestConstraint {
+public class TestConstraint {
 
     static Logger logger = Common.getLogger(TestConstraint.class);
 
@@ -47,7 +47,7 @@ class TestConstraint {
     }
 
     @Test
-    void testSendMoreMoneySet() {
+    public void testSendMoreMoneySet() {
         logger.info(Common.methodName() + " start");
         long start = System.currentTimeMillis();
         Set<Integer> sd = range(1, 9);
@@ -183,7 +183,7 @@ class TestConstraint {
     }
 
     @Test
-    void testSendMoreMoneySet64() {
+    public void testSendMoreMoneySet64() {
         logger.info(Common.methodName() + " start");
         long start = System.currentTimeMillis();
         Set64 sd = Set64.range(1, 9);

@@ -1,6 +1,6 @@
 package test.puzzle.graphics;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.awt.Color;
 import java.io.File;
@@ -11,12 +11,12 @@ import java.io.Writer;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.graphics.SVGTurtle;
 import puzzle.graphics.Turtle;
 
-class TestSVGTurtle {
+public class TestSVGTurtle {
 
     {
         new File("data/SVGTurtle").mkdirs();
@@ -26,7 +26,7 @@ class TestSVGTurtle {
      * 一辺の長さが等しい正三角形から正二十角形までを描画する。
      */
     @Test
-    void test正多角形() throws IOException {
+    public void test正多角形() throws IOException {
         int size = 800;
         try (Writer w = new FileWriter("data/SVGTurtle/正多角形.svg");
             Turtle t = new SVGTurtle(w, size, size)) {
@@ -45,7 +45,7 @@ class TestSVGTurtle {
     }
 
     @Test
-    void testドラゴン曲線() throws IOException {
+    public void testドラゴン曲線() throws IOException {
         int size = 800;
         try (Writer w = new FileWriter("data/SVGTurtle/ドラゴン曲線.svg");
             Turtle t = new SVGTurtle(w, size, size)) {
@@ -74,7 +74,7 @@ class TestSVGTurtle {
     }
 
     @Test
-    void testドラゴン曲線LSystem() throws IOException {
+    public void testドラゴン曲線LSystem() throws IOException {
         String start = "F";
         Map<String, String> rules = Map.of(
             "F", "F+G", "G", "F-G");
@@ -99,7 +99,7 @@ class TestSVGTurtle {
     }
 
     @Test
-    void test対称木() throws IOException {
+    public void test対称木() throws IOException {
         int size = 700;
         try (Writer w = new FileWriter("data/SVGTurtle/対称木.svg");
             Turtle t = new SVGTurtle(w, size, size)) {
@@ -128,7 +128,7 @@ class TestSVGTurtle {
     }
 
     @Test
-    void testヒルベルト曲線() throws IOException {
+    public void testヒルベルト曲線() throws IOException {
         int size = 130;
         try (Writer w = new FileWriter("data/SVGTurtle/ヒルベルト曲線.svg");
             Turtle t = new SVGTurtle(w, size, size)) {
@@ -157,7 +157,7 @@ class TestSVGTurtle {
     }
 
     @Test
-    void testLSystem() throws IOException {
+    public void testLSystem() throws IOException {
         Map<String, String> rules = Map.of("A", "-BF+AFA+FB-", "B", "+AF-BFB-FA+");
         assertEquals("A", Turtle.lsystem("A", 0, rules));
         assertEquals("-BF+AFA+FB-", Turtle.lsystem("A", 1, rules));
@@ -205,7 +205,7 @@ class TestSVGTurtle {
      * @throws FileNotFoundException
      */
     @Test
-    void testFractalPlant() throws IOException {
+    public void testFractalPlant() throws IOException {
         String start = "X";
         Map<String, String> rules = Map.of(
             "X", "F+[[X]-X]-F[-FX]+X",
@@ -242,7 +242,7 @@ class TestSVGTurtle {
      * Here, F means "draw forward", G means "draw forward", + means "turn left by angle", and − means "turn right by angle".
      */
     @Test
-    void testSierpinskiGasket() throws IOException {
+    public void testSierpinskiGasket() throws IOException {
         String start = "F-G-G";
         Map<String, String> rules = Map.of(
             "F", "F-G+F+G-F",

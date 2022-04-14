@@ -2,14 +2,14 @@ package test.puzzle.graphics;
 
 import java.util.Map;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.graphics.Turtle;
 
-class TestTurtle {
+public class TestTurtle {
 
     @Test
-    void test() {
+    public void test() {
         Map<String, String> rules = Map.of(
             "A", "+A",
             "+", "F+");

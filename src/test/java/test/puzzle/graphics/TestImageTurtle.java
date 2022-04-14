@@ -1,6 +1,6 @@
 package test.puzzle.graphics;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.awt.Color;
 import java.io.File;
@@ -11,13 +11,13 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.graphics.ImageTurtle;
 import puzzle.graphics.ImageWriter;
 import puzzle.graphics.Turtle;
 
-class TestImageTurtle {
+public class TestImageTurtle {
 
     {
         new File("data/ImageTurtle").mkdirs();
@@ -27,7 +27,7 @@ class TestImageTurtle {
      * 一辺の長さが等しい正三角形から正二十角形までを描画する。
      */
     @Test
-    void test正多角形() throws IOException {
+    public void test正多角形() throws IOException {
         int size = 800;
         try (OutputStream os = new FileOutputStream("data/ImageTurtle/正多角形.png");
             ImageWriter iw = new ImageWriter(os, size, size);
@@ -47,7 +47,7 @@ class TestImageTurtle {
     }
 
     @Test
-    void testドラゴン曲線() throws IOException {
+    public void testドラゴン曲線() throws IOException {
         int size = 800;
         try (OutputStream os = new FileOutputStream("data/ImageTurtle/ドラゴン曲線.png");
             ImageWriter iw = new ImageWriter(os, size, size);
@@ -77,7 +77,7 @@ class TestImageTurtle {
     }
 
     @Test
-    void testドラゴン曲線LSystem() throws IOException {
+    public void testドラゴン曲線LSystem() throws IOException {
         String start = "F";
         Map<String, String> rules = Map.of(
             "F", "F+G", "G", "F-G");
@@ -103,7 +103,7 @@ class TestImageTurtle {
     }
 
     @Test
-    void test対称木() throws IOException {
+    public void test対称木() throws IOException {
         int size = 700;
         try (OutputStream os = new FileOutputStream("data/ImageTurtle/対称木.png");
             ImageWriter iw = new ImageWriter(os, size, size);
@@ -133,7 +133,7 @@ class TestImageTurtle {
     }
 
     @Test
-    void testヒルベルト曲線() throws IOException {
+    public void testヒルベルト曲線() throws IOException {
         int size = 130;
         try (OutputStream os = new FileOutputStream("data/ImageTurtle/ヒルベルト曲線.png");
             ImageWriter iw = new ImageWriter(os, size, size);
@@ -163,7 +163,7 @@ class TestImageTurtle {
     }
 
     @Test
-    void testLSystem() throws IOException {
+    public void testLSystem() throws IOException {
         Map<String, String> rules = Map.of("A", "-BF+AFA+FB-", "B", "+AF-BFB-FA+");
         assertEquals("A", Turtle.lsystem("A", 0, rules));
         assertEquals("-BF+AFA+FB-", Turtle.lsystem("A", 1, rules));
@@ -213,7 +213,7 @@ class TestImageTurtle {
      * @throws FileNotFoundException
      */
     @Test
-    void testFractalPlant() throws FileNotFoundException, IOException {
+    public void testFractalPlant() throws FileNotFoundException, IOException {
         String start = "X";
         Map<String, String> rules = Map.of(
             "X", "F+[[X]-X]-F[-FX]+X",

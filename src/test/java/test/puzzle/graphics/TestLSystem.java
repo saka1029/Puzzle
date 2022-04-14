@@ -1,6 +1,6 @@
 package test.puzzle.graphics;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -12,12 +12,12 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.graphics.SVGTurtle;
 import puzzle.graphics.Turtle;
 
-class TestLSystem {
+public class TestLSystem {
 
     static final File DIR = new File("data/LSystem");
     static {
@@ -25,7 +25,7 @@ class TestLSystem {
     }
 
     @Test
-    void testBinaryTree() throws IOException {
+    public void testBinaryTree() throws IOException {
         String start = "0";
         Map<String, String> rules = Map.of(
             "1", "11",
@@ -52,7 +52,7 @@ class TestLSystem {
     }
 
     @Test
-    void testSpiralReverse() throws IOException {
+    public void testSpiralReverse() throws IOException {
         int n = 5;
         String start = "A";
         Map<String, String> rules = Map.of(
@@ -79,7 +79,7 @@ class TestLSystem {
     }
 
     @Test
-    void testSpiral() throws IOException {
+    public void testSpiral() throws IOException {
         int n = 5;
         String start = "A";
         Map<String, String> rules = Map.of(
@@ -109,7 +109,7 @@ class TestLSystem {
      * 1, 1, 2, 3, 3, 4, 4, 5, 5,
      */
     @Test
-    void test_1_1_2_2_3_3() throws IOException {
+    public void test_1_1_2_2_3_3() throws IOException {
         int n = 4;
         String start = "A";
         Map<String, String> rules = Map.of(
@@ -144,7 +144,7 @@ class TestLSystem {
     }
 
     @Test
-    void testNumbers() throws IOException {
+    public void testNumbers() throws IOException {
         // An = n
         assertEquals("A6", seq("A", 6, "A", "AF"));
         // An = 2 * n
@@ -168,7 +168,7 @@ class TestLSystem {
     }
 
     @Test
-    void testSequence() throws IOException {
+    public void testSequence() throws IOException {
         // An = n
         assertEquals("A-1-2-3-4-5-", seq("A", 6, "A", "A-", "-", "F-"));
         // An = 2 * n
@@ -191,7 +191,7 @@ class TestLSystem {
      * 紗綾形(さやがた)
      */
     @Test
-    void test紗綾形() throws IOException {
+    public void test紗綾形() throws IOException {
         String start = "S";
         Map<String, String> rules = Map.of(
             "S", "A-B-B+A+C-C-A-B-B+A+C-C-",

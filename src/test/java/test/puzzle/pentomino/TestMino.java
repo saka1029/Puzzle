@@ -1,19 +1,19 @@
 package test.puzzle.pentomino;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.util.List;
 import java.util.Set;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.pentomino.Mino;
 import puzzle.pentomino.Point;
 
-class TestMino {
+public class TestMino {
 
     @Test
-    void testNormalize() {
+    public void testNormalize() {
         Mino f = Mino.of(0, 1, 0, 2, 1, 1, 1, 0, 2, 1);
         assertArrayEquals(
             Point.array(0, 0, 0, 1, 1, -1, 1, 0, 2, 0),
@@ -21,7 +21,7 @@ class TestMino {
     }
 
     @Test
-    void testAllDirections() {
+    public void testAllDirections() {
         Mino f = Mino.of(0, 1, 0, 2, 1, 1, 1, 0, 2, 1);
         assertEquals(8, f.allDirections().size());
         Mino x = Mino.of(0, 0, -1, 0, 1, 0, 0, -1, 0, 1);

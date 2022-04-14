@@ -1,14 +1,13 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntPredicate;
+import org.junit.Test;
 
-import org.junit.jupiter.api.Test;
-
-class TestIntList {
+public class TestIntList {
 
     /**
      * <pre>
@@ -155,7 +154,7 @@ class TestIntList {
     }
 
     @Test
-    void test() {
+    public void test() {
         assertEquals(List.of(1.0, 2.0, 3.0), parse("[1, 2, 3]"));
         assertEquals(List.of(-123.0), parse("[ -123 ]"));
         assertEquals(List.of(), parse("[]"));
@@ -167,7 +166,7 @@ class TestIntList {
     }
 
     @Test
-    void testNumber() {
+    public void testNumber() {
         assertEquals(List.of(12.0), parse("[ 12 ]"));
         assertEquals(List.of(12.345), parse("[ 12.345 ]"));
         assertEquals(List.of(12e3), parse("[ 12e3 ]"));
@@ -176,7 +175,7 @@ class TestIntList {
     }
 
     @Test
-    void testNumberError() {
+    public void testNumberError() {
         try {
             parse("[1.]");
             fail();
@@ -198,7 +197,7 @@ class TestIntList {
     }
 
     @Test
-    void testSyntaxError() {
+    public void testSyntaxError() {
         try {
             parse("1, 2, x");
             fail();

@@ -2,15 +2,15 @@ package test.puzzle.language;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 import puzzle.language.JavaCompilerInMemory;
 import puzzle.language.JavaCompilerInMemory.CompileError;
 import puzzle.language.JavaCompilerInMemory.Source;
@@ -32,7 +32,7 @@ public class TestJavaCompilerInMemory {
      * </pre>
      */
     @Test
-    void testCompileReferCompilingEnvironment()
+    public void testCompileReferCompilingEnvironment()
         throws InstantiationException, IllegalAccessException, ClassNotFoundException,
         IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
         SecurityException, CompileError {
@@ -52,7 +52,7 @@ public class TestJavaCompilerInMemory {
     }
 
     @Test
-    void testCompileMultiFiles()
+    public void testCompileMultiFiles()
         throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
         InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
         logger.info(Common.methodName());
@@ -65,7 +65,7 @@ public class TestJavaCompilerInMemory {
     }
 
     @Test
-    void testCompileFullQualifiedClassName()
+    public void testCompileFullQualifiedClassName()
         throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException,
         InvocationTargetException, NoSuchMethodException, SecurityException, CompileError {
         logger.info(Common.methodName());
@@ -79,7 +79,7 @@ public class TestJavaCompilerInMemory {
     }
 
     @Test
-    void testCompileError() throws ClassNotFoundException, InstantiationException,
+    public void testCompileError() throws ClassNotFoundException, InstantiationException,
         IllegalAccessException, IllegalArgumentException, InvocationTargetException,
         NoSuchMethodException, SecurityException {
         logger.info(Common.methodName());

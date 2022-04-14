@@ -1,13 +1,10 @@
 package test.puzzle.parsers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.junit.jupiter.api.Test;
-
+import org.junit.Test;
 import puzzle.parsers.Calculator;
 
 public class TestCalculator {
@@ -20,18 +17,18 @@ public class TestCalculator {
 
     @Test
     public void test() {
-        assertEquals(14, calculate("1 * 2 + 3 * 4"));
-        assertEquals(21, calculate("(1 + 2) * (3 + 4)"));
-        assertEquals(-21, calculate("(1 + 2) * -(3 + 4)"));
-        assertEquals(1.0E5 / 3, calculate("1e5 / 3"));
-        assertEquals(0.01234E-3, calculate(".01234E-3"));
-        assertEquals(1, calculate("sin(π / 2)"));
-        assertEquals(10000, calculate("97^2+97*6+9"));
-        assertEquals(720, calculate("factorial(6)"));
-        assertEquals(9.332621544394415E157, calculate("factorial(100)"));
+        assertEquals(14, calculate("1 * 2 + 3 * 4"), 1e-8);
+        assertEquals(21, calculate("(1 + 2) * (3 + 4)"), 1e-8);
+        assertEquals(-21, calculate("(1 + 2) * -(3 + 4)"), 1e-8);
+        assertEquals(1.0E5 / 3, calculate("1e5 / 3"), 1e-8);
+        assertEquals(0.01234E-3, calculate(".01234E-3"), 1e-8);
+        assertEquals(1, calculate("sin(π / 2)"), 1e-8);
+        assertEquals(10000, calculate("97^2+97*6+9"), 1e-8);
+        assertEquals(720, calculate("factorial(6)"), 1e-8);
+        assertEquals(9.332621544394415E157, calculate("factorial(100)"), 1e-8);
         assertEquals(1.0, calculate("tan(pi / 4)"), 1e-8);
-        assertEquals(Math.PI / 4, calculate("atan(1)"));
-        assertEquals(Math.PI / 4, calculate("atan2(100, 100)"));
+        assertEquals(Math.PI / 4, calculate("atan(1)"), 1e-8);
+        assertEquals(Math.PI / 4, calculate("atan2(100, 100)"), 1e-8);
     }
 
     /**
@@ -39,13 +36,13 @@ public class TestCalculator {
      */
     @Test
     public void testPower() {
-        assertEquals(256, calculate("2 ** 2 ** 3"));
-        assertEquals(256, calculate("2 ^ 2 ** 3"));
-        assertEquals(256, calculate("2 ^ (2 ** 3)"));
-        assertEquals(64, calculate("(2 ^ 2) ** 3"));
-        assertEquals(16, calculate("2 * 2 ** 3"));
-        assertEquals(12, calculate("2 ** 2 * 3"));
-        assertEquals(4, calculate("2 ** 2"));
+        assertEquals(256, calculate("2 ** 2 ** 3"), 1e-8);
+        assertEquals(256, calculate("2 ^ 2 ** 3"), 1e-8);
+        assertEquals(256, calculate("2 ^ (2 ** 3)"), 1e-8);
+        assertEquals(64, calculate("(2 ^ 2) ** 3"), 1e-8);
+        assertEquals(16, calculate("2 * 2 ** 3"), 1e-8);
+        assertEquals(12, calculate("2 ** 2 * 3"), 1e-8);
+        assertEquals(4, calculate("2 ** 2"), 1e-8);
     }
 
     @Test

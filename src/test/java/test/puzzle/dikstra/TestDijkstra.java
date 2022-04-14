@@ -3,14 +3,14 @@ package test.puzzle.dikstra;
 import java.util.Arrays;
 import java.util.EnumSet;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class TestDijkstra {
+public class TestDijkstra {
 
     enum 駅 { 東京, 渋谷, 品川, 新横浜, 小田原, 新宿, 横浜 }
 
     @Test
-    void test() {
+    public void test() {
         駅[] all = 駅.values();
         int size = all.length;
         int[][] 所要時間 = new int[size][size];

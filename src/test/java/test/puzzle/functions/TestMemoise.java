@@ -1,7 +1,7 @@
 package test.puzzle.functions;
 
 import static java.math.BigInteger.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -17,9 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class TestMemoise {
+public class TestMemoise {
 
     static final Map<Integer, Integer> factorialCache1 = new HashMap<>();
     static int factorial1(int n) { // n は非負整数
@@ -220,12 +220,12 @@ class TestMemoise {
 
     @Test
     public void testStackOverflowMemoize() {
-        assertEquals(4, addOne(3));
-        assertEquals(6, addOne(5));
-        assertEquals(4, addOneCache.get(3));
-        assertEquals(6, addOneCache.get(5));
+        assertEquals(4, (int)addOne(3));
+        assertEquals(6, (int)addOne(5));
+        assertEquals(4, (int)addOneCache.get(3));
+        assertEquals(6, (int)addOneCache.get(5));
         Function<Integer, Integer> squareMemoized = Memoizer.memoize(this::square);
-        assertEquals(9, squareMemoized.apply(3));
+        assertEquals(9, (int)squareMemoized.apply(3));
     }
 
     /**
@@ -299,9 +299,9 @@ class TestMemoise {
     public void testStackoverflowSample2() throws NoSuchMethodException, SecurityException, IllegalAccessException {
         Method method = getClass().getMethod("factReflect", Integer.class);
         MemoizedFunction<Integer> fact = memoizeFunction(Integer.class, method);
-        assertEquals(1, fact.call(1));
-        assertEquals(120, fact.call(5));
-        assertEquals(720, fact.call(6));
+        assertEquals(1, (int)fact.call(1));
+        assertEquals(120, (int)fact.call(5));
+        assertEquals(720, (int)fact.call(6));
 
     }
 

@@ -1,14 +1,14 @@
 package test.puzzle.dikstra;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import puzzle.dikstra.Graph;
 
 
-class TestGraph {
+public class TestGraph {
 
     @Test
-    void test() {
+    public void test() {
         Graph g = new Graph();
         g.add("1", "2", 7);
         g.add("1", "3", 9);

@@ -9,19 +9,19 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import puzzle.Common;
+import puzzle.core.Common;
 import puzzle.language.JavaCompilerInMemory.CompileError;
 import puzzle.language.csp.Compiler.Problem;
 import puzzle.language.csp.Compiler.Variable;
 
-class TestCompiler {
+public class TestCompiler {
 
     static final Logger logger = Common.getLogger(TestCompiler.class);
 
 //    @Test
-    void testGenerate() {
+    public void testGenerate() {
         Problem p = new Problem("test.puzzle.language.csp.TestGenerate");
         int[] domain = IntStream.rangeClosed(1, 20).toArray();
         Variable a = p.variable("a", domain);
@@ -34,7 +34,7 @@ class TestCompiler {
     }
 
     @Test
-    void testParse() {
+    public void testParse() {
         String source =
             "problem test.puzzle.language.csp.TestGenerate;\n"
             + "variable [1..20] a b c;\n"
@@ -46,7 +46,7 @@ class TestCompiler {
     }
 
     @Test
-    void testCompileGo() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
+    public void testCompileGo() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
         String source = "problem SendMoreMoney;\r\n"
             + "\r\n"
             + "# SEND + MORE = MONEY\r\n"

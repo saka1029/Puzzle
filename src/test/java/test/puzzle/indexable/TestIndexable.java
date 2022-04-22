@@ -13,11 +13,42 @@ import org.junit.Test;
 import puzzle.core.Common;
 import puzzle.indexable.IndexComparator;
 import puzzle.indexable.IndexSwapper;
+import puzzle.indexable.Indexable;
 import puzzle.indexable.SimpleIndexable;
 
 public class TestIndexable {
 
     static final Logger logger = Common.getLogger(TestIndexable.class);
+
+    static class IntArrayIndexable implements Indexable {
+        int[] array;
+
+        public IntArrayIndexable(int[] array) {
+            this.array = array;
+        }
+
+        @Override
+        public int compare(int leftIndex, int rightIndex) {
+            return Integer.compare(array[leftIndex], array[rightIndex]);
+        }
+
+        @Override
+        public void swap(int leftIndex, int rightIndex) {
+            int temp = array[leftIndex];
+            array[leftIndex] = array[rightIndex];
+            array[rightIndex] = temp;
+        }
+
+        @Override
+        public int begin() {
+            return 0;
+        }
+
+        @Override
+        public int end() {
+            return array.length;
+        }
+    }
 
     static IndexComparator comp(int[] a, int key) {
         return (l, r) -> Integer.compare(key, a[r]);
@@ -49,13 +80,17 @@ public class TestIndexable {
     }
 
     @Test
-    public void bubbleSort() {
+    public void testBubbleSort() {
         int[] input = {7, 5, 6, 4, 3, 0, 9, 8, 2, 1};
-        new SimpleIndexable((l, r) -> Integer.compare(input[l], input[r]), (l, r) -> {
-            int temp = input[l];
-            input[l] = input[r];
-            input[r] = temp;
-        }, 0, input.length).bubbleSort();;
+        new IntArrayIndexable(input).bubbleSort();
+        System.out.println(Arrays.toString(input));
+        assertArrayEquals(new int[] {0,1,2,3,4,5,6,7,8,9}, input);
+    }
+
+    @Test
+    public void testHeapSort() {
+        int[] input = {7, 5, 6, 4, 3, 0, 9, 8, 2, 1};
+        new IntArrayIndexable(input).heapSort();
         System.out.println(Arrays.toString(input));
         assertArrayEquals(new int[] {0,1,2,3,4,5,6,7,8,9}, input);
     }

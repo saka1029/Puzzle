@@ -95,8 +95,8 @@ public class TestCspIntCompiler {
         // String.format("%1$s(s, e, n, d) + %1$s(m, o, r, e) == %1$s(m, o, n,
         // e, y)",
         // getClass().getName() + ".number"));
-        // Constraint c1 = problem.constraint(
-        //     "number(s, e, n, d) + number(m, o, r, e) == number(m, o, n, e, y)");
+        problem.constraint(
+            "number(s, e, n, d) + number(m, o, r, e) == number(m, o, n, e, y)");
         String prolog = null;
         String epilog = "static int number(int... digits) {\n"
             + "    int r = 0;\n" + "    for (int d : digits)\n"

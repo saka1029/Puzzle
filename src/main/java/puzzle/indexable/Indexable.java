@@ -13,7 +13,6 @@ public interface Indexable {
 
     public default void quickSort() {
         new Object() {
-
             int partition(int begin, int end) {
                 int pivotIndex = end;
                 int i = (begin - 1);
@@ -53,6 +52,14 @@ public interface Indexable {
                 }
             }
         } while (swapped);
+    }
+
+    /**
+     * マージソートを行うためにはget(index), set(index, value)が必要となる。
+     * get(index)の戻り値は要素の型なので、抽象化する必要がある。
+     */
+    public default void mergeSort() {
+        throw new RuntimeException("mergeSort() not implemented");
     }
 
     public default void shuffle() {

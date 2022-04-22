@@ -41,6 +41,20 @@ public interface Indexable {
                 swap(j - 1, j);
     }
 
+    public default void bubbleSort() {
+        boolean swapped;
+        do {
+            swapped = false;
+            for (int i = begin() + 1; i < end(); ++i) {
+                if (compare(i - 1, i) > 0) {
+                    /* swap them and remember something changed */
+                    swap(i - 1, i);
+                    swapped = true;
+                }
+            }
+        } while (swapped);
+    }
+
     public default void shuffle() {
         Random random = new Random();
         int begin = begin(), end = end();

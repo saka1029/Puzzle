@@ -1,5 +1,6 @@
 package test.puzzle.indexable;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static puzzle.core.Common.methodName;
 
@@ -45,5 +46,17 @@ public class TestIndexable {
         assertEquals(-1, new SimpleIndexable(comp(ints, -1), swap(ints), 0, ints.length).binarySearch());
         assertEquals(-3, new SimpleIndexable(comp(ints, 3), swap(ints), 0, ints.length).binarySearch());
         assertEquals(-9, new SimpleIndexable(comp(ints, 15), swap(ints), 0, ints.length).binarySearch());
+    }
+
+    @Test
+    public void bubbleSort() {
+        int[] input = {7, 5, 6, 4, 3, 0, 9, 8, 2, 1};
+        new SimpleIndexable((l, r) -> Integer.compare(input[l], input[r]), (l, r) -> {
+            int temp = input[l];
+            input[l] = input[r];
+            input[r] = temp;
+        }, 0, input.length).bubbleSort();;
+        System.out.println(Arrays.toString(input));
+        assertArrayEquals(new int[] {0,1,2,3,4,5,6,7,8,9}, input);
     }
 }

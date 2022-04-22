@@ -156,11 +156,11 @@ public class TestMemoizer {
                     self.apply(new Args(args.x - 1, args.y, args.z)),
                     self.apply(new Args(args.y - 1, args.z, args.x)),
                     self.apply(new Args(args.z - 1, args.x, args.y)))));
-        Memoizer<Args, Integer> tarai2 =
-            memoize(self -> args -> args.x <= args.y ? args.y
-                : call(self, call(self, args.x - 1, args.y, args.z),
-                  call(self, args.y - 1, args.z, args.x),
-                  call(self, args.z - 1, args.x, args.y)));
+        // Memoizer<Args, Integer> tarai2 =
+        //     memoize(self -> args -> args.x <= args.y ? args.y
+        //         : call(self, call(self, args.x - 1, args.y, args.z),
+        //           call(self, args.y - 1, args.z, args.x),
+        //           call(self, args.z - 1, args.x, args.y)));
         assertEquals(3, (int)tarai.apply(new Args(3, 2, 1)));
         for (Entry<Args, Integer> e : tarai.cache().entrySet())
             System.out.println(e);

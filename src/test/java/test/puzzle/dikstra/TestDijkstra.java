@@ -10,6 +10,7 @@ public class TestDijkstra {
     enum 駅 { 東京, 渋谷, 品川, 新横浜, 小田原, 新宿, 横浜 }
 
     @Test
+    @SuppressWarnings("unused")
     public void test() {
         駅[] all = 駅.values();
         int size = all.length;

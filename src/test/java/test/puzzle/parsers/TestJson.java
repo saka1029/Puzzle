@@ -76,6 +76,7 @@ public class TestJson {
             List<Object> criterial = List.of("GlossDef");
 
             @Override
+            @SuppressWarnings("unchecked")
             public Object objectEnd(List<Object> path, Object object) {
                 if (match(path, criterial)) {
                     Map<String, Object> map = (Map<String, Object>)object;

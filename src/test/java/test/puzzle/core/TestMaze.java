@@ -9,7 +9,8 @@ public class TestMaze {
     @Test
     public void test() {
         int HEIGHT = 10, WIDTH = 10;
-        char START = 's', FREE = '.', WALL = '#', GOAL = 'g';
+        char START = 's', WALL = '#', GOAL = 'g';
+        // char FREE = '.';
         String[] MAZE_STRING = {
             "s.........",
             "#########.",

@@ -1,7 +1,5 @@
 package test.puzzle.parsers;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 public class TestVariableCalculator {

@@ -51,12 +51,12 @@ public class TestCspIntCompiler {
             Solver.constraintOrder(problem, List.of(A, B, C)));
         assertEquals(List.of(List.of(), List.of(c2), List.of(c1)),
             Solver.constraintOrder(problem, List.of(C, B, A)));
-        String source = Solver.generateSource(problem, problem.variables,
-            Solver.constraintOrder(problem, problem.variables), null, null);
+        // String source = Solver.generateSource(problem, problem.variables,
+        //     Solver.constraintOrder(problem, problem.variables), null, null);
         // logger.info(source);
-        List<Variable> reverse = List.of(C, B, A);
-        String source2 = Solver.generateSource(problem, reverse,
-            Solver.constraintOrder(problem, reverse), null, null);
+        // List<Variable> reverse = List.of(C, B, A);
+        // String source2 = Solver.generateSource(problem, reverse,
+        //     Solver.constraintOrder(problem, reverse), null, null);
         // logger.info(source2);
         List<int[]> answers = new ArrayList<>();
         // Solver.solve(problem, a -> logger.info(Arrays.toString(a)));
@@ -95,8 +95,8 @@ public class TestCspIntCompiler {
         // String.format("%1$s(s, e, n, d) + %1$s(m, o, r, e) == %1$s(m, o, n,
         // e, y)",
         // getClass().getName() + ".number"));
-        Constraint c1 = problem.constraint(
-            "number(s, e, n, d) + number(m, o, r, e) == number(m, o, n, e, y)");
+        // Constraint c1 = problem.constraint(
+        //     "number(s, e, n, d) + number(m, o, r, e) == number(m, o, n, e, y)");
         String prolog = null;
         String epilog = "static int number(int... digits) {\n"
             + "    int r = 0;\n" + "    for (int d : digits)\n"

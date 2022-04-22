@@ -99,11 +99,6 @@ public final class Rational extends Number implements Comparable<Rational> {
             return numerator + "/" + denominator;
     }
 
-    public float toFloat() {
-        // TODO: remove this duplicate function (used in CTS and the shim)
-        return floatValue();
-    }
-
     @Override
     public int hashCode() {
         // Bias the hash code for the first (2^16) values for both numerator and denominator

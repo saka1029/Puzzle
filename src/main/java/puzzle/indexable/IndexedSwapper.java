@@ -1,5 +1,7 @@
 package puzzle.indexable;
 
+import java.util.List;
+
 public interface IndexedSwapper {
     void swap(int l, int r);
 
@@ -8,14 +10,10 @@ public interface IndexedSwapper {
             int temp = array[l];
             array[l] = array[r];
             array[r] = temp;
-        }
+        };
     }
 
     public static <T> IndexedSwapper swapper(List<T> list) {
-        return (l, r) -> {
-            T temp = list.get(l);
-            list.set(l, list.get(r));
-            list.set(r, temp);
-        }
+        return (l, r) -> list.set(r, list.set(l, list.get(r)));
     }
 }

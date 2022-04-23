@@ -1,3 +1,5 @@
+package puzzle.indexable;
+
 import java.util.Comparator;
 import java.util.List;
 

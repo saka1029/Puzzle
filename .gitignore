@@ -1,4 +1,5 @@
-/bin/
-/target/
-*.bak
-temp/
+target/
+lib/
+.settings/
+.classpath
+.project

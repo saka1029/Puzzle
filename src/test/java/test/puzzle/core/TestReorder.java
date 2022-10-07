@@ -25,6 +25,80 @@ public class TestReorder {
 
         int size();
 
+        public static Reorder of(int[] array) {
+            return new Reorder() {
+
+                @Override
+                public int compare(int indexA, int indexB) {
+                    return Integer.compare(array[indexA], array[indexB]);
+                }
+
+                @Override
+                public void swap(int indexA, int indexB) {
+                    int temp = array[indexA];
+                    array[indexA] = array[indexB];
+                    array[indexB] = temp;
+                }
+
+                @Override
+                public int size() {
+                    return array.length;
+                }
+            };
+        }
+        
+        public static <T> Reorder of(T[] array, Comparator<T> comparator) {
+            return new Reorder() {
+
+                @Override
+                public int compare(int indexA, int indexB) {
+                    return comparator.compare(array[indexA], array[indexB]);
+                }
+
+                @Override
+                public void swap(int indexA, int indexB) {
+                    T temp = array[indexA];
+                    array[indexA] = array[indexB];
+                    array[indexB] = temp;
+                }
+
+                @Override
+                public int size() {
+                    return array.length;
+                }
+                
+            };
+        }
+
+        public static <T extends Comparable<T>> Reorder of(T[] array) {
+            return of(array, Comparator.naturalOrder());
+        }
+
+        public static <T> Reorder of(List<T> list, Comparator<T> comparator) {
+            return new Reorder() {
+
+                @Override
+                public int compare(int indexA, int indexB) {
+                    return comparator.compare(list.get(indexA), list.get(indexB));
+                }
+
+                @Override
+                public void swap(int indexA, int indexB) {
+                    Collections.swap(list, indexA, indexB);
+                }
+
+                @Override
+                public int size() {
+                    return list.size();
+                }
+
+            };
+        }
+
+        public static <T extends Comparable<T>> Reorder of(List<T> list) {
+            return of(list, Comparator.naturalOrder());
+        }
+
         public default Reorder quickSort() {
             new Object() {
                 int partition(int begin, int end) {
@@ -133,7 +207,6 @@ public class TestReorder {
             return true;
         }
 
-
         public default Reorder reverseOrder() {
             final Reorder origin = this;
             return new Reorder() {
@@ -180,80 +253,6 @@ public class TestReorder {
                 }
 
             };
-        }
-
-        public static Reorder of(int[] array) {
-            return new Reorder() {
-
-                @Override
-                public int compare(int indexA, int indexB) {
-                    return Integer.compare(array[indexA], array[indexB]);
-                }
-
-                @Override
-                public void swap(int indexA, int indexB) {
-                    int temp = array[indexA];
-                    array[indexA] = array[indexB];
-                    array[indexB] = temp;
-                }
-
-                @Override
-                public int size() {
-                    return array.length;
-                }
-            };
-        }
-        
-        public static <T> Reorder of(T[] array, Comparator<T> comparator) {
-            return new Reorder() {
-
-                @Override
-                public int compare(int indexA, int indexB) {
-                    return comparator.compare(array[indexA], array[indexB]);
-                }
-
-                @Override
-                public void swap(int indexA, int indexB) {
-                    T temp = array[indexA];
-                    array[indexA] = array[indexB];
-                    array[indexB] = temp;
-                }
-
-                @Override
-                public int size() {
-                    return array.length;
-                }
-                
-            };
-        }
-
-        public static <T extends Comparable<T>> Reorder of(T[] array) {
-            return of(array, Comparator.naturalOrder());
-        }
-
-        public static <T> Reorder of(List<T> list, Comparator<T> comparator) {
-            return new Reorder() {
-
-                @Override
-                public int compare(int indexA, int indexB) {
-                    return comparator.compare(list.get(indexA), list.get(indexB));
-                }
-
-                @Override
-                public void swap(int indexA, int indexB) {
-                    Collections.swap(list, indexA, indexB);
-                }
-
-                @Override
-                public int size() {
-                    return list.size();
-                }
-
-            };
-        }
-
-        public static <T extends Comparable<T>> Reorder of(List<T> list) {
-            return of(list, Comparator.naturalOrder());
         }
     }
 
@@ -362,6 +361,17 @@ public class TestReorder {
 
     @Test
     public void testTArray() {
+        record P(int id, String name) implements Comparable<P> {
+            static Comparator<P> comparator = Comparator.comparing(P::id).thenComparing(P::name);
+            @Override public int compareTo(P o) { return comparator.compare(this, o); }
+        }
+        P[] array = { new P(2, "a"), new P(1, "c"), new P(2, "b")};
+        Reorder.of(array).quickSort();
+        assertArrayEquals(new P[] {new P(1, "c"), new P(2, "a"), new P(2, "b")}, array);
+    }
+
+    @Test
+    public void testTArrayWithComparator() {
         record P(int id, String name) {}
         Comparator<P> comparator = Comparator.comparing(P::id).thenComparing(P::name);
         P[] array = { new P(2, "a"), new P(1, "c"), new P(2, "b")};

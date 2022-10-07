@@ -25,7 +25,7 @@ public class TestReorder {
 
         int size();
 
-        public default void quickSort() {
+        public default Reorder quickSort() {
             new Object() {
                 int partition(int begin, int end) {
                     int pivotIndex = end;
@@ -45,16 +45,18 @@ public class TestReorder {
                     sort(partitionIndex + 1, end);
                 }
             }.sort(0, size() - 1);
+            return this;
         }
 
-        public default void insertionSort() {
+        public default Reorder insertionSort() {
             int end = size();
             for (int i = 1, n = end; i < n; i++)
                 for (int j = i; j > 0 && compare(j - 1, j) > 0; --j)
                     swap(j - 1, j);
+            return this;
         }
 
-        public default void bubbleSort() {
+        public default Reorder bubbleSort() {
             int end = size();
             boolean swapped;
             do {
@@ -66,9 +68,10 @@ public class TestReorder {
                     }
                 }
             } while (swapped);
+            return this;
         }
 
-        public default void heapSort() {
+        public default Reorder heapSort() {
             int end = size();
             new Object() {
 
@@ -95,21 +98,41 @@ public class TestReorder {
                     }
                 }
             }.sort();
+            return this;
         }
 
-        public default void reverse() {
+        public default Reorder reverse() {
             for (int i = 0, j = size() - 1; i < j; ++i, --j)
                 swap(i, j);
+            return this;
         }
 
-        public default void shuffle() {
+        public default Reorder shuffle() {
             Random random = new Random();
             int end = size();
             for (int i = end - 1; i > 0; --i) {
                 int j = random.nextInt(i + 1);
                 swap(i, j);
             }
+            return this;
         }
+        
+        public default boolean nextPermutation() {
+            int end = size();
+            int i = end - 2;
+            while (i >= 0 && compare(i, i + 1) >= 0)
+                --i;
+            if (i < 0)
+                return false;
+            int j = end - 1;
+            while (compare(i, j) >= 0)
+                --j;
+            swap(i, j);
+            for (int p = i + 1, q = end - 1; p < q; ++p, --q)
+                swap(p, q);
+            return true;
+        }
+
 
         public default Reorder reverseOrder() {
             final Reorder origin = this;
@@ -306,6 +329,21 @@ public class TestReorder {
             assertTrue(e.getValue() >= min && e.getValue() <= max);
         }
         assertEquals(120, hist.size());
+    }
+    
+    @Test
+    public void testNextPermutation() {
+        int[] a = {0, 1, 2, 3, 4};
+        assertTrue(Reorder.of(a).nextPermutation());
+        assertArrayEquals(new int[] {0, 1, 2, 4, 3}, a);
+        assertTrue(Reorder.of(a).nextPermutation());
+        assertArrayEquals(new int[] {0, 1, 3, 2, 4}, a);
+        assertTrue(Reorder.of(a).nextPermutation());
+        assertArrayEquals(new int[] {0, 1, 3, 4, 2}, a);
+        assertTrue(Reorder.of(a).nextPermutation());
+        assertArrayEquals(new int[] {0, 1, 4, 2, 3}, a);
+        int[] b = {4, 3, 2, 1, 0};
+        assertFalse(Reorder.of(b).nextPermutation());
     }
 
     @Test

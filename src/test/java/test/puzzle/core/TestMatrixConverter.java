@@ -119,9 +119,11 @@ public class TestMatrixConverter {
             };
         }
         
-        @SuppressWarnings("unchecked")
         static <E> List<E> alloc(List<E> src, int size) {
-            return (List<E>)Arrays.asList(new Object[size]);
+            List<E> list = new ArrayList<>();
+            for (int i = 0; i < size; ++i)
+                list.add(null);
+            return list;
         }
         
         public static <E> MatrixConverter<List<List<E>>> of(List<List<E>> src) {
@@ -149,8 +151,10 @@ public class TestMatrixConverter {
                 public void create(int rows, int cols) {
                     dst = new ArrayList<>(rows);
                     for (int r = 0; r < rows; ++r) {
-                        List<E> row = src.get(r);
-                        dst.add(alloc(row, cols));
+                        List<E> row = new ArrayList<>(cols);
+                        for (int c = 0; c < cols; ++c)
+                            row.add(null);
+                        dst.add(row);
                     }
                 }
 
@@ -372,6 +376,5 @@ public class TestMatrixConverter {
             {2, 4, 6},
             {1, 3, 5}};
         assertArrayEquals(expected, dst);
-        System.out.println(MatrixConverter.of(dst).string());
     }
 }

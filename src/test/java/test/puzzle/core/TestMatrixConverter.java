@@ -17,6 +17,24 @@ public class TestMatrixConverter {
         void move(int sr, int sc, int dr, int dc);
         void create(int rows, int cols);
         T dst();
+        String string(int r, int c);
+        static final String NL = System.lineSeparator();
+
+        public default String string(String separator) {
+            int rows = rows(), cols = cols();
+            StringBuilder sb = new StringBuilder();
+            for (int r = 0; r < rows; ++r) {
+                String sep = "";
+                for (int c = 0; c < cols; ++c, sep = separator)
+                    sb.append(sep).append(string(r, c));
+                sb.append(NL);
+            }
+            return sb.toString();
+        }
+
+        public default String string() {
+            return string(" ");
+        }
 
         public static MatrixConverter<int[][]> of(int[][] src) {
             int rows = src.length, cols = src[0].length;
@@ -47,6 +65,11 @@ public class TestMatrixConverter {
                 @Override
                 public int[][] dst() {
                     return dst;
+                }
+                
+                @Override
+                public String string(int r, int c) {
+                    return "" + src[r][c];
                 }
             };
         }
@@ -87,6 +110,11 @@ public class TestMatrixConverter {
                 @Override
                 public E[][] dst() {
                     return dst;
+                }
+                
+                @Override
+                public String string(int r, int c) {
+                    return "" + src[r][c];
                 }
             };
         }
@@ -130,6 +158,11 @@ public class TestMatrixConverter {
                 public List<List<E>> dst() {
                     return dst;
                 }
+                
+                @Override
+                public String string(int r, int c) {
+                    return "" + src.get(r).get(c);
+                }
             };
         }
 
@@ -168,6 +201,33 @@ public class TestMatrixConverter {
                     move(r, c, r, dc);
             return dst();
         }
+
+        public default T rotate90() {
+            int rows = rows(), cols = cols();
+            create(cols, rows);
+            for (int r = 0, dc = rows - 1; r < rows; ++r, --dc)
+                for (int c = 0, dr = 0; c < cols; ++c, ++dr)
+                    move(r, c, dr, dc);
+            return dst();
+        }
+
+        public default T rotate180() {
+            int rows = rows(), cols = cols();
+            create(rows, cols);
+            for (int r = 0, dr = rows - 1; r < rows; ++r, --dr)
+                for (int c = 0, dc = cols - 1; c < cols; ++c, --dc)
+                    move(r, c, dr, dc);
+            return dst();
+        }
+
+        public default T rotate270() {
+            int rows = rows(), cols = cols();
+            create(cols, rows);
+            for (int r = 0, dc = 0; r < rows; ++r, ++dc)
+                for (int c = 0, dr = cols - 1; c < cols; ++c, --dr)
+                    move(r, c, dr, dc);
+            return dst();
+        }
     }
 
     @Test
@@ -181,7 +241,7 @@ public class TestMatrixConverter {
     }
 
     @Test
-    public void testString() {
+    public void testStringArray() {
         String[][] src = {
             {"1", "2"},
             {"3", "4"},
@@ -204,6 +264,19 @@ public class TestMatrixConverter {
             List.of("1", "3", "5"),
             List.of("2", "4", "6"));
         assertEquals(expectedTrans, trans);
+    }
+
+    @Test
+    public void testString() {
+        String nl = System.lineSeparator();
+        int[][] src = {
+            {1, 2},
+            {3, 4},
+            {5, 6}};
+        assertEquals("1 2" + nl + "3 4" + nl + "5 6" + nl,
+            MatrixConverter.of(src).string());
+        assertEquals("1, 2" + nl + "3, 4" + nl + "5, 6" + nl,
+            MatrixConverter.of(src).string(", "));
     }
 
     @Test
@@ -261,4 +334,44 @@ public class TestMatrixConverter {
         assertArrayEquals(expected, dst);
     }
 
+    @Test
+    public void testRotate90() {
+        int[][] src = {
+            {1, 2},
+            {3, 4},
+            {5, 6}};
+        int[][] dst = MatrixConverter.of(src).rotate90();
+        int[][] expected = {
+            {5, 3, 1},
+            {6, 4, 2}};
+        assertArrayEquals(expected, dst);
+    }
+
+    @Test
+    public void test180() {
+        int[][] src = {
+            {1, 2},
+            {3, 4},
+            {5, 6}};
+        int[][] dst = MatrixConverter.of(src).rotate180();
+        int[][] expected = {
+            {6, 5},
+            {4, 3},
+            {2, 1}};
+        assertArrayEquals(expected, dst);
+    }
+
+    @Test
+    public void testRotate270() {
+        int[][] src = {
+            {1, 2},
+            {3, 4},
+            {5, 6}};
+        int[][] dst = MatrixConverter.of(src).rotate270();
+        int[][] expected = {
+            {2, 4, 6},
+            {1, 3, 5}};
+        assertArrayEquals(expected, dst);
+        System.out.println(MatrixConverter.of(dst).string());
+    }
 }

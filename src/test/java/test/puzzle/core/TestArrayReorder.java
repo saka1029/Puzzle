@@ -171,16 +171,42 @@ public class TestArrayReorder {
         assertEquals(List.of(List.of(0, 4), List.of(1, 3)), swapTrace);
     }
     
+    static List<List<Integer>> listOfList(int... a) {
+        List<List<Integer>> list = new ArrayList<>();
+        for (int i = 0, max = a.length; i < max; i += 2)
+            list.add(List.of(a[i], a[i + 1]));
+        return list;
+    }
+
     @Test
     public void testTraceQuickSort() {
         int[] array = {5, 4, 3, 2, 1, 0};
         List<List<Integer>> swapHistory = new ArrayList<>();
         ArrayReorder.of(array).trace(
-            (a, b) -> System.out.printf("compare %d %d%n", a, b),
             (a, b) -> {
-                System.out.printf("swap %d %d%n", a, b);
+//                System.out.printf("compare %d %d%n", a, b);
+            },
+            (a, b) -> {
+//                System.out.printf("swap %d %d%n", a, b);
                 swapHistory.add(List.of(a, b));
             }).quickSort();
-        assertEquals(List.of(List.of(0, 5), List.of(1, 4), List.of(2, 3)), swapHistory);
+        assertEquals(listOfList(0, 5, 1, 4, 2, 3), swapHistory);
+    }
+    
+    @Test
+    public void testTraceBubbleSort() {
+        int[] array = {5, 4, 3, 2, 1, 0};
+        List<List<Integer>> swapHistory = new ArrayList<>();
+        ArrayReorder.of(array).trace(
+            (a, b) -> {
+//                System.out.printf("compare %d %d%n", a, b);
+            },
+            (a, b) -> {
+//                System.out.printf("swap %d %d%n", a, b);
+                swapHistory.add(List.of(a, b));
+            }).bubbleSort();
+        assertEquals(listOfList(
+            0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 0, 1, 1, 2, 2, 3, 3, 4,
+            0, 1, 1, 2, 2, 3, 0, 1, 1, 2, 0, 1), swapHistory);
     }
 }

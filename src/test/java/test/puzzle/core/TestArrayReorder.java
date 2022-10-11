@@ -160,7 +160,7 @@ public class TestArrayReorder {
     }
     
     @Test
-    public void testTrace() {
+    public void testTraceReverse() {
         int[] array = {4, 3, 2, 1, 0};
         ArrayReorder re = ArrayReorder.of(array);
         List<List<Integer>> swapTrace = new ArrayList<>();
@@ -169,5 +169,18 @@ public class TestArrayReorder {
         re.trace(compare, swap).reverse();
         assertArrayEquals(new int[] {0, 1, 2, 3, 4}, array);
         assertEquals(List.of(List.of(0, 4), List.of(1, 3)), swapTrace);
+    }
+    
+    @Test
+    public void testTraceQuickSort() {
+        int[] array = {5, 4, 3, 2, 1, 0};
+        List<List<Integer>> swapHistory = new ArrayList<>();
+        ArrayReorder.of(array).trace(
+            (a, b) -> System.out.printf("compare %d %d%n", a, b),
+            (a, b) -> {
+                System.out.printf("swap %d %d%n", a, b);
+                swapHistory.add(List.of(a, b));
+            }).quickSort();
+        assertEquals(List.of(List.of(0, 5), List.of(1, 4), List.of(2, 3)), swapHistory);
     }
 }

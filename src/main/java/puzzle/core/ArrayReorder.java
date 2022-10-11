@@ -246,12 +246,18 @@ public interface ArrayReorder {
     }
 
     public default void quickSort() {
+        ArrayReorder origin = this;
         new Object() {
+            void swap(int a, int b) {
+                if (a == b) return;
+                origin.swap(a, b);
+            }
+
             int partition(int begin, int end) {
                 int pivotIndex = end;
-                int i = (begin - 1);
+                int i = begin - 1;
                 for (int j = begin; j < end; j++)
-                    if (compare(j, pivotIndex) <= 0)
+                    if (compare(j, pivotIndex) < 0)
                         swap(++i, j);
                 swap(i + 1, end);
                 return i + 1;

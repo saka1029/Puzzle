@@ -50,14 +50,13 @@ public class TestMatrixConverter {
 
     @Test
     public void testString() {
-        String nl = System.lineSeparator();
         int[][] src = {
             {1, 2},
             {3, 4},
             {5, 6}};
-        assertEquals("1 2" + nl + "3 4" + nl + "5 6" + nl,
+        assertEquals("1 2%n3 4%n5 6%n".formatted(),
             MatrixConverter.of(src).string());
-        assertEquals("1, 2" + nl + "3, 4" + nl + "5, 6" + nl,
+        assertEquals("1, 2%n3, 4%n5, 6%n".formatted(),
             MatrixConverter.of(src).string(", "));
     }
 
@@ -125,7 +124,7 @@ public class TestMatrixConverter {
     }
 
     @Test
-    public void testMirrorString() {
+    public void testMirrorStringArray() {
         String[][] src = {
             {"1", "2"},
             {"3", "4"},
@@ -152,7 +151,7 @@ public class TestMatrixConverter {
     }
 
     @Test
-    public void test180() {
+    public void testRotate180() {
         int[][] src = {
             {1, 2},
             {3, 4},

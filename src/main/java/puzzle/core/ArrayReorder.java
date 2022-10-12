@@ -409,24 +409,30 @@ public interface ArrayReorder {
         };
     }
 
-    public interface Trace2i {
+    public interface Trace {
         void trace(int indexA, int indexB);
+        static final Trace NONE = (a, b) -> {};
     }
 
-    public default ArrayReorder trace(Trace2i traceCompare, Trace2i traceSwap) {
+    public default ArrayReorder trace(
+            Trace beforeCompare, Trace afterCompare,
+            Trace beforeSwap, Trace afterSwap) {
         ArrayReorder origin = this;
         return new ArrayReorder() {
 
             @Override
             public int compare(int indexA, int indexB) {
-                traceCompare.trace(indexA, indexB);
-                return origin.compare(indexA, indexB);
+                beforeCompare.trace(indexA, indexB);
+                int r = origin.compare(indexA, indexB);
+                afterCompare.trace(indexA, indexB);
+                return r;
             }
 
             @Override
             public void swap(int indexA, int indexB) {
-                traceSwap.trace(indexA, indexB);
+                beforeSwap.trace(indexA, indexB);
                 origin.swap(indexA, indexB);
+                afterSwap.trace(indexA, indexB);
             }
 
             @Override

@@ -164,9 +164,9 @@ public class TestArrayReorder {
         int[] array = {4, 3, 2, 1, 0};
         ArrayReorder re = ArrayReorder.of(array);
         List<List<Integer>> swapTrace = new ArrayList<>();
-        ArrayReorder.Trace2i compare = (a, b) -> { throw new RuntimeException(); };
-        ArrayReorder.Trace2i swap = (a, b) -> swapTrace.add(List.of(a, b));
-        re.trace(compare, swap).reverse();
+        ArrayReorder.Trace compare = (a, b) -> { throw new RuntimeException(); };
+        ArrayReorder.Trace swap = (a, b) -> swapTrace.add(List.of(a, b));
+        re.trace(compare, ArrayReorder.Trace.NONE, swap, ArrayReorder.Trace.NONE).reverse();
         assertArrayEquals(new int[] {0, 1, 2, 3, 4}, array);
         assertEquals(List.of(List.of(0, 4), List.of(1, 3)), swapTrace);
     }
@@ -185,11 +185,11 @@ public class TestArrayReorder {
         ArrayReorder.of(array).trace(
             (a, b) -> {
 //                System.out.printf("compare %d %d%n", a, b);
-            },
+            }, ArrayReorder.Trace.NONE,
             (a, b) -> {
 //                System.out.printf("swap %d %d%n", a, b);
                 swapHistory.add(List.of(a, b));
-            }).quickSort();
+            }, ArrayReorder.Trace.NONE).quickSort();
         assertEquals(listOfList(0, 5, 1, 4, 2, 3), swapHistory);
     }
     
@@ -200,11 +200,11 @@ public class TestArrayReorder {
         ArrayReorder.of(array).trace(
             (a, b) -> {
 //                System.out.printf("compare %d %d%n", a, b);
-            },
+            }, ArrayReorder.Trace.NONE,
             (a, b) -> {
 //                System.out.printf("swap %d %d%n", a, b);
                 swapHistory.add(List.of(a, b));
-            }).bubbleSort();
+            }, ArrayReorder.Trace.NONE).bubbleSort();
         assertEquals(listOfList(
             0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 0, 1, 1, 2, 2, 3, 3, 4,
             0, 1, 1, 2, 2, 3, 0, 1, 1, 2, 0, 1), swapHistory);

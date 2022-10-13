@@ -411,28 +411,26 @@ public interface ArrayReorder {
 
     public interface Trace {
         void trace(int indexA, int indexB);
-        static final Trace NONE = (a, b) -> {};
     }
 
-    public default ArrayReorder trace(
-            Trace beforeCompare, Trace afterCompare,
-            Trace beforeSwap, Trace afterSwap) {
+    public default ArrayReorder trace( Trace compare, Trace beforeSwap, Trace afterSwap) {
         ArrayReorder origin = this;
         return new ArrayReorder() {
 
             @Override
             public int compare(int indexA, int indexB) {
-                beforeCompare.trace(indexA, indexB);
-                int r = origin.compare(indexA, indexB);
-                afterCompare.trace(indexA, indexB);
-                return r;
+                if (compare != null)
+                    compare.trace(indexA, indexB);
+                return origin.compare(indexA, indexB);
             }
 
             @Override
             public void swap(int indexA, int indexB) {
-                beforeSwap.trace(indexA, indexB);
+                if (beforeSwap != null)
+                    beforeSwap.trace(indexA, indexB);
                 origin.swap(indexA, indexB);
-                afterSwap.trace(indexA, indexB);
+                if (afterSwap != null)
+                    afterSwap.trace(indexA, indexB);
             }
 
             @Override

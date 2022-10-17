@@ -1,38 +1,22 @@
+import java.util.Arrays;
 public class SelfPrint {
     public static void main(String[] args) {
-        System.out.print(getMyText());
+        char q = 34, c = 44;
+        Arrays.stream(T).limit(9).forEach(System.out::println);
+        Arrays.stream(T).map(s -> q + s + q + c).forEach(System.out::println);
+        Arrays.stream(T).skip(9).forEach(System.out::println);
     }
-    private static String[] programText = {
+    private static String[] T = {
+"import java.util.Arrays;",
 "public class SelfPrint {",
 "    public static void main(String[] args) {",
-"        System.out.print(getMyText());",
-"    }",
-"    private static String[] programText = {",
-"    };",
-"    private static String getMyText() {",
 "        char q = 34, c = 44;",
-"        String n = System.lineSeparator();",
-"        StringBuilder sb = new StringBuilder();",
-"        for (int i = 0; i < 5; i++)",
-"            sb.append(programText[i]).append(n);",
-"        for (int i = 0; i < programText.length; i++)",
-"            sb.append(q + programText[i] + q + c).append(n);",
-"        for (int i = 5; i < programText.length; i++)",
-"            sb.append(programText[i]).append(n);",
-"        return sb.toString();",
+"        Arrays.stream(T).limit(9).forEach(System.out::println);",
+"        Arrays.stream(T).map(s -> q + s + q + c).forEach(System.out::println);",
+"        Arrays.stream(T).skip(9).forEach(System.out::println);",
 "    }",
+"    private static String[] T = {",
+"    };",
 "}",
     };
-    private static String getMyText() {
-        char q = 34, c = 44;
-        String n = System.lineSeparator();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 5; i++)
-            sb.append(programText[i]).append(n);
-        for (int i = 0; i < programText.length; i++)
-            sb.append(q + programText[i] + q + c).append(n);
-        for (int i = 5; i < programText.length; i++)
-            sb.append(programText[i]).append(n);
-        return sb.toString();
-    }
 }

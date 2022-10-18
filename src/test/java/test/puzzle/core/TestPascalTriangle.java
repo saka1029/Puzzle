@@ -9,6 +9,7 @@ import java.util.stream.LongStream;
 
 import org.junit.Test;
 
+import puzzle.core.PascalsTriangle;
 import puzzle.functions.Memoizer;
 
 public class TestPascalTriangle {
@@ -140,6 +141,16 @@ public class TestPascalTriangle {
     public void testPascalRow() {
         for (int i = 0; i < 33; ++i)
             System.out.println(Arrays.toString(pascalRow(i)));
+    }
+    
+    @Test
+    public void testPascalsTriangleNthRow() {
+        assertArrayEquals(new int[] {}, PascalsTriangle.pascalsTriangleNthRow(0));
+        assertArrayEquals(new int[] {1}, PascalsTriangle.pascalsTriangleNthRow(1));
+        assertArrayEquals(new int[] {1, 1}, PascalsTriangle.pascalsTriangleNthRow(2));
+        assertArrayEquals(new int[] {1, 2, 1}, PascalsTriangle.pascalsTriangleNthRow(3));
+        assertArrayEquals(new int[] {1, 3, 3, 1}, PascalsTriangle.pascalsTriangleNthRow(4));
+        assertArrayEquals(new int[] {1, 4, 6, 4, 1}, PascalsTriangle.pascalsTriangleNthRow(5));
     }
 
 }

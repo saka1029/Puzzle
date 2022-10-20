@@ -4,11 +4,11 @@ import java.util.Map;
 
 /**
  * 1st version
- * expression = [ "+" | "-" ] term { ("+" | "-") term }
+ * expression = [ "-" ] term { ("+" | "-") term }
  * term       = element { ( "*" | "/" ) element }
  * element    = "(" expression ")" | variable | number
  * 
- * expression = [ "+" | "-" ] term { ("+" | "-") term }
+ * expression = [ "-" ] term { ("+" | "-") term }
  * term       = factor { ("*" | "/") factor }
  * factor     = primary [ "^" factor ]
  * primary    = primary | element

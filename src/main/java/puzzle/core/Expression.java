@@ -7,7 +7,7 @@ import java.util.Objects;
  * 数式をコンパイルします。
  * 
  * <pre>
- * *** 1st version ***
+ * * Syntax (1st version) *
  * expression = term { ("+" | "-" ) term }
  * term       = factor { ( "*" | "/" ) factor }
  * factor    = [ "-" ] ( "(" expression ")" | variable | number )
@@ -71,21 +71,23 @@ public interface Expression {
                 return e;
             }
             
-            Expression number() {
-                bufferClear();
+            void appendInteger() {
                 while (Character.isDigit(ch))
                     bufferAppendGet(ch);
+            }
+            
+            Expression number() {
+                bufferClear();
+                appendInteger();
                 if (ch == '.') {
                     bufferAppendGet(ch);
-                    while (Character.isDigit(ch))
-                        bufferAppendGet(ch);
+                    appendInteger();
                 }
                 if (ch == 'e' || ch == 'E') {
                     bufferAppendGet(ch);
                     if (ch == '-')
                         bufferAppendGet(ch);
-                    while (Character.isDigit(ch))
-                        bufferAppendGet(ch);
+                    appendInteger();
                 }
                 double value = Double.parseDouble(bufferString());
                 return v -> value;

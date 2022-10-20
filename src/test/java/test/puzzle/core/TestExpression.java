@@ -16,6 +16,9 @@ public class TestExpression {
     public void testNumber() {
         assertEquals(12.3, Expression.of("12.3").eval(Map.of()), E);
         assertEquals(-12.3, Expression.of("-12.3").eval(Map.of()), E);
+        assertEquals(-12, Expression.of("-1.2e1").eval(Map.of()), E);
+        assertEquals(-12, Expression.of("-0.12E2").eval(Map.of()), E);
+        assertEquals(-12, Expression.of("-120e-1").eval(Map.of()), E);
     }
 
     @Test
@@ -64,51 +67,6 @@ public class TestExpression {
     @Test
     public void testParen() {
         assertEquals(61.5, Expression.of("(2 + 3) * xyz").eval(Map.of("xyz", 12.3)), E);
-        assertEquals(42.9, Expression.of("3 * (xyz + 2)").eval(Map.of("xyz", 12.3)), E);
+        assertEquals(42.9, Expression.of("3 * (xyz + 2)   ").eval(Map.of("xyz", 12.3)), E);
     }
-    
-    static abstract class Node {
-        final Node left, right;
-        Node(Node left, Node right) {
-            this.left = left;
-            this.right = right;
-        }
-        abstract double eval(Map<String, Double> variables);
-    }
-    
-    @Test
-    public void testNode() {
-        Node one = new Node(null, null) {
-            @Override
-            double eval(Map<String, Double> variables) {
-                return 1;
-            }
-        };
-        Node minus = new Node(one, null) {
-            @Override
-            double eval(Map<String, Double> variables) {
-                return -left.eval(variables);
-            }
-        };
-        Node plus = new Node(minus, one) {
-            @Override
-            double eval(Map<String, Double> variables) {
-                return left.eval(variables) + right.eval(variables);
-            }
-        };
-        assertEquals(0, plus.eval(Map.of()), E);
-    }
-    
-    @Test
-    public void testNodeInterface() {
-        interface E {
-            double eval(Map<String, Double> variables);
-        }
-        
-        E one = v -> 1;
-        E minus = v -> -one.eval(v);
-        E plus = v -> minus.eval(v) + one.eval(v);
-        assertEquals(0, plus.eval(Map.of()), E);
-    }
-
 }

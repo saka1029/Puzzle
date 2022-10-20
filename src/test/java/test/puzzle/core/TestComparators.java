@@ -1,18 +1,21 @@
 package test.puzzle.core;
 
-import static puzzle.core.Comparators.asc;
-import static puzzle.core.Comparators.orderBy;
+import static java.util.Comparator.*;
+import static org.junit.Assert.assertEquals;
+import static puzzle.core.Comparators.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
 
 public class TestComparators {
+
 
     /**
      * java - comparing and thenComparing gives compile error - Stack Overflow
@@ -21,7 +24,7 @@ public class TestComparators {
     @Test
     public void testOrigin() {
         String[] arr = {"alan 25", "mario 30", "alan 19", "mario 25"};
-        Comparator<String> c = Comparator.<String, String> comparing(s -> s.split("\\s+")[0])
+        Comparator<String> c = Comparator.<String, String>comparing(s -> s.split("\\s+")[0])
             .thenComparingInt(s -> Integer.parseInt(s.split("\\s+")[1]));
         List<String> sorted = Arrays.stream(arr).sorted(c).collect(Collectors.toList());
         System.out.println(sorted);
@@ -68,10 +71,10 @@ public class TestComparators {
         // Here is a call to both types of sort method that works, no problem:
 
         Collections.sort(playlist1,
-            Comparator.comparing(p1 -> p1.getTitle()));
+            comparing(p1 -> p1.getTitle()));
 
         playlist1.sort(
-            Comparator.comparing(p1 -> p1.getTitle()));
+            comparing(p1 -> p1.getTitle()));
         // As soon as I start to chain thenComparing, the following happens:
 
         Collections.sort(playlist1,
@@ -85,7 +88,7 @@ public class TestComparators {
                 asc(Song::getArtist)));
 
         playlist1.sort(
-            Comparator.comparing(Song::getTitle)
+            comparing(Song::getTitle)
                 .thenComparing(Song::getDuration)
                 .thenComparing(Song::getArtist));
 
@@ -104,14 +107,46 @@ public class TestComparators {
         // comparing):
         //
         Collections.sort(playlist1,
-            Comparator.comparing((Song p1) -> p1.getTitle())
+            comparing((Song p1) -> p1.getTitle())
                 .thenComparing(p1 -> p1.getDuration())
                 .thenComparing(p1 -> p1.getArtist()));
         //
         playlist1.sort(
-            Comparator.comparing((Song p1) -> p1.getTitle())
+            comparing((Song p1) -> p1.getTitle())
                 .thenComparing(p1 -> p1.getDuration())
                 .thenComparing(p1 -> p1.getArtist()));
     }
 
+    record R(String x, int y) {}
+
+    @Test
+    public void testAscDesc() {
+        List<R> list = Arrays.asList(new R("a", 1), new R("a", 2), new R("b", 1), new R("b", 2));
+        List<R> a = list.stream().sorted(comparing(R::x).thenComparing(comparing(R::y).reversed())).toList();
+//        以下は誤り。「(R::xの昇順, R::yの昇順)の逆順」つまり「R::xの逆順, R::yの逆順」という意味になってしまう。
+//        List<R> a = list.stream().sorted(comparing(R::x).thenComparing(R::y).reversed()).toList();
+        List<R> b = list.stream().sorted(orderBy(asc(R::x), desc(R::y))).toList();
+        System.out.println(a);
+        System.out.println(b);
+        assertEquals(a, b);
+    }
+
+
+    @Test
+    public void testDescAsc() {
+        List<R> list = Arrays.asList(new R("a", 1), new R("a", 2), new R("b", 1), new R("b", 2));
+        List<R> a = list.stream().sorted(comparing(R::x).reversed().thenComparing(R::y)).toList();
+        List<R> b = list.stream().sorted(orderBy(desc(R::x), asc(R::y))).toList();
+        assertEquals(a, b);
+    }
+
+    @Test
+    public void testDescDesc() {
+        List<R> list = Arrays.asList(new R("a", 1), new R("a", 2), new R("b", 1), new R("b", 2));
+        List<R> a = list.stream().sorted(comparing(R::x).reversed().thenComparing(comparing(R::y).reversed())).toList();
+//      あるいは結構トリッキーだが以下でもよい。
+//      List<R> a = list.stream().sorted(comparing(R::x).thenComparing(R::y).reversed()).toList();
+        List<R> b = list.stream().sorted(orderBy(desc(R::x), desc(R::y))).toList();
+        assertEquals(a, b);
+    }
 }

@@ -30,7 +30,13 @@ public interface Expression {
                 return ch = index < length ? s.charAt(index++) : -1;
             }
             
+            void spaces() {
+                while (Character.isWhitespace(ch))
+                    get();
+            }
+
             boolean eat(int expect) {
+                spaces();
                 if (ch == expect) {
                     get();
                     return true;
@@ -38,8 +44,44 @@ public interface Expression {
                 return false;
             }
             
+            Expression factor() {
+                
+            }
+
+            Expression term() {
+                Expression e = factor();
+                while (true) {
+                    if (eat('*')) {
+                        Expression l = e, r = factor();
+                        e = v -> l.eval(v) * r.eval(v);
+                    } else if (eat('/')) {
+                        Expression l = e, r = factor();
+                        e = v -> l.eval(v) / r.eval(v);
+                    } else
+                        break;
+                }
+                return e;
+                
+            }
+
+            Expression expression() {
+                Expression e = term();
+                while (true) {
+                    if (eat('+')) {
+                        Expression l = e, r = term();
+                        e = v -> l.eval(v) + r.eval(v);
+                    } else if (eat('-')) {
+                        Expression l = e, r = term();
+                        e = v -> l.eval(v) - r.eval(v);
+                    } else
+                        break;
+                }
+                return e;
+            }
+
             Expression parse() {
-                return v -> 1.23;
+                Expression e = expression();
+                return e;
             }
             
         }.parse();

@@ -1,16 +1,23 @@
 package puzzle.core;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 数式をコンパイルします。
  * 
  * <pre>
- * * Syntax (1st version) *
+ * * Syntax (version 1) *
  * expression = term { ("+" | "-" ) term }
  * term       = factor { ( "*" | "/" ) factor }
- * factor    = [ "-" ] ( "(" expression ")" | variable | number )
+ * factor     = [ "-" ] ( "(" expression ")" | variable | number )
+ * </pre>
+ * 
+ * <pre>
+ * * Syntax (version 2) *
+ * expression = term { ("+" | "-" ) term }
+ * term       = factor { ( "*" | "/" ) factor }
+ * factor     = atom [ '^' factor ]
+ * atom       = [ "-" ] ( "(" expression ")" | variable | number )
  * </pre>
  */
 public interface Expression {
@@ -150,19 +157,9 @@ public interface Expression {
                     } else
                         break;
                 }
-<<<<<<< Updated upstream
                 int end = index;
                 Expression re = e;
                 String rs = s.substring(start, end).trim();
-=======
-                return e;
-            }
-
-            Expression parse() {
-                Expression e = expression();
-                if (ch != -1)
-                    throw new ParseException("extra string '%s'", s.substring(index - 1));
->>>>>>> Stashed changes
                 return new Expression() {
                     @Override
                     public double eval(Map<String, Double> variables) {
@@ -177,7 +174,7 @@ public interface Expression {
 
             Expression parse() {
                 Expression e = expression();
-                if (index < length)
+                if (ch != -1)
                     throw new ParseException("extra string '%s'", s.substring(index - 1));
                 return e;
             }

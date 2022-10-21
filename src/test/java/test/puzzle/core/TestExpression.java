@@ -7,6 +7,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import puzzle.core.Expression;
+import puzzle.core.Expression.ParseException;
 
 public class TestExpression {
 
@@ -70,5 +71,21 @@ public class TestExpression {
         assertEquals(2 + 3 * 12.3, Expression.of("2 + 3 * xyz").eval(Map.of("xyz", 12.3)), E);
         assertEquals((2 + 3) * 12.3, Expression.of("(2 + 3) * xyz").eval(Map.of("xyz", 12.3)), E);
         assertEquals(3 * (12.3 + 2), Expression.of("3 * (xyz + 2)").eval(Map.of("xyz", 12.3)), E);
+    }
+    
+    @Test
+    public void testParseException() {
+        try {
+            Expression.of("1 + 2)");
+            fail();
+        } catch (ParseException e) {
+            assertEquals("extra string ')'", e.getMessage());
+        }
+        try {
+            Expression.of("1 + +)");
+            fail();
+        } catch (ParseException e) {
+            assertEquals("unknown char '+'", e.getMessage());
+        }
     }
 }

@@ -64,19 +64,12 @@ public interface Expression {
                 return false;
             }
             
-            Expression paren() {
-                Expression e = expression();
-                if (!eat(')'))
-                    throw new ParseException("')' expected");
-                return e;
-            }
-            
             void appendInteger() {
                 while (Character.isDigit(ch))
                     bufferAppendGet(ch);
             }
             
-            Expression number() {
+            double number() {
                 bufferClear();
                 appendInteger();
                 if (ch == '.') {
@@ -89,22 +82,15 @@ public interface Expression {
                         bufferAppendGet(ch);
                     appendInteger();
                 }
-                double value = Double.parseDouble(bufferString());
-                return v -> value;
+                return Double.parseDouble(bufferString());
             }
             
-            Expression variable() {
+            String variable() {
                 bufferClear();
                 bufferAppendGet(ch);
                 while (Character.isAlphabetic(ch) || Character.isDigit(ch) || ch == '_')
                     bufferAppendGet(ch);
-                String name = bufferString();
-                return v -> {
-                    Double value = v.get(name);
-                    if (value == null)
-                        throw new RuntimeException("variable `%s` not defined".formatted(name));
-                    return value;
-                };
+                return bufferString();
             }
 
             Expression factor() {
@@ -112,13 +98,22 @@ public interface Expression {
                 boolean minus = false;
                 if (eat('-'))
                     minus = true;
-                if (eat('('))
-                    e = paren();
-                else if (Character.isDigit(ch))
-                    e = number();
-                else if (Character.isAlphabetic(ch))
-                    e = variable();
-                else
+                if (eat('(')) {
+                    e = expression();
+                    if (!eat(')'))
+                        throw new ParseException("')' expected");
+                } else if (Character.isDigit(ch)) {
+                    double value = number();
+                    e = v -> value;
+                } else if (Character.isAlphabetic(ch)) {
+                    String name = variable();
+                    e = v -> {
+                        Double value = v.get(name);
+                        if (value == null)
+                            throw new RuntimeException("undefined variable `%s`".formatted(name));
+                        return value;
+                    };
+                } else
                     throw new ParseException("unknown char '%c'", (char)ch);
                 if (minus) {
                     Expression org = e;
@@ -155,9 +150,19 @@ public interface Expression {
                     } else
                         break;
                 }
+<<<<<<< Updated upstream
                 int end = index;
                 Expression re = e;
                 String rs = s.substring(start, end).trim();
+=======
+                return e;
+            }
+
+            Expression parse() {
+                Expression e = expression();
+                if (ch != -1)
+                    throw new ParseException("extra string '%s'", s.substring(index - 1));
+>>>>>>> Stashed changes
                 return new Expression() {
                     @Override
                     public double eval(Map<String, Double> variables) {

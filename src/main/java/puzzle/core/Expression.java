@@ -143,6 +143,7 @@ public interface Expression {
             }
 
             Expression expression() {
+                int start = index - 1;
                 Expression e = term();
                 while (true) {
                     if (eat('+')) {
@@ -154,23 +155,26 @@ public interface Expression {
                     } else
                         break;
                 }
-                return e;
+                int end = index;
+                Expression re = e;
+                String rs = s.substring(start, end).trim();
+                return new Expression() {
+                    @Override
+                    public double eval(Map<String, Double> variables) {
+                        return re.eval(variables);
+                    }
+                    @Override
+                    public String toString() {
+                        return rs;
+                    }
+                };
             }
 
             Expression parse() {
                 Expression e = expression();
                 if (index < length)
                     throw new ParseException("extra string '%s'", s.substring(index - 1));
-                return new Expression() {
-                    @Override
-                    public double eval(Map<String, Double> variables) {
-                        return e.eval(variables);
-                    }
-                    @Override
-                    public String toString() {
-                        return s;
-                    }
-                };
+                return e;
             }
             
         }.parse();

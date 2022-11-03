@@ -1,47 +1,11 @@
 package test.puzzle.language;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 public class TestTokenizer {
-    
-    public static class FixedSizeQue<E> {
-        
-        private final Object[] elements;
-        private int p = 0, size = 0;
-        
-        public FixedSizeQue(int capacity) {
-            this.elements = new Object[capacity];
-        }
-        
-        public int size() {
-            return size;
-        }
-        
-        public void add(E element) {
-            elements[p] = element;
-            if (++p >= elements.length)
-                p = 0;
-            if (size < elements.length)
-                ++size;
-        }
-        
-        /**
-         * 
-         * @param index 0は最後に追加された要素、1はその前に追加された要素を指定します。
-         *              index < size()である必要があります。
-         * @return indexで指定された要素を返します。
-         */
-        @SuppressWarnings("unchecked")
-        public E get(int index) {
-            if (index < 0 || index >= size)
-                throw new IndexOutOfBoundsException("index");
-            int pos = (p - index - 1 + elements.length) % elements.length;
-            return (E)elements[pos];
-        }
-        
-    }
     
     public static class TokenizerException extends Exception {
         private static final long serialVersionUID = 1L;
@@ -73,28 +37,72 @@ public class TestTokenizer {
 
         public final String source;
 
-        int nextIndex = 0, index = 0;
+        int index = 0;
         public int ch;
-        final FixedSizeQue<Token> tokens = new FixedSizeQue<>(4);
+        final FixedSizeQue<Token> tokens;
         
-        public Tokenizer(String source) {
+        public Tokenizer(String source, int lookAhead) {
             this.source = source;
+            this.tokens = new FixedSizeQue<>(lookAhead);
             getCh();  // 1文字先読み
         }
         
-        public int getCh() {
-            if (nextIndex < source.length()) {
-                ch = source.codePointAt(nextIndex);
-                index = nextIndex;
-                nextIndex += Character.isSupplementaryCodePoint(ch) ? 2 : 1;
+        public static class FixedSizeQue<E> {
+            
+            private final Object[] elements;
+            private int last = 0, size = 0;
+            
+            public FixedSizeQue(int capacity) {
+                this.elements = new Object[capacity];
+            }
+            
+            public int size() {
+                return size;
+            }
+            
+            public void add(E element) {
+                elements[last] = element;
+                if (++last >= elements.length)
+                    last = 0;
+                if (size < elements.length)
+                    ++size;
+            }
+            
+            /**
+             * @param index 0は最後に追加された要素、1はその前に追加された要素を指定します。
+             *              index < size()である必要があります。
+             * @return indexで指定された要素を返します。
+             */
+            @SuppressWarnings("unchecked")
+            public E get(int index) {
+                if (index < 0 || index >= size)
+                    throw new IndexOutOfBoundsException("index");
+                int pos = (last - index - 1 + elements.length) % elements.length;
+                return (E)elements[pos];
+            }
+        }
+
+        int getCh() {
+            if (index < source.length()) {
+                ch = source.codePointAt(index);
+                index += Character.isSupplementaryCodePoint(ch) ? 2 : 1;
             } else
                 ch = -1;
             return ch;
         }
         
-        public void skipSpaces() {
+        public void spaces() {
             while (Character.isWhitespace(ch))
                 getCh();
+        }
+        
+        boolean eat(int expected) {
+            spaces();
+            if (ch == expected) {
+                getCh();
+                return true;
+            }
+            return false;
         }
         
         public boolean isOneCharToken(int ch) {
@@ -113,22 +121,37 @@ public class TestTokenizer {
             return ch >= '0' && ch <= '9';
         }
         
+        void integer() {
+            while (isDigit(ch))
+                getCh();
+        }
+        
         public int get() throws TokenizerException {
-            skipSpaces();
+            spaces();
+            int type, start = index;
             if (isOneCharToken(ch)) {
-                int type = ch;
+                type = ch;
                 getCh();
                 return type;
             } else if (isDigit(ch)) {
-                
-            }
-            throw new TokenizerException("unknown char '%c'", ch);
+                integer();
+                if (eat('.'))
+                    integer();
+                if (eat('e') || eat('E')) {
+                    eat('-');
+                    integer();
+                }
+                type = TOKEN_NUMBER;
+            } else
+                throw new TokenizerException("unknown char '%c'", ch);
+            tokens.add(new Token(type, start, index));
+            return type;
         }
     }
     
     @Test
     public void testFixedSizeQue() {
-        FixedSizeQue<Integer> que = new FixedSizeQue<>(3);
+        Tokenizer.FixedSizeQue<Integer> que = new Tokenizer.FixedSizeQue<>(3);
         que.add(1);
         assertEquals(1, que.size());
         que.add(2);
@@ -147,7 +170,7 @@ public class TestTokenizer {
     
     @Test
     public void testGet() {
-        Tokenizer t = new Tokenizer("a𩸽b");
+        Tokenizer t = new Tokenizer("a𩸽b", 1);
         assertEquals('a', t.ch); t.getCh();
         assertEquals("𩸽".codePointAt(0), t.ch); t.getCh();
         assertEquals('b', t.ch); t.getCh();
@@ -155,9 +178,8 @@ public class TestTokenizer {
     }
     
     @Test
-    public void testToken() {
-        System.out.println(Tokenizer.TOKEN_BASE);
+    public void testTokenizerConstant() {
+        assertTrue(Tokenizer.TOKEN_NUMBER > (1 << 21));
     }
-    
 
 }

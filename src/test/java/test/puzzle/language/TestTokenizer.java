@@ -51,6 +51,21 @@ public class TestTokenizer {
     }
     
     public static class Tokenizer {
+        
+        public class Token {
+            public final int type;
+            int start, end;
+            
+            public Token(int type, int start, int end) {
+                this.type = type;
+                this.start = start;
+                this.end = end;
+            }
+            
+            public String token() {
+                return source.substring(start, end);
+            }
+        }
 
         public static final int TOKEN_BASE = 1 << 21;
         public static final int TOKEN_NUMBER = TOKEN_BASE + 1;
@@ -60,6 +75,7 @@ public class TestTokenizer {
 
         int nextIndex = 0, index = 0;
         public int ch;
+        final FixedSizeQue<Token> tokens = new FixedSizeQue<>(4);
         
         public Tokenizer(String source) {
             this.source = source;

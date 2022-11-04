@@ -55,7 +55,7 @@ public class TestTokenizer {
 
         public final String source;
 
-        int index = 0;
+        int index = 0, prevIndex = 0;
         public int ch;
         final FixedSizeQue<Token> tokens;
         
@@ -69,6 +69,7 @@ public class TestTokenizer {
         int getCh() {
             if (index < source.length()) {
                 ch = source.codePointAt(index);
+                prevIndex = index;
                 index += Character.isSupplementaryCodePoint(ch) ? 2 : 1;
             } else
                 ch = -1;
@@ -137,7 +138,7 @@ public class TestTokenizer {
         
         public int get() throws TokenizerException {
             spaces();
-            int type, start = index;
+            int type, start = prevIndex;
             if (ch == -1) {
                 type = TOKEN_END;
             } else if (isOneCharToken(ch)) {
@@ -183,14 +184,15 @@ public class TestTokenizer {
         assertEquals(2, (int)que.get(2));
     }
     
-//    @Test
-//    public void testGet() throws TokenizerException {
-//        Tokenizer t = new Tokenizer("a𩸽b", 1);
-//        assertEquals('a', t.ch); t.type();
-//        assertEquals("𩸽".codePointAt(0), t.ch); t.getCh();
-//        assertEquals('b', t.ch); t.getCh();
-//        assertEquals(-1, t.ch); t.getCh();
-//    }
+    @Test
+    public void testGet() throws TokenizerException {
+        Tokenizer t = new Tokenizer("a𩸽b", 1);
+        assertEquals(Tokenizer.TOKEN_ID, t.type());
+        assertEquals("a𩸽b", t.token());
+        Tokenizer u = new Tokenizer("   a𩸽b", 1);
+        assertEquals(Tokenizer.TOKEN_ID, u.type());
+        assertEquals("a𩸽b", u.token());
+    }
     
     @Test
     public void testTokenizerConstant() {

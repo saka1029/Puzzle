@@ -110,7 +110,7 @@ public class TestExpression2 {
                 Expression factor() {
                     Expression atom = atom();
                     if (eat('^')) {
-                        Expression left = atom(), right = factor();
+                        Expression left = atom, right = factor();
                         atom = context -> Math.pow(left.eval(context), right.eval(context));
                     }
                     return atom;
@@ -157,9 +157,32 @@ public class TestExpression2 {
     
     @Test
     public void testOf() {
-        Map<String, Expression> context = new HashMap<>();
-        Expression e = Expression.of("1+2");
-        assertEquals(3.0, e.eval(context), DELTA);
+        Map<String, Expression> context = Map.of();
+        assertEquals(3.0, Expression.of("1+2").eval(context), DELTA);
     }
-
+    
+    @Test
+    public void testVariable() {
+        Map<String, Expression> context = Map.of("x", Expression.of("2"));
+        assertEquals(3.0, Expression.of("x + 1").eval(context), DELTA);
+        assertEquals(9.0, Expression.of("x^2 + 2 * x + 1").eval(context), DELTA);
+    }
+    
+    @Test
+    public void testMinus() {
+        Map<String, Expression> context = Map.of();
+        assertEquals(-3.0, Expression.of("- 3.0").eval(context), DELTA);
+    }
+    
+    @Test
+    public void testSubtract() {
+        Map<String, Expression> context = Map.of();
+        assertEquals(-2.0, Expression.of("1.0 - 3.0").eval(context), DELTA);
+    }
+    
+    @Test
+    public void testDivision() {
+        Map<String, Expression> context = Map.of();
+        assertEquals(1 / 3.0, Expression.of("1.0 / 3.0").eval(context), DELTA);
+    }
 }

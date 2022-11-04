@@ -132,6 +132,7 @@ public class TestExpression2 {
                 }
 
                 Expression expression() {
+                    int start = index;
                     Expression term = term();
                     while (true)
                         if (eat('+')) {
@@ -142,6 +143,18 @@ public class TestExpression2 {
                             term = context -> left.eval(context) - right.eval(context);
                         } else
                             break;
+                    String string = input.substring(start, index).trim();
+                    Expression e = term;
+                    term = new Expression() {
+                        @Override
+                        public double eval(Map<String, Expression> context) {
+                            return e.eval(context);
+                        }
+                        @Override
+                        public String toString() {
+                            return string;
+                        }
+                    };
                     return term;
                 }
 
@@ -159,6 +172,11 @@ public class TestExpression2 {
     public void testOf() {
         Map<String, Expression> context = Map.of();
         assertEquals(3.0, Expression.of("1+2").eval(context), DELTA);
+    }
+    
+    @Test
+    public void testToString() {
+        assertEquals("x^2 + 2 * x + 1", Expression.of("x^2 + 2 * x + 1").toString());
     }
     
     @Test

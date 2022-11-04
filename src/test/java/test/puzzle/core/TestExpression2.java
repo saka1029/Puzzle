@@ -2,6 +2,7 @@ package test.puzzle.core;
 
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -30,9 +31,9 @@ public class TestExpression2 {
                 int length = input.length(), index = 0, nextIndex = 0, ch = get();
                 
                 int get() {
-                    if (nextIndex >= length)
-                        return -1;
                     index = nextIndex;
+                    if (nextIndex >= length)
+                        return ch = -1;
                     ch = input.codePointAt(nextIndex);
                     nextIndex += Character.isSupplementaryCodePoint(ch) ? 2 : 1;
                     return ch;
@@ -47,9 +48,63 @@ public class TestExpression2 {
                     }
                     return false;
                 }
+                
+                RuntimeException parseError(String format, Object... args) {
+                    return new RuntimeException(format.formatted(args));
+                }
+                
+                boolean isDigit(int ch) {
+                    return ch >= '0' && ch <= '9';
+                }
+                
+                boolean isIdFirst(int ch) {
+                    return Character.isJavaIdentifierStart(ch);
+                }
+                
+                boolean isIdRest(int ch) {
+                    return Character.isJavaIdentifierPart(ch);
+                }
+                
+                void integer() {
+                    while (isDigit(ch))
+                        get();
+                }
 
                 Expression atom() {
-
+                    Expression atom;
+                    boolean sign = eat('-');
+                    if (eat('(')) {
+                        atom = expression();
+                    } else if (isDigit(ch)) {
+                        int start = index;
+                        integer();
+                        if (eat('.'))
+                            integer();
+                        if (eat('e') || eat('E')) {
+                            eat('-');
+                            integer();
+                        }
+                        double value = Double.parseDouble(input.substring(start, index));
+                        atom = context -> value;
+                    } else if (isIdFirst(ch)) {
+                        int start = index;
+                        get();
+                        while (isIdRest(ch))
+                            get();
+                        String variable = input.substring(start, index);
+                        atom = context -> {
+                            Expression e = context.get(variable);
+                            if (e == null)
+                                throw new RuntimeException("undefined variable '%s'".formatted(variable));
+                            return e.eval(context);
+                        };
+                    } else
+                        throw parseError("unknown char '%c'", ch);
+                    if (sign) {
+                        Expression unary = atom;
+                        atom = context -> -unary.eval(context);
+                    }
+                    return atom;
                 }
 
                 Expression factor() {
@@ -98,9 +153,13 @@ public class TestExpression2 {
         }
     }
 
+    static final double DELTA = 5e-6;
+    
     @Test
-    public void test() {
-        fail("Not yet implemented");
+    public void testOf() {
+        Map<String, Expression> context = new HashMap<>();
+        Expression e = Expression.of("1+2");
+        assertEquals(3.0, e.eval(context), DELTA);
     }
 
 }

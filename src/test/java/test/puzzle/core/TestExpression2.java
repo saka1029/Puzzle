@@ -75,6 +75,8 @@ public class TestExpression2 {
                     boolean sign = eat('-');
                     if (eat('(')) {
                         atom = expression();
+                        if (!eat(')'))
+                            parseError("')' expected");
                     } else if (isDigit(ch)) {
                         int start = index;
                         integer();

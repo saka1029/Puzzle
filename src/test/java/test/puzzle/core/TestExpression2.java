@@ -7,6 +7,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import test.puzzle.core.TestExpression2.Expression.EvalException;
+import test.puzzle.core.TestExpression2.Expression.ParseException;
+
 /**
  * サロゲートペア対応。
  * 入力は文字列に限る。(Readerは使えない)
@@ -24,9 +27,23 @@ import org.junit.Test;
 public class TestExpression2 {
 
     public interface Expression {
-        double eval(Map<String, Expression> context);
+        double eval(Map<String, Expression> context) throws EvalException;
         
-        public static Expression of(String input) {
+        public static class ParseException extends Exception {
+            private static final long serialVersionUID = 1L;
+            public ParseException(String message) {
+                super(message);
+            }
+        }
+        
+        public static class EvalException extends Exception {
+            private static final long serialVersionUID = 1L;
+            public EvalException(String format, Object... args) {
+                super(format.formatted(args));
+            }
+        }
+
+        public static Expression of(String input) throws ParseException {
             return new Object() {
                 int length = input.length(), index = 0, nextIndex = 0, ch = get();
                 
@@ -49,8 +66,8 @@ public class TestExpression2 {
                     return false;
                 }
                 
-                RuntimeException parseError(String format, Object... args) {
-                    return new RuntimeException(format.formatted(args));
+                ParseException parseError(String format, Object... args) {
+                    return new ParseException(format.formatted(args));
                 }
                 
                 boolean isDigit(int ch) {
@@ -70,7 +87,7 @@ public class TestExpression2 {
                         get();
                 }
 
-                Expression atom() {
+                Expression atom() throws ParseException {
                     Expression atom;
                     boolean sign = eat('-');
                     if (eat('(')) {
@@ -97,7 +114,7 @@ public class TestExpression2 {
                         atom = context -> {
                             Expression e = context.get(variable);
                             if (e == null)
-                                throw new RuntimeException("undefined variable '%s'".formatted(variable));
+                                throw new EvalException("undefined variable '%s'", variable);
                             return e.eval(context);
                         };
                     } else
@@ -109,7 +126,7 @@ public class TestExpression2 {
                     return atom;
                 }
 
-                Expression factor() {
+                Expression factor() throws ParseException {
                     Expression atom = atom();
                     if (eat('^')) {
                         Expression left = atom, right = factor();
@@ -118,7 +135,7 @@ public class TestExpression2 {
                     return atom;
                 }
 
-                Expression term() {
+                Expression term() throws ParseException {
                     Expression factor = factor();
                     while (true)
                         if (eat('*')) {
@@ -133,7 +150,7 @@ public class TestExpression2 {
 
                 }
 
-                Expression expression() {
+                Expression expression() throws ParseException {
                     int start = index;
                     Expression term = term();
                     while (true)
@@ -149,7 +166,7 @@ public class TestExpression2 {
                     Expression e = term;
                     term = new Expression() {
                         @Override
-                        public double eval(Map<String, Expression> context) {
+                        public double eval(Map<String, Expression> context) throws EvalException {
                             return e.eval(context);
                         }
                         @Override
@@ -160,7 +177,7 @@ public class TestExpression2 {
                     return term;
                 }
 
-                Expression parse() {
+                Expression parse() throws ParseException {
                     Expression expression = expression();
                     return expression;
                 }
@@ -171,38 +188,45 @@ public class TestExpression2 {
     static final double DELTA = 5e-6;
     
     @Test
-    public void testOf() {
+    public void testOf() throws ParseException, EvalException {
         Map<String, Expression> context = Map.of();
         assertEquals(3.0, Expression.of("1+2").eval(context), DELTA);
     }
     
     @Test
-    public void testToString() {
+    public void testToString() throws ParseException {
         assertEquals("x^2 + 2 * x + 1", Expression.of("x^2 + 2 * x + 1").toString());
     }
     
     @Test
-    public void testVariable() {
+    public void testVariable() throws ParseException, EvalException {
         Map<String, Expression> context = Map.of("x", Expression.of("2"));
         assertEquals(3.0, Expression.of("x + 1").eval(context), DELTA);
         assertEquals(9.0, Expression.of("x^2 + 2 * x + 1").eval(context), DELTA);
     }
     
     @Test
-    public void testMinus() {
+    public void testMinus() throws ParseException, EvalException {
         Map<String, Expression> context = Map.of();
         assertEquals(-3.0, Expression.of("- 3.0").eval(context), DELTA);
     }
     
     @Test
-    public void testSubtract() {
+    public void testSubtract() throws ParseException, EvalException {
         Map<String, Expression> context = Map.of();
         assertEquals(-2.0, Expression.of("1.0 - 3.0").eval(context), DELTA);
     }
     
     @Test
-    public void testDivision() {
+    public void testDivision() throws ParseException, EvalException {
         Map<String, Expression> context = Map.of();
         assertEquals(1 / 3.0, Expression.of("1.0 / 3.0").eval(context), DELTA);
+    }
+    
+    @Test
+    public void testParen() throws ParseException, EvalException {
+        Map<String, Expression> context = Map.of();
+        assertEquals(7.0, Expression.of("1 + 2 * 3").eval(context), DELTA);
+        assertEquals(9.0, Expression.of("(1 + 2) * 3").eval(context), DELTA);
     }
 }

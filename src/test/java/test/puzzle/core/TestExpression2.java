@@ -179,6 +179,8 @@ public class TestExpression2 {
 
                 Expression parse() throws ParseException {
                     Expression expression = expression();
+                    if (ch != -1)
+                        throw parseError("extra string '%s'", input.substring(index));
                     return expression;
                 }
             }.parse();
@@ -228,5 +230,21 @@ public class TestExpression2 {
         Map<String, Expression> context = Map.of();
         assertEquals(7.0, Expression.of("1 + 2 * 3").eval(context), DELTA);
         assertEquals(9.0, Expression.of("(1 + 2) * 3").eval(context), DELTA);
+    }
+    
+    @Test
+    public void testExtraString() {
+        try {
+            Expression.of("2 * (3 + 4) 2");
+            fail();
+        } catch (ParseException e) {
+            assertEquals("extra string '2'", e.getMessage());
+        }
+        try {
+            Expression.of("3 + 4)");
+            fail();
+        } catch (ParseException e) {
+            assertEquals("extra string ')'", e.getMessage());
+        }
     }
 }

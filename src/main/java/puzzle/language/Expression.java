@@ -89,8 +89,8 @@ public interface Expression {
                 if (eat('.'))
                     integer();
                 if (eat('e') || eat('E')) {
-                    if (!eat('-'))
-                        eat('+');
+                    if (eat('-') || eat('+'))
+                        /* do nothing */;
                     integer();
                 }
                 double value = Double.parseDouble(source.substring(start, index));

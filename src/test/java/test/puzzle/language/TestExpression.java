@@ -26,8 +26,11 @@ public class TestExpression {
 
     @Test
     public void testVariable() {
-        Map<String, Expression> variables = Map.of("x", (v, f) -> 2);
+        Map<String, Expression> variables = Map.of(
+            "x", (v, f) -> 2,
+            "𩸽", Expression.of("x + 3"));
         assertEquals(9, Expression.of("x^2 + 2 * x + 1").eval(variables, null), DELTA);
+        assertEquals(15, Expression.of("𩸽 + 2 * 𩸽").eval(variables, null), DELTA);
     }
 
     @Test

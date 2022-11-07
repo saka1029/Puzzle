@@ -15,12 +15,14 @@ import java.util.Map;
  * varfunc    = id [ "(" [ expression { "," expression } ] ")" ]
  * </pre>
  */
+@FunctionalInterface
 public interface Expression {
     
     double eval(
         Map<String, Expression> variables,
         Map<String, DoubleFunction> functions) throws EvalException;
     
+    @FunctionalInterface
     public interface DoubleFunction {
         double eval(double... args);
     }

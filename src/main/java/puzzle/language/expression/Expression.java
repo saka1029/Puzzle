@@ -74,15 +74,21 @@ public interface Expression {
                             throw new EvalException("variable '%s' undefined", name);
                         return e.eval(v, f);
                     };
-                if (eat(')'))
-                    return (v, f) -> {
-                        Func e = f.get(name);
-                        if (e == null)
-                            throw new EvalException("function '%s' undefined", name);
-                        return e.eval();
-                    };
                 List<Expression> args = new ArrayList<>();
-                    
+                if (!eat(')')) {
+                    do {
+                        args.add(expression());
+                    } while (eat(','));
+                    if (!eat(')'))
+                        throw new ParseException("')' expected");
+                }
+                return (v, f) -> {
+                    Func e = f.get(name);
+                    if (e == null)
+                        throw new EvalException("function '%s' undefined", name);
+                    double[] a = args.stream().mapToDouble(x -> x.eval(v, f)).toArray();
+                    return e.eval(a);
+                };
             }
 
             Expression atom() {
@@ -108,6 +114,10 @@ public interface Expression {
                     atom = varfunc();
                 } else
                     throw new ParseException("unknown char '%c'", ch);
+                if (minus) {
+                    Expression e = atom;
+                    atom = (v, f) -> -e.eval(v, f);
+                }
                 return atom;
             }
 

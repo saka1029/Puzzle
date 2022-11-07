@@ -1,5 +1,7 @@
 package puzzle.language.expression;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,6 +61,30 @@ public interface Expression {
                     get();
             }
 
+            Expression varfunc() {
+                int start = index;
+                do {
+                    get();
+                } while (isIdRest(ch));
+                String name = source.substring(start, index);
+                if (!eat('('))
+                    return (v, f) -> {
+                        Expression e = v.get(name);
+                        if (e == null)
+                            throw new EvalException("variable '%s' undefined", name);
+                        return e.eval(v, f);
+                    };
+                if (eat(')'))
+                    return (v, f) -> {
+                        Func e = f.get(name);
+                        if (e == null)
+                            throw new EvalException("function '%s' undefined", name);
+                        return e.eval();
+                    };
+                List<Expression> args = new ArrayList<>();
+                    
+            }
+
             Expression atom() {
                 boolean minus = eat('-');
                 Expression atom;
@@ -79,17 +105,7 @@ public interface Expression {
                     double value = Double.parseDouble(source.substring(start, index));
                     atom = (v, f) -> value;
                 } else if (isIdFirst(ch)) {
-                    int start = index;
-                    do {
-                        get();
-                    } while (isIdRest(ch));
-                    String name = source.substring(start, index);
-                    atom = (v, f) -> {
-                        Expression e = v.get(name);
-                        if (e == null)
-                            throw new EvalException("variable '%s' undefined", name);
-                        return e.eval(v, f);
-                    };
+                    atom = varfunc();
                 } else
                     throw new ParseException("unknown char '%c'", ch);
                 return atom;

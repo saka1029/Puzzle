@@ -19,7 +19,7 @@ public interface Expression {
     
     double eval(
         Map<String, Expression> variables,
-        Map<String, Func> functions) throws EvalException;
+        Map<String, DoubleFunction> functions) throws EvalException;
     
     public static Expression of(String source) {
         return new Object() {
@@ -60,6 +60,20 @@ public interface Expression {
                 while (isDigit(ch))
                     get();
             }
+            
+            Expression number() {
+                int start = index;
+                integer();
+                if (eat('.'))
+                    integer();
+                if (eat('e') || eat('E')) {
+                    if (!eat('-'))
+                        eat('+');
+                    integer();
+                }
+                double value = Double.parseDouble(source.substring(start, index));
+                return (v, f) -> value;
+            }
 
             Expression varfunc() {
                 int start = index;
@@ -83,7 +97,7 @@ public interface Expression {
                         throw new ParseException("')' expected");
                 }
                 return (v, f) -> {
-                    Func e = f.get(name);
+                    DoubleFunction e = f.get(name);
                     if (e == null)
                         throw new EvalException("function '%s' undefined", name);
                     double[] a = args.stream().mapToDouble(x -> x.eval(v, f)).toArray();
@@ -98,21 +112,11 @@ public interface Expression {
                     atom = expression();
                     if (!eat(')'))
                         throw new ParseException("'(' expected");
-                } else if (isDigit(ch)) {
-                    int start = index;
-                    integer();
-                    if (eat('.'))
-                        integer();
-                    if (eat('e') || eat('E')) {
-                        if (!eat('-'))
-                            eat('+');
-                        integer();
-                    }
-                    double value = Double.parseDouble(source.substring(start, index));
-                    atom = (v, f) -> value;
-                } else if (isIdFirst(ch)) {
+                } else if (isDigit(ch))
+                    atom = number();
+                else if (isIdFirst(ch))
                     atom = varfunc();
-                } else
+                else
                     throw new ParseException("unknown char '%c'", ch);
                 if (minus) {
                     Expression e = atom;
@@ -127,7 +131,7 @@ public interface Expression {
                     Expression left = atom, right = atom();
                     atom = (v, f) -> Math.pow(left.eval(v, f), right.eval(v, f));
                 }
-                return atom();
+                return atom;
             }
 
             Expression term() {

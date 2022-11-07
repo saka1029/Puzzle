@@ -1,6 +1,6 @@
 package puzzle.language.expression;
 
-public interface Func {
+public interface DoubleFunction {
     
     double eval(double... args);
 

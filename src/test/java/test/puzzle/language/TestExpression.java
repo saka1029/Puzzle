@@ -1,4 +1,4 @@
-package test.puzzle.language.expression;
+package test.puzzle.language;
 
 import static org.junit.Assert.assertEquals;
 
@@ -6,8 +6,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import puzzle.language.expression.DoubleFunction;
-import puzzle.language.expression.Expression;
+import puzzle.language.Expression;
+import puzzle.language.Expression.DoubleFunction;
 
 public class TestExpression {
 

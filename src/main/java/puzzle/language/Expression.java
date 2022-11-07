@@ -1,4 +1,4 @@
-package puzzle.language.expression;
+package puzzle.language;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +21,26 @@ public interface Expression {
         Map<String, Expression> variables,
         Map<String, DoubleFunction> functions) throws EvalException;
     
+    public interface DoubleFunction {
+        double eval(double... args);
+    }
+
+    public static class ParseException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public ParseException(String format, Object... args) {
+            super(format.formatted(args));
+        }
+    }
+
+    public static class EvalException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public EvalException(String format, Object... args) {
+            super(format.formatted(args));
+        }
+    }
+
     public static Expression of(String source) {
         return new Object() {
             int length = source.length(), index, nextIndex = 0, ch = get();
@@ -108,15 +128,15 @@ public interface Expression {
             Expression atom() {
                 boolean minus = eat('-');
                 Expression atom;
-                if (eat('(')) {
-                    atom = expression();
-                    if (!eat(')'))
-                        throw new ParseException("'(' expected");
-                } else if (isDigit(ch))
+                if (isDigit(ch))
                     atom = number();
                 else if (isIdFirst(ch))
                     atom = varfunc();
-                else
+                else if (eat('(')) {
+                    atom = expression();
+                    if (!eat(')'))
+                        throw new ParseException("'(' expected");
+                } else
                     throw new ParseException("unknown char '%c'", ch);
                 if (minus) {
                     Expression e = atom;

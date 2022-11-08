@@ -92,6 +92,7 @@ public class TestExpression {
         Expression e = Expression.of("random()");
         for (int i = 0; i < 100; ++i) {
             double r = e.eval(null, Expression.STANDARD_FUNCTIONS);
+//            System.out.println(r);
             assertTrue(r >= 0);
             assertTrue(r < 1);
         }

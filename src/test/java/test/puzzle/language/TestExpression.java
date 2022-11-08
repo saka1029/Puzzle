@@ -7,7 +7,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import puzzle.language.Expression;
-import puzzle.language.Expression.DoubleFunction;
+import puzzle.language.Expression.DFunction;
 
 public class TestExpression {
 
@@ -26,20 +26,17 @@ public class TestExpression {
 
     @Test
     public void testVariable() {
-        Map<String, Expression> variables = Map.of(
-            "x", (v, f) -> 2,
-            "𩸽", Expression.of("x + 3"));
+        Map<String, Double> variables = Map.of("x", 2.0, "𩸽", 5.0);
         assertEquals(9, Expression.of("x^2 + 2 * x + 1").eval(variables, null), DELTA);
         assertEquals(15, Expression.of("𩸽 + 2 * 𩸽").eval(variables, null), DELTA);
     }
 
     @Test
     public void testFunction() {
-        Map<String, DoubleFunction> functions = Map.of(
+        Map<String, DFunction> functions = Map.of(
             "sin", a -> Math.sin(a[0]),
             "hypot", a -> Math.hypot(a[0], a[1]));
         assertEquals(Math.sin(-2), Expression.of("sin(-2)").eval(null, functions), DELTA);
         assertEquals(Math.hypot(5 - 9, 2 + 1), Expression.of("hypot(5 - 9, 2 + 1)").eval(null, functions), DELTA);
     }
-
 }

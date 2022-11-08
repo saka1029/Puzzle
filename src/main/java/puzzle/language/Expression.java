@@ -3,6 +3,9 @@ package puzzle.language;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * 
@@ -19,11 +22,11 @@ import java.util.Map;
 public interface Expression {
     
     double eval(
-        Map<String, Expression> variables,
-        Map<String, DoubleFunction> functions) throws EvalException;
+        Map<String, Double> variables,
+        Map<String, DFunction> functions) throws EvalException;
     
     @FunctionalInterface
-    public interface DoubleFunction {
+    public interface DFunction {
         double eval(double... args);
     }
 
@@ -42,6 +45,35 @@ public interface Expression {
             super(format.formatted(args));
         }
     }
+    
+    static final Random RANDOM = new Random();
+
+    public static final Map<String, DFunction> STANDARD_FUNCTIONS = Map.ofEntries(
+        Map.entry("acos", a -> Math.acos(a[0])),
+        Map.entry("asin", a -> Math.asin(a[0])),
+        Map.entry("atan", a -> Math.atan(a[0])),
+        Map.entry("ceil", a -> Math.ceil(a[0])),
+        Map.entry("cos", a -> Math.cos(a[0])),
+        Map.entry("cosh", a -> Math.cosh(a[0])),
+        Map.entry("exp", a -> Math.exp(a[0])),
+        Map.entry("floor", a -> Math.floor(a[0])),
+        Map.entry("hypot", a-> Math.hypot(a[0], a[1])),
+        Map.entry("log", a -> Math.log(a[0])),
+        Map.entry("log10", a -> Math.log10(a[0])),
+        Map.entry("max", a-> Math.max(a[0], a[1])),
+        Map.entry("min", a-> Math.min(a[0], a[1])),
+        Map.entry("pow", a-> Math.pow(a[0], a[1])),
+        Map.entry("random", a-> RANDOM.nextDouble()),
+        Map.entry("round", a-> Math.round(a[0])),
+        Map.entry("signum", a -> Math.signum(a[0])),
+        Map.entry("sin", a -> Math.sin(a[0])),
+        Map.entry("sinh", a -> Math.sinh(a[0])),
+        Map.entry("sqrt", a -> Math.sqrt(a[0])),
+        Map.entry("tan", a -> Math.tan(a[0])),
+        Map.entry("tanh", a -> Math.tanh(a[0])),
+        Map.entry("toRadians", a -> Math.toRadians(a[0])),
+        Map.entry("toDegrees", a -> Math.toDegrees(a[0]))
+    );
 
     public static Expression of(String source) {
         return new Object() {
@@ -105,10 +137,10 @@ public interface Expression {
                 String name = source.substring(start, index);
                 if (!eat('('))
                     return (v, f) -> {
-                        Expression e = v.get(name);
-                        if (e == null)
+                        Double d = v.get(name);
+                        if (d == null)
                             throw new EvalException("variable '%s' undefined", name);
-                        return e.eval(v, f);
+                        return d;
                     };
                 List<Expression> args = new ArrayList<>();
                 if (!eat(')')) {
@@ -119,7 +151,7 @@ public interface Expression {
                         throw new ParseException("')' expected");
                 }
                 return (v, f) -> {
-                    DoubleFunction e = f.get(name);
+                    DFunction e = f.get(name);
                     if (e == null)
                         throw new EvalException("function '%s' undefined", name);
                     double[] a = args.stream().mapToDouble(x -> x.eval(v, f)).toArray();

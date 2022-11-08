@@ -182,7 +182,7 @@ public interface Expression {
             Expression factor() {
                 Expression atom = atom();
                 if (eat('^')) {
-                    Expression left = atom, right = atom();
+                    Expression left = atom, right = factor();
                     atom = (v, f) -> Math.pow(left.eval(v, f), right.eval(v, f));
                 }
                 return atom;

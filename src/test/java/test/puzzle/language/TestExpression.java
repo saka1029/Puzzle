@@ -51,6 +51,11 @@ public class TestExpression {
     }
 
     @Test
+    public void testToString() {
+        assertEquals("𩸽 + 2 * 𩸽", Expression.of("  𩸽 + 2 * 𩸽  ").toString());
+    }
+
+    @Test
     public void testFunction() {
         Map<String, DFunction> functions = Map.of(
             "sin", a -> Math.sin(a[0]),

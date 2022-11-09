@@ -167,7 +167,7 @@ public interface Expression {
                 else if (eat('(')) {
                     atom = expression();
                     if (!eat(')'))
-                        throw new ParseException("'(' expected");
+                        throw new ParseException("')' expected");
                 } else
                     throw new ParseException("unknown char '%c'", ch);
                 if (minus) {
@@ -218,7 +218,18 @@ public interface Expression {
 
             Expression parse() {
                 Expression e = expression();
-                return e;
+                String string = source.trim();
+                return new Expression() {
+                    @Override
+                    public double eval(Map<String, Double> variables, Map<String, DFunction> functions)
+                        throws EvalException {
+                        return e.eval(variables, functions);
+                    }
+                    @Override
+                    public String toString() {
+                        return string;
+                    }
+                };
             }
         }.parse();
     }

@@ -21,6 +21,17 @@ import java.util.stream.IntStream;
 import puzzle.language.JavaCompilerInMemory;
 import puzzle.language.JavaCompilerInMemory.CompileError;
 
+/**
+ * <pre>
+ * SYNTAX
+ * definition = problem  { import } { variable } { constraint } [ functions ]
+ * problem    = 'problem' fqcn ';'
+ * import     = 'import fqcn ';'
+ * variable   = 'variable' domain variable { variable } ';'
+ * domain     = '[' { int [ '..' int ] }']'
+ * constraint = ( 'constraint' text | 'different' variable { variable } ) ';'
+ * functions  = text
+ */
 public class Compiler {
 
     private Compiler() {

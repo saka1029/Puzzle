@@ -3,6 +3,8 @@ package test.puzzle.core;
 import static org.junit.Assert.*;
 import static puzzle.core.Regexes.*;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -158,6 +160,20 @@ public class TestRegexes {
             return true;
         }
         catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
+    static final SimpleDateFormat SDF = new SimpleDateFormat("dd.MM.yyyy");
+
+    /**
+     * こいつは00.00.1900をOKとする馬鹿者。
+     */
+    static boolean isValidDate0(String str) {
+        try {
+            SDF.parse(str);
+            return true;
+        } catch (ParseException e) {
             return false;
         }
     }

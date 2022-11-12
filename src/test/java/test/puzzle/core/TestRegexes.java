@@ -3,6 +3,11 @@ package test.puzzle.core;
 import static org.junit.Assert.*;
 import static puzzle.core.Regexes.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,14 +66,117 @@ public class TestRegexes {
     }
 
     @Test
-    public void testMMDDNormal() {
+    public void testMONTH_DAY() {
         String sep = "/";
-        Pattern PAT = MMDD(sep, false);
+        Pattern PAT = Pattern.compile(MONTH_DAY.formatted(sep));
         for (int m = 1; m <= 12; ++m)
             for (int d = 1, max = dayInMonth(m, false); d < max; ++d) {
                 String md = "%02d%s%02d".formatted(m, sep, d);
                 assertTrue(md + " fail", PAT.matcher(md).matches());
             }
         assertFalse(PAT.matcher("00/01").matches());
+        assertFalse(PAT.matcher("01/32").matches());
+        assertFalse(PAT.matcher("02/29").matches());
+        assertFalse(PAT.matcher("02/30").matches());
+        assertFalse(PAT.matcher("02/31").matches());
+        assertFalse(PAT.matcher("10/00").matches());
+        assertFalse(PAT.matcher("13/01").matches());
+    }
+
+    @Test
+    public void testDAY_MONTH() {
+        String sep = "/";
+        Pattern PAT = Pattern.compile(DAY_MONTH.formatted(sep));
+        for (int m = 1; m <= 12; ++m)
+            for (int d = 1, max = dayInMonth(m, false); d < max; ++d) {
+                String md = "%02d%s%02d".formatted(d, sep, m);
+                assertTrue(md + " fail", PAT.matcher(md).matches());
+            }
+        assertFalse(PAT.matcher("01/00").matches());
+        assertFalse(PAT.matcher("32/01").matches());
+        assertFalse(PAT.matcher("29/02").matches());
+        assertFalse(PAT.matcher("30/02").matches());
+        assertFalse(PAT.matcher("31/02").matches());
+        assertFalse(PAT.matcher("00/10").matches());
+        assertFalse(PAT.matcher("01/13").matches());
+    }
+
+    @Test
+    public void testMONTH_DAY_Leap() {
+        String sep = "/";
+        Pattern PAT = Pattern.compile(MONTH_DAY.formatted(sep) + "|02" + Pattern.quote(sep) + "29");
+        for (int m = 1; m <= 12; ++m)
+            for (int d = 1, max = dayInMonth(m, true); d < max; ++d) {
+                String md = "%02d%s%02d".formatted(m, sep, d);
+                assertTrue(md + " fail", PAT.matcher(md).matches());
+            }
+        assertFalse(PAT.matcher("00/01").matches());
+        assertFalse(PAT.matcher("01/32").matches());
+        assertTrue(PAT.matcher("02/29").matches());
+        assertFalse(PAT.matcher("02/30").matches());
+        assertFalse(PAT.matcher("02/31").matches());
+        assertFalse(PAT.matcher("10/00").matches());
+        assertFalse(PAT.matcher("13/01").matches());
+    }
+    
+    @Test
+    public void testLeapYears() {
+        Pattern pat = Pattern.compile(LEAP_YEARS);
+        assertTrue(pat.matcher("2000").matches());
+        assertTrue(pat.matcher("1904").matches());
+        for (int i = 0; i <= 9999; ++i)
+            assertEquals(isLeapYear(i), pat.matcher("%04d".formatted(i)).matches());
+    }
+    
+    @Test
+    public void testYearMonthDay() {
+        String sep = "/";
+        Pattern pat = Pattern.compile(YEAR_MONTH_DAY.formatted(sep));
+        assertFalse(pat.matcher("1900/02/29").matches());
+        assertTrue(pat.matcher("2000/02/29").matches());
+        assertTrue(pat.matcher("2004/02/29").matches());
+        assertFalse(pat.matcher("2100/02/29").matches());
+    }
+    
+    @Test
+    public void testDayMonthYear() {
+        String sep = "/";
+        Pattern pat = Pattern.compile(DAY_MONTH_YEAR.formatted(sep));
+        assertFalse(pat.matcher("29/02/1900").matches());
+        assertTrue(pat.matcher("29/02/2000").matches());
+        assertTrue(pat.matcher("29/02/2004").matches());
+        assertFalse(pat.matcher("29/02/2100").matches());
+    }
+    
+    static final DateTimeFormatter formatter = DateTimeFormatter
+        .ofPattern("dd.MM.uuuu", Locale.ENGLISH)
+        .withResolverStyle(ResolverStyle.STRICT);
+
+    static boolean isValidDate(String str) {
+        try {
+            LocalDate.parse(str, formatter);
+            return true;
+        }
+        catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 遅い！！！
+     * 正規表現がよくないせいもあるが、DateTimeFormatterの例外処理の方が問題である。
+     */
+    @Test
+    public void testDayMonthYearStackoferflow() {
+        String sep = ".";
+        Pattern pat = Pattern.compile(DAY_MONTH_YEAR.formatted(sep));
+        for (int y = 1900; y <= 3000; ++y)
+            for (int m = 0; m <= 13; ++m)
+                for (int d = 0; d <= 31; ++d) {
+                    String dt = "%02d%s%02d%s%04d".formatted(d, sep, m, sep, y);
+                    pat.matcher(dt).matches();    // 1.4秒
+//                    isValidDate(dt);                // 6.7秒
+//                    assertEquals("fail " + dt, isValidDate(dt), pat.matcher(dt).matches()); // 8.1秒
+                }
     }
 }

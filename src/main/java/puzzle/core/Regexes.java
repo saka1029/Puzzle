@@ -22,4 +22,18 @@ public class Regexes {
 //        matcher.appendTail(sb);
 //        return sb.toString();
     }
+    
+    static String NormalYearString(String separator, boolean isLeap) {
+        String p = Pattern.quote(separator);
+        return 
+            "(0[1-9]|1[0-2])" + p + "(0[1-9]|1[0-9]|2[0-8])"  // すべての月は01から28日まである。
+            + "|(0[13-9]|1[0-2])" + p + "(29|30)"             // 2月以外は29と30日がある。
+            + "|(0[13578]|1[02])" + p + "30"                  // 大の月は31日がある。
+            + (isLeap ? "|02" + p + "29" : "");
+    }
+
+    public static Pattern MMDD(String separator, boolean isLeap) {
+        return Pattern.compile(NormalYearString(separator, isLeap));
+    }
+
 }

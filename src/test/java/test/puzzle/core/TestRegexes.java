@@ -50,4 +50,25 @@ public class TestRegexes {
         String expected = "{ \"values\" : [\"AnyValue1_val\", \"TestValue_val\", \"Dummy_val\", \"SomeValue_val\"], \"key\" : \"value\" }";
         assertEquals(expected, result);
     }
+    
+    static int dayInMonth(int month, boolean isLeap) {
+        return switch (month) {
+        case 2 -> isLeap ? 29 : 28;
+        case 1, 3, 5, 7, 8, 10, 12 -> 31;
+        case 4, 6, 9, 11 -> 30;
+        default -> -1;
+        };
+    }
+
+    @Test
+    public void testMMDDNormal() {
+        String sep = "/";
+        Pattern PAT = MMDD(sep, false);
+        for (int m = 1; m <= 12; ++m)
+            for (int d = 1, max = dayInMonth(m, false); d < max; ++d) {
+                String md = "%02d%s%02d".formatted(m, sep, d);
+                assertTrue(md + " fail", PAT.matcher(md).matches());
+            }
+        assertFalse(PAT.matcher("00/01").matches());
+    }
 }

@@ -1,15 +1,30 @@
 package test.puzzle.core;
 
-import static org.junit.Assert.*;
-import static puzzle.core.Regexes.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static puzzle.core.Regexes.DAY_MONTH;
+import static puzzle.core.Regexes.DAY_MONTH_YEAR;
+import static puzzle.core.Regexes.LEAP_YEARS;
+import static puzzle.core.Regexes.MONTH_DAY;
+import static puzzle.core.Regexes.YEAR_MONTH_DAY;
+import static puzzle.core.Regexes.isLeapYear;
+import static puzzle.core.Regexes.replaceAll;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.chrono.JapaneseDate;
+import java.time.chrono.JapaneseEra;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalField;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,8 +37,13 @@ public class TestRegexes {
         Pattern pat = Pattern.compile("\\d+");
         String source = "abc123r4g582s";
         Matcher matcher = pat.matcher(source);
-        matcher.results()
-            .forEach(m -> System.out.println(m.start() + ", " + m.end() + ", " + m.group() + ", "));
+        Iterator<MatchResult> results = matcher.results().iterator();
+        MatchResult r = results.next();
+        assertEquals(3, r.start()); assertEquals(6, r.end()); assertEquals("123", r.group());
+        r = results.next();
+        assertEquals(7, r.start()); assertEquals(8, r.end()); assertEquals("4", r.group());
+        r = results.next();
+        assertEquals(9, r.start()); assertEquals(12, r.end()); assertEquals("582", r.group());
     }
 
     @Test
@@ -186,7 +206,7 @@ public class TestRegexes {
     public void testDayMonthYearStackoferflow() {
         String sep = ".";
         Pattern pat = Pattern.compile(DAY_MONTH_YEAR.formatted(sep));
-        for (int y = 1900; y <= 3000; ++y)
+        for (int y = 1900; y <= 2100; ++y)
             for (int m = 0; m <= 13; ++m)
                 for (int d = 0; d <= 31; ++d) {
                     String dt = "%02d%s%02d%s%04d".formatted(d, sep, m, sep, y);
@@ -194,5 +214,48 @@ public class TestRegexes {
 //                    isValidDate(dt);                // 6.7秒
 //                    assertEquals("fail " + dt, isValidDate(dt), pat.matcher(dt).matches()); // 8.1秒
                 }
+    }
+    
+    @Test
+    public void testCaptureByName() {
+        Pattern pat = Pattern.compile("(?<Y>\\d{4})年(?<M>\\d{1,2})月(?<D>\\d{1,2})日");
+        Matcher m = pat.matcher("2020年2月29日");
+        if (m.matches()) {
+            LocalDate date = LocalDate.of(
+                Integer.parseInt(m.group("Y")),
+                Integer.parseInt(m.group("M")),
+                Integer.parseInt(m.group("D")));
+            System.out.println(date);
+        }
+    }
+    
+    static int eraNumber(String eraName) {
+        return switch (eraName) {
+        case "明治" -> -1;
+        case "大正" -> 0;
+        case "昭和" -> 1;
+        case "平成" -> 2;
+        case "令和" -> 3;
+        default -> throw new IllegalArgumentException("eraName");
+        };
+    }
+    
+    @Test
+    public void testCaptureByNameEra() {
+        System.out.println(Arrays.toString(JapaneseEra.values()));
+        Pattern pat = Pattern.compile("(?<E>明治|大正|昭和|平成|令和)(?<Y>\\d{1,2})年(?<M>\\d{1,2})月(?<D>\\d{1,2})日");
+        System.out.println("era=" + pat.pattern().contains("<E>"));
+        Matcher m = pat.matcher("令和4年9月30日");
+        if (m.matches()) {
+            JapaneseDate date = JapaneseDate.of(
+                JapaneseEra.of(eraNumber(m.group("E"))),
+                Integer.parseInt(m.group("Y")),
+                Integer.parseInt(m.group("M")),
+                Integer.parseInt(m.group("D")));
+            System.out.println(date);
+            System.out.println("year=" + date.get(ChronoField.YEAR));
+            System.out.println("month=" + date.get(ChronoField.MONTH_OF_YEAR));
+            System.out.println("day=" + date.get(ChronoField.DAY_OF_MONTH));
+        }
     }
 }

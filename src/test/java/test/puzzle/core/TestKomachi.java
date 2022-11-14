@@ -2,7 +2,9 @@ package test.puzzle.core;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
@@ -246,4 +248,50 @@ public class TestKomachi {
         for (String s : actual)
             System.out.println(s);
     }
+    
+    static int eval(String s) {
+        int length = s.length(), sum = 0, sign = 1, term = 0;
+        for (int i = 0; i < length; ++i) {
+            char ch = s.charAt(i);
+            if (ch == '+' || ch == '-') {
+                sum += sign * term;
+                sign = ch == '+' ? 1 : -1;
+                term = 0;
+            } else
+                term = term * 10 + Character.getNumericValue(ch);
+        }
+        sum += sign * term;
+        return sum;
+    }
+
+    static List<String> komachiRecursive(String input) {
+        int length = input.length();
+        List<String> output = new ArrayList<>();
+        new Object() {
+            void komachi(int i, int sum, int term, String e) {
+                if (i >= length) {
+                    if (sum + term == 100)
+                        output.add(e + "+" + term);
+                    else if (sum - term == 100)
+                        output.add(e + "-" + term);
+                } else {
+                    int digit = input.charAt(i) - '0';
+                    komachi(i + 1, sum, term * 10 + digit, e);
+                    komachi(i + 1, sum + term, digit, e + (e.isEmpty() ? "" : "+") + term);
+                    komachi(i + 1, sum - term, digit, e + "-" + term);
+                }
+            }
+        }.komachi(1, 0, input.charAt(0) - '0', "");
+        return output;
+    }
+    
+    @Test
+    public void testKomachiRecursive() {
+        for (String e : komachiRecursive("123456789")) {
+            int sum = eval(e);
+            assertEquals(100, sum);
+        }
+    }
+    
+
 }

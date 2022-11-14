@@ -3,6 +3,7 @@ package test.puzzle.language;
 import static org.junit.Assert.*;
 import static puzzle.language.Stack.*;
 
+import java.util.Locale;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -16,6 +17,7 @@ public class TestStack {
     static String LOG_FORMAT_KEY = "java.util.logging.SimpleFormatter.format";
     static String LOG_FORMAT = "%1$tFT%1$tT.%1$tL %4$s %3$s %5$s %6$s%n";
     static {
+        Locale.setDefault(Locale.ENGLISH);
         System.setProperty(LOG_FORMAT_KEY, LOG_FORMAT);
     }
     static final Logger logger = Logger.getLogger(TestStack.class.getSimpleName());
@@ -265,5 +267,18 @@ public class TestStack {
         testContext("[1 2]", context, "drop");
         testContext("[2 1]", context, "swap");
         testContext("[3]", context, "+");
+        testContext("[]", context, "drop");
+        testContext("[1]", context, "[1 2 3] head");
+        testContext("[]", context, "drop");
+        testContext("[[2 3]]", context, "[1 2 3] tail");
+        testContext("[]", context, "drop");
+        testContext("[[1 2 3]]", context, "1 [2 3] cons");
+        testContext("[]", context, "drop");
+        testContext("[{[1 2 3] [2 *] map}]", context, "[1 2 3] [2 *] map");
+        testContext("[[2 4 6]]", context, "list");
+        testContext("[]", context, "drop");
+        testContext("[[2 4]]", context, "[1 2 3] [2 *] map [4 <=] filter list");
+        testContext("[]", context, "drop");
+        testContext("[[2 4] [6]]", context, "[1 2 3] [2 *] map dup [4 <=] filter list swap [4 <= !] filter list");
     }
 }

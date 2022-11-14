@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -280,5 +281,24 @@ public class TestStack {
         testContext("[[2 4]]", context, "[1 2 3] [2 *] map [4 <=] filter list");
         testContext("[]", context, "drop");
         testContext("[[2 4] [6]]", context, "[1 2 3] [2 *] map dup [4 <=] filter list swap [4 <= !] filter list");
+        testContext("[]", context, "drop drop");
+        testContext("[[[2 4 6] [8 10 12] [14 16 18]]]", context, "[[1 2 3] [4 5 6] [7 8 9]] [[2 *] map list] map list");
+        testContext("[]", context, "drop");
+        testContext("[[1 2 3 4 5 6]]", context, "[1 2 3] [4 5 6] +");
+        testContext("[]", context, "drop");
+        testContext("[[129 130 131 132]]", context, "'a' 'd' range [32 +] map list");
+        testContext("[]", context, "drop");
+        testContext("[abcd]", context, "'a' 'd' range str");
+        testContext("[]", context, "drop");
+        testContext("[ABCD]", context, "'a' 'd' range [32 -] map str");
+    }
+    
+    @Test
+    public void testJavaStream() {
+        int[][] a = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+        int[][] b = Stream.of(a)
+            .map(x -> IntStream.of(x).map(y -> y * 2).toArray())
+            .toArray(int[][]::new);
+        assertArrayEquals(new int[][] {{2, 4, 6}, {8, 10, 12}, {14, 16, 18}}, b);
     }
 }

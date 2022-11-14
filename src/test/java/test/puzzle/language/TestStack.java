@@ -21,10 +21,10 @@ public class TestStack {
     static final Logger logger = Logger.getLogger(TestStack.class.getSimpleName());
 
     static void methodName() {
-        logger.info("*** " + Thread.currentThread().getStackTrace()[2].getMethodName());
+//        logger.info("*** " + Thread.currentThread().getStackTrace()[2].getMethodName());
     }
 
-    Context context = context(20).trace(logger::info);
+    Context context = context(20); // .trace(logger::info);
 
     void testEval(String expected, String source) {
         assertEquals(parse(context, expected), eval(context, source));
@@ -250,5 +250,20 @@ public class TestStack {
         testEval("\"BC\"", "\"ABC\" tail");
         testEval("\"ABC\"", "'A' \"BC\" cons");
         testEval("\"ABCDE\"", "\"ABC\" \"DE\" +");
+    }
+    
+    static void testContext(String expected, Context context, String source) {
+        repl(context, source);
+        assertEquals(expected, context.toString());
+    }
+
+    @Test
+    public void testContext() {
+        Context context = context(20); // .trace(logger::info);
+        testContext("[]", context, "");
+        testContext("[1 2 2]", context, "1 2 dup");
+        testContext("[1 2]", context, "drop");
+        testContext("[2 1]", context, "swap");
+        testContext("[3]", context, "+");
     }
 }

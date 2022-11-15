@@ -70,7 +70,7 @@ public class TestStack {
         testEval("255", "0xff");
         testEval("15", "0b1111");
         testEval("97", "'a'");
-        testEval("97", "'ab'");     // ??????
+        testEval("171581", "'𩸽'");
         testEval("-3", "-3");
     }
 

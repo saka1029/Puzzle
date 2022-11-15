@@ -636,6 +636,7 @@ public class Stack {
     }
 
     public static final Value END_OF_STREAM = Context.code("End of stream", c -> { throw new RuntimeException(); });
+    static final Pattern CHAR_PAT = Pattern.compile("'.'");
     static final Pattern INTEGER_PAT = Pattern.compile("[-+]?(\\d+|0x[0-9a-f]+|0b[01]+)", Pattern.CASE_INSENSITIVE);
     static final Pattern DOUBLE_PAT = Pattern.compile("[-+]?\\d*\\.?\\d+([e][-+]?\\d+)?", Pattern.CASE_INSENSITIVE);
     static final Map<String, Value> CONSTANTS = Map.of("true", Bool.TRUE, "false", Bool.FALSE);
@@ -645,13 +646,17 @@ public class Stack {
             return new Object() {
                 int ch = ' ';
 
+                void get() throws IOException {
+                    ch = reader.read();
+                }
+
                 void skipSpaces() throws IOException {
                     while (Character.isWhitespace(ch))
-                        ch = reader.read();
+                        get();
                 }
 
                 Value readBlock() throws IOException {
-                    ch = reader.read(); // skip '['
+                    get(); // skip '['
                     skipSpaces();
                     Cons.Builder builder = Cons.builder();
                     while (ch != -1 && ch != ']') {
@@ -660,20 +665,20 @@ public class Stack {
                     }
                     if (ch != ']')
                         throw new RuntimeException("']' expected");
-                    ch = reader.read(); // skip ']'
+                    get(); // skip ']'
                     return builder.build();
                 }
 
                 Value readString() throws IOException {
-                    ch = reader.read(); // skip '\"'
+                    get(); // skip '\"'
                     StringBuilder builder = new StringBuilder();
                     while (ch != -1 && ch != '\"') {
                         builder.append((char)ch);
-                        ch = reader.read();
+                        get();
                     }
                     if (ch != '\"')
                         throw new RuntimeException("'\"' expected");
-                    ch = reader.read(); // skip '\"'
+                    get(); // skip '\"'
                     return Str.of(builder.toString());
                 }
 
@@ -695,10 +700,10 @@ public class Stack {
                     StringBuilder sb = new StringBuilder();
                     while (ch != -1 && !Character.isWhitespace(ch) && ch != ']') {
                         sb.append((char)ch);
-                        ch = reader.read();
+                        get();
                     }
                     String word = sb.toString();
-                    if (word.startsWith("\'"))
+                    if (CHAR_PAT.matcher(word).matches())
                         return Int.of(word.codePointAt(1));
                     if (INTEGER_PAT.matcher(word).matches())
                         return Int.of(parseInt(word));

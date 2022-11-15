@@ -67,6 +67,11 @@ public class TestStack {
         testEval("1", "7 2 %");
         testEval("3", "9 sqrt");
         testEval("3", "11 sqrt");
+        testEval("255", "0xff");
+        testEval("15", "0b1111");
+        testEval("97", "'a'");
+        testEval("97", "'ab'");     // ??????
+        testEval("-3", "-3");
     }
 
     @Test
@@ -253,11 +258,12 @@ public class TestStack {
     @Test
     public void testStr() {
         methodName();
-        testEval("\"ABC\"", "\"abc\" [32 -] map str");
+        testEval("\"ABC\"", "\"abc\" [0x20 -] map str");
         testEval("'A'", "\"ABC\" head");
         testEval("\"BC\"", "\"ABC\" tail");
         testEval("\"ABC\"", "'A' \"BC\" cons");
         testEval("\"ABCDE\"", "\"ABC\" \"DE\" +");
+        testEval("\"A\nBC\"", "\"A\nBC\"");
     }
     
     static void testContext(String expected, Context context, String source) {

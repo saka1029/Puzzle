@@ -111,15 +111,7 @@ public class Stack {
         void execute(Context c);
     }
 
-    public interface Enumerator {
-        Value next();
-    }
-
-    public interface Enumerable {
-        Enumerator enumerator();
-    }
-
-    public interface Value extends Enumerable, Executable, Comparable<Value>, Iterable<Value> {
+    public interface Value extends Executable, Comparable<Value>, Iterable<Value> {
 
         @Override
         default void execute(Context c) {
@@ -136,29 +128,8 @@ public class Stack {
         }
 
         @Override
-        default Enumerator enumerator() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         default Iterator<Value> iterator() {
-            return new Iterator<Value>() {
-
-                final Enumerator enumerator = enumerator();
-                Value next = enumerator.next();
-
-                @Override
-                public boolean hasNext() {
-                    return next != null;
-                }
-
-                @Override
-                public Value next() {
-                    Value result = next;
-                    next = enumerator.next();
-                    return result;
-                }
-            };
+            throw new UnsupportedOperationException();
         }
 
         default Value head() {
@@ -253,17 +224,18 @@ public class Stack {
 
         default Cons list() {
             Cons.Builder builder = Cons.builder();
-            Enumerator e = enumerator();
-            for (Value v = e.next(); v != null; v = e.next())
+            for (Value v : this)
                 builder.add(v);
             return builder.build();
         }
 
         default Str str() {
             Str.Builder builder = Str.builder();
-            Enumerator e = enumerator();
-            for (Value v = e.next(); v != null; v = e.next())
-                builder.add(((Int)v).value);
+            for (Value v : this)
+                if (v instanceof Int i)
+                    builder.add(i.value);
+                else
+                    throw new RuntimeException("Int expected but " + v);
             return builder.build();
         }
     }
@@ -449,15 +421,17 @@ public class Stack {
         }
 
         @Override
-        public Enumerator enumerator() {
-            return new Enumerator() {
-
+        public Iterator<Value> iterator() {
+            return new Iterator<>() {
                 Cons cons = Cons.this;
 
                 @Override
+                public boolean hasNext() {
+                    return cons != END;
+                }
+
+                @Override
                 public Value next() {
-                    if (cons == END)
-                        return null;
                     Value result = cons.head;
                     cons = cons.tail;
                     return result;
@@ -545,14 +519,18 @@ public class Stack {
         }
 
         @Override
-        public Enumerator enumerator() {
-            return new Enumerator() {
-
+        public Iterator<Value> iterator() {
+            return new Iterator<>() {
                 int index = 0;
 
                 @Override
+                public boolean hasNext() {
+                    return index < value.length;
+                }
+
+                @Override
                 public Value next() {
-                    return index < value.length ? Int.of(value[index++]) : null;
+                    return Int.of(value[index++]);
                 }
             };
         }
@@ -562,16 +540,20 @@ public class Stack {
         int istart = ((Int) start).value;
         int iend = ((Int) end).value;
         return new Value() {
-
+            
             @Override
-            public Enumerator enumerator() {
-                return new Enumerator() {
-
+            public Iterator<Value> iterator() {
+                return new Iterator<>() {
                     int current = istart;
 
                     @Override
+                    public boolean hasNext() {
+                        return current <= iend;
+                    }
+
+                    @Override
                     public Value next() {
-                        return current <= iend ? Int.of(current++) : null;
+                        return Int.of(current++);
                     }
                 };
             }
@@ -585,20 +567,23 @@ public class Stack {
 
     public static Value map(Value collection, Function<Value, Value> mapper) {
         return new Value() {
-
             @Override
-            public Enumerator enumerator() {
-                return new Enumerator() {
-
-                    Enumerator enumerator = collection.enumerator();
+            public Iterator<Value> iterator() {
+                return new Iterator<>() {
+                    Iterator<Value> iterator = collection.iterator();
+                    
+                    
+                    @Override
+                    public boolean hasNext() {
+                        return iterator.hasNext();
+                    }
 
                     @Override
                     public Value next() {
-                        Value next = enumerator.next();
-                        return next == null ? null : mapper.apply(next);
+                        return mapper.apply(iterator.next());
                     }
                 };
-            };
+            }
 
             @Override
             public String toString() {
@@ -609,30 +594,38 @@ public class Stack {
 
     public static Value filter(Value collection, Function<Value, Value> filter) {
         return new Value() {
-
             @Override
-            public Enumerator enumerator() {
-                return new Enumerator() {
+            public Iterator<Value> iterator() {
+                return new Iterator<Value>() {
+                    Iterator<Value> iterator = collection.iterator();
+                    boolean hasNext = advance();
+                    Value next;
+                    
+                    boolean advance() {
+                        while (iterator.hasNext()) {
+                            next = iterator.next();
+                            Value r = filter.apply(next);
+                            if (r instanceof Bool b)
+                                return true;
+                            else
+                                throw new RuntimeException("boolean expected but " + r);
+                        }
+                        return false;
+                    }
 
-                    Enumerator enumerator = collection.enumerator();
-                    Value next = advance();
-
-                    Value advance() {
-                        Value v = null;
-                        while ((v = enumerator.next()) != null)
-                            if (((Bool)filter.apply(v)).value)
-                                break;
-                        return v;
+                    @Override
+                    public boolean hasNext() {
+                        return hasNext;
                     }
 
                     @Override
                     public Value next() {
                         Value result = next;
-                        next = advance();
+                        advance();
                         return result;
                     }
                 };
-            };
+            }
 
             @Override
             public String toString() {
@@ -824,8 +817,7 @@ public class Stack {
             .put("range", c -> { Value e = c.pop(); c.push(range(c.pop(), e)); })
             .put("for", c -> {
                 Value lambda = c.pop(), i = c.pop();
-                Enumerator e = i.enumerator();
-                for (Value v = e.next(); v != null; v = e.next()) {
+                for (Value v : i) {
                     c.push(v);
                     lambda.run(c);
                 }

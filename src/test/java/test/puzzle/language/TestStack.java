@@ -1,7 +1,12 @@
 package test.puzzle.language;
 
-import static org.junit.Assert.*;
-import static puzzle.language.Stack.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static puzzle.language.Stack.context;
+import static puzzle.language.Stack.eval;
+import static puzzle.language.Stack.parse;
+import static puzzle.language.Stack.repl;
 
 import java.util.Locale;
 import java.util.function.Function;
@@ -9,7 +14,6 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import puzzle.language.Stack.Context;
@@ -28,7 +32,7 @@ public class TestStack {
 //        logger.info("*** " + Thread.currentThread().getStackTrace()[2].getMethodName());
     }
 
-    Context context = context(20); // .trace(logger::info);
+    Context context = context(20) ;//.traceTo(logger::info);
 
     void testEval(String expected, String source) {
         assertEquals(parse(context, expected), eval(context, source));
@@ -263,7 +267,7 @@ public class TestStack {
 
     @Test
     public void testContext() {
-        Context context = context(20); // .trace(logger::info);
+        Context context = context(20); // .traceTo(logger::info);
         testContext("[]", context, "");
         testContext("[1 2 2]", context, "1 2 dup");
         testContext("[1 2]", context, "drop");

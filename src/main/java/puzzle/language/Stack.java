@@ -40,7 +40,7 @@ public class Stack {
             return new Context(stackSize);
         }
 
-        public Context trace(Consumer<String> trace) {
+        public Context traceTo(Consumer<String> trace) {
             this.trace = trace;
             return this;
         }

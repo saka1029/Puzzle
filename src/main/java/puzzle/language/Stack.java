@@ -605,9 +605,10 @@ public class Stack {
                         while (iterator.hasNext()) {
                             next = iterator.next();
                             Value r = filter.apply(next);
-                            if (r instanceof Bool b)
-                                return true;
-                            else
+                            if (r instanceof Bool b) {
+                                if (b.value)
+                                    return true;
+                            } else
                                 throw new RuntimeException("boolean expected but " + r);
                         }
                         return false;
@@ -621,7 +622,7 @@ public class Stack {
                     @Override
                     public Value next() {
                         Value result = next;
-                        advance();
+                        hasNext = advance();
                         return result;
                     }
                 };

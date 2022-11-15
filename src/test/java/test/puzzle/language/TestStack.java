@@ -114,7 +114,6 @@ public class TestStack {
         testEval("[11 21 31]", "[1 2 3] [10 *] map [1 +] map list");
     }
 
-    @Ignore
     @Test
     public void testFilter() {
         methodName();
@@ -202,7 +201,6 @@ public class TestStack {
             stream.toArray());
     }
 
-    @Ignore
     @Test
     public void testPrime() {
         methodName();
@@ -234,7 +232,6 @@ public class TestStack {
      * [7 over over == [drop drop true] [% 0 !=] if]
      * </code></pre>
      */
-    @Ignore
     @Test
     public void testPrimeMacro() {
         testEval("[2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97]",
@@ -264,7 +261,6 @@ public class TestStack {
         assertEquals(expected, context.toString());
     }
 
-    @Ignore
     @Test
     public void testContext() {
         Context context = context(20); // .trace(logger::info);

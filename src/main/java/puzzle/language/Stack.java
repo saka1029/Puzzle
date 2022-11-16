@@ -644,10 +644,12 @@ public class Stack {
     /**
      * <pre>
      * SYNTAX
-     * value       =  word | block | number | string 
-     * word        =
+     * value       =  word | block | char | integer | string 
+     * word        =  word-char { word-char }
      * block       = '[' { value } ']'
-     * number      = [ '+' | '-' ] ( decimal
+     * char        = ' char-char '
+     * integer     = [ '+' | '-' ] ( binary | decimal | hexadecimal )
+     * string      = '"' { string-char } '"'
      * 
      * </pre>
      */

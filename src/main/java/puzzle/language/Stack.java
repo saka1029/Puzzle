@@ -641,6 +641,16 @@ public class Stack {
     static final Pattern DOUBLE_PAT = Pattern.compile("[-+]?\\d*\\.?\\d+([e][-+]?\\d+)?", Pattern.CASE_INSENSITIVE);
     static final Map<String, Value> CONSTANTS = Map.of("true", Bool.TRUE, "false", Bool.FALSE);
 
+    /**
+     * <pre>
+     * SYNTAX
+     * value       =  word | block | number | string 
+     * word        =
+     * block       = '[' { value } ']'
+     * number      = [ '+' | '-' ] ( decimal
+     * 
+     * </pre>
+     */
     public static Value read(Context context, Reader reader) {
         try {
             return new Object() {

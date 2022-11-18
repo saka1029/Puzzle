@@ -3,10 +3,7 @@ package test.puzzle.language;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static puzzle.language.Stack.context;
-import static puzzle.language.Stack.eval;
-import static puzzle.language.Stack.parse;
-import static puzzle.language.Stack.repl;
+import static puzzle.language.Stack.*;
 
 import java.util.Locale;
 import java.util.function.Function;
@@ -16,7 +13,9 @@ import java.util.stream.Stream;
 
 import org.junit.Test;
 
+import puzzle.language.Stack;
 import puzzle.language.Stack.Context;
+import puzzle.language.Stack.Value;
 
 public class TestStack {
 
@@ -34,8 +33,30 @@ public class TestStack {
 
     Context context = context(20) ;//.traceTo(logger::info);
 
+    static Cons l(Value... elements) {
+        return Cons.of(elements);
+    }
+    
+    static Int i(int value) {
+        return Int.of(value);
+    }
+    
+    static Value w(String word) {
+        return Context.code(word);
+    }
+    
+    static Value eval(Context c, Value v) {
+        v.run(c);
+        return c.pop();
+    }
+    
+    @Test
+    public void testPlus() {
+        assertEquals(i(3), eval(context, l(i(1), i(2), w("+"))));
+    }
+
     void testEval(String expected, String source) {
-        assertEquals(parse(context, expected), eval(context, source));
+        assertEquals(parse(context, expected), Stack.eval(context, source));
         assertTrue(context.isEmpty());
     }
 

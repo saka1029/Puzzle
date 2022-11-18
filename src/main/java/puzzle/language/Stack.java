@@ -91,6 +91,24 @@ public class Stack {
                 .collect(Collectors.joining(" ", "[", "]"));
         }
 
+        public static Value code(String name) {
+            return new Value() {
+
+                @Override
+                public void execute(Context c) {
+                    Value x = c.globals.get(name);
+                    if (x == null)
+                        throw new RuntimeException(name + " is not defined");
+                    x.run(c);
+                }
+
+                @Override
+                public String toString() {
+                    return name;
+                }
+            };
+        }
+
         public static Value code(String name, Executable e) {
             return new Value() {
 
@@ -724,12 +742,7 @@ public class Stack {
 //                        return Real.of(Double.parseDouble(word));
                     if (CONSTANTS.containsKey(word))
                         return CONSTANTS.get(word);
-                    return Context.code(word, c -> {
-                        Value x = c.globals.get(word);
-                        if (x == null)
-                            throw new RuntimeException(word + " is not defined");
-                        x.run(c);
-                    });
+                    return Context.code(word);
                 }
 
                 Value read() throws IOException {

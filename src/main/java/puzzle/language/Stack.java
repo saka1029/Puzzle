@@ -665,12 +665,13 @@ public class Stack {
      * value       =  word | block | char | integer | string | symbol
      * word        =  word-char { word-char }
      * block       = '[' { value } ']'
-     * char        = ' char-char '
-     * integer     = [ '+' | '-' ] ( binary | decimal | hexadecimal )
+     * char        = ' character '
+     * integer     = [ '+' | '-' ] ( decimalNumeral | ( '0x' | '0X' | '#' ) HexDigits | '0' octalDigits )
      * string      = '"' { string-char } '"'
      * symbol      = '\' symbol-char { symbol-char }
-     * 
      * </pre>
+     * <code>integer</code>は<code>Integer.decode(String nm) throws NumberFormatException</code>で
+     * 読み取り可能な整数表現です。
      */
     public static Value read(Context context, Reader reader) {
         try {

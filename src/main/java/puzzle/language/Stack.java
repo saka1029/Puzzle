@@ -666,11 +666,12 @@ public class Stack {
      * word        =  word-char { word-char }
      * block       = '[' { value } ']'
      * char        = ' character '
-     * integer     = [ '+' | '-' ] ( decimalNumeral | ( '0x' | '0X' | '#' ) HexDigits | '0' octalDigits )
+     * integer     = [ '+' | '-' ] ( decimal-digits | ( '0x' | '0X' | '#' ) Hex-digits | '0' octal-digits )
      * string      = '"' { string-char } '"'
      * symbol      = '\' symbol-char { symbol-char }
      * </pre>
-     * <code>integer</code>は<code>Integer.decode(String nm) throws NumberFormatException</code>で
+     * word-charは'[', ']'以外の文字の並びです。
+     * integerは<code>Integer.decode(String nm) throws NumberFormatException</code>で
      * 読み取り可能な整数表現です。
      */
     public static Value read(Context context, Reader reader) {

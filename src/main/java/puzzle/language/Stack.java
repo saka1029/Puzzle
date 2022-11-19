@@ -1,7 +1,6 @@
 package puzzle.language;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -671,7 +670,7 @@ public class Stack {
      * integer     = [ '+' | '-' ]
      *             ( decimal-digits
      *             | ( '0b' | '0B' ) binary-digits
-     *             | ( '0x' | '0X' | '#' ) hex-digits
+     *             | ( '0x' | '0X' ) hex-digits
      *             | '0' octal-digits )
      * string      = '"' { string-char } '"'
      * symbol      = '\' symbol-char { symbol-char }
@@ -680,7 +679,36 @@ public class Stack {
      * integerは<code>Integer.decode(String nm) throws NumberFormatException</code>で
      * 読み取り可能な整数表現です。
      */
-    public static Value read(Context context, Reader reader) {
+    public static class Reader {
+
+        final java.io.Reader reader;
+        int ch;
+        
+        public Reader(java.io.Reader reader) {
+            this.reader = reader;
+            get();
+        }
+        
+        int get() {
+            try {
+                int ch = reader.read();
+                if (ch == -1)
+                    return this.ch = ch;
+                if (Character.isHighSurrogate((char)ch)) {
+                    int low = reader.read();
+                    if (ch == -1)
+                        throw new IOException("expected low surrogate");
+                    return this.ch = Character.toCodePoint((char)ch, (char)low);
+                } else
+                    return this.ch = ch;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+
+    public static Value read(Context context, java.io.Reader reader) {
         try {
             return new Object() {
                 int ch = ' ';
@@ -774,7 +802,7 @@ public class Stack {
         }
     }
 
-    public static void repl(Context context, Reader reader) {
+    public static void repl(Context context, java.io.Reader reader) {
         while (true) {
             Value element = read(context, reader);
             if (element == END_OF_STREAM)
@@ -789,7 +817,7 @@ public class Stack {
     }
 
     public static Value parse(Context context, String source) {
-        try (Reader reader = new StringReader(source)) {
+        try (java.io.Reader reader = new StringReader(source)) {
             return read(context, reader);
         } catch (IOException e) {
             throw new RuntimeException(e);

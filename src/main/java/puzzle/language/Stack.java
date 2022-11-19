@@ -659,6 +659,8 @@ public class Stack {
     static final Pattern DOUBLE_PAT = Pattern.compile("[-+]?\\d*\\.?\\d+([e][-+]?\\d+)?", Pattern.CASE_INSENSITIVE);
     static final Map<String, Value> CONSTANTS = Map.of("true", Bool.TRUE, "false", Bool.FALSE);
 
+    static final Pattern BINARY_REGEX = Pattern.compile("[+-]?0b[01]+", Pattern.CASE_INSENSITIVE);
+    static final Pattern INTEGER_REGEX = Pattern.compile("[+-]?([0-9]+|0x[0-9a-f]+|0[0-7]+)", Pattern.CASE_INSENSITIVE);
     /**
      * <pre>
      * SYNTAX
@@ -666,7 +668,11 @@ public class Stack {
      * word        =  word-char { word-char }
      * block       = '[' { value } ']'
      * char        = ' character '
-     * integer     = [ '+' | '-' ] ( decimal-digits | ( '0x' | '0X' | '#' ) Hex-digits | '0' octal-digits )
+     * integer     = [ '+' | '-' ]
+     *             ( decimal-digits
+     *             | ( '0b' | '0B' ) binary-digits
+     *             | ( '0x' | '0X' | '#' ) hex-digits
+     *             | '0' octal-digits )
      * string      = '"' { string-char } '"'
      * symbol      = '\' symbol-char { symbol-char }
      * </pre>

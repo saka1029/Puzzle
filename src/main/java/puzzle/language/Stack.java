@@ -658,6 +658,12 @@ public class Stack {
     static final Pattern DOUBLE_PAT = Pattern.compile("[-+]?\\d*\\.?\\d+([e][-+]?\\d+)?", Pattern.CASE_INSENSITIVE);
     static final Map<String, Value> CONSTANTS = Map.of("true", Bool.TRUE, "false", Bool.FALSE);
 
+    public static class ParseException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        public ParseException(String format, Object... args) {
+            super(format.formatted(args));
+        }
+    }
     static final Pattern BINARY_REGEX = Pattern.compile("[+-]?0b[01]+", Pattern.CASE_INSENSITIVE);
     static final Pattern INTEGER_REGEX = Pattern.compile("[+-]?([0-9]+|0x[0-9a-f]+|0[0-7]+)", Pattern.CASE_INSENSITIVE);
     /**
@@ -680,7 +686,7 @@ public class Stack {
      * 読み取り可能な整数表現です。
      */
     public static class Reader {
-
+        public static final Value END = new Value() {};
         final java.io.Reader reader;
         int ch;
         
@@ -689,23 +695,61 @@ public class Stack {
             get();
         }
         
-        int get() {
+        void get() {
             try {
                 int ch = reader.read();
                 if (ch == -1)
-                    return this.ch = ch;
-                if (Character.isHighSurrogate((char)ch)) {
+                    this.ch = ch;
+                else if (Character.isHighSurrogate((char)ch)) {
                     int low = reader.read();
                     if (ch == -1)
                         throw new IOException("expected low surrogate");
-                    return this.ch = Character.toCodePoint((char)ch, (char)low);
+                    this.ch = Character.toCodePoint((char)ch, (char)low);
                 } else
-                    return this.ch = ch;
+                    this.ch = ch;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
+        static boolean isWordChar(int ch) {
+            return switch (ch) {
+            case -1, '[', ']' -> true;
+            default -> !Character.isWhitespace(ch);
+            };
+        }
+        
+        void skipSpaces() {
+            while (Character.isWhitespace(ch))
+                get();
+        }
+        
+        public Value parseList() {
+            
+        }
+        
+        public Value parseString() {
+            
+        }
+        
+        public Value parseWord() {
+            
+        }
+        
+        public Value read() {
+            switch (ch) {
+            case -1:
+                return END;
+            case '[':
+                return parseList();
+            case ']':
+                throw new ParseException("unexpected ']'");
+            case '"':
+                return parseString();
+            default:
+                return parseWord();
+            }
+        }
     }
 
     public static Value read(Context context, java.io.Reader reader) {

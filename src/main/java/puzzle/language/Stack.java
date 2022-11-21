@@ -769,7 +769,7 @@ public class Stack {
                                 throw new ParseException("empty unicode escape sequence");
                             appendGet(sb, Integer.parseInt(uni.toString(), 16));
                         } else
-                            appendGet(sb, 'u');
+                            sb.appendCodePoint('u');
                         break;
                     } else
                         appendGet(sb, ch);

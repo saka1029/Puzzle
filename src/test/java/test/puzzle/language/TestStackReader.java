@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import puzzle.language.Stack.Int;
 import puzzle.language.Stack.Reader;
+import puzzle.language.Stack.Str;
 import puzzle.language.Stack.Value;
 
 public class TestStackReader {
@@ -52,6 +53,18 @@ public class TestStackReader {
         assertEquals(Int.of('a'), read("\n'a'"));
         assertEquals(Int.of('あ'), read("'あ'"));
         assertEquals(Int.of("𩸽".codePointAt(0)), read("'𩸽'"));
+    }
+
+    @Test
+    public void testStr() {
+        assertEquals(Str.of("a"), read("\"a\""));
+        assertEquals(Str.of("a\nb"), read("\"a\nb\""));
+        assertEquals(Str.of("a\rb"), read("\"a\rb\""));
+        assertEquals(Str.of("a\b"), read("\"a\b\""));
+        assertEquals(Str.of("\tb"), read("\"\tb\""));
+        assertEquals(Str.of("𩸽"), read("\"\\u{29e3d}\""));
+        assertEquals(Str.of("\r\n"), read("\"\\u{d}\\u{a}\""));
+        assertEquals(Str.of("𩸽は"), read("\"\\u{d867}\\u{de3d}は\""));
     }
 
     @Test

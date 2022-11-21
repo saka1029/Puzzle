@@ -770,7 +770,6 @@ public class Stack {
                             appendGet(sb, Integer.parseInt(uni.toString(), 16));
                         } else
                             sb.appendCodePoint('u');
-                        break;
                     } else
                         appendGet(sb, ch);
                 } else 

@@ -718,7 +718,7 @@ public class Stack {
             }
         }
 
-        public Value parseList() {
+        Value parseList() {
             get();  // eat '['
             Cons.Builder cb = Cons.builder();
             while (ch != -1 && ch != ']')
@@ -740,7 +740,7 @@ public class Stack {
                 || ch >= 'A' && ch <= 'F';
         }
 
-        public Str parseString() {
+        Str parseString() {
             get(); // eat '"'
             StringBuilder sb = new StringBuilder();
             while (ch != -1 && ch != '"') {
@@ -790,9 +790,17 @@ public class Stack {
 
         static final Pattern CHAR_REGEX = Pattern.compile("(?i)'(.)'");
         static final Pattern INTEGER_REGEX = Pattern.compile("(?i)[+-]?([0-9]+|0x[0-9a-f]+|0[0-7]+)");
-        static final Pattern BINARY_REGEX = Pattern.compile("(?i)[+-]?0b([01]+)");
+        static final Pattern BINARY_REGEX = Pattern.compile("(?i)([+-])?0b([01]+)");
 
-        public Value parseWordNumber() {
+        Value parseSymbol() {
+            get();  // eat '/'
+            StringBuilder sb = new StringBuilder();
+            while (isWordChar(ch))
+                appendGet(sb, ch);
+            return Str.of(sb.toString());
+        }
+
+        Value parseWordNumber() {
             StringBuilder sb = new StringBuilder();
             while (isWordChar(ch))
                 appendGet(sb, ch);
@@ -803,7 +811,8 @@ public class Stack {
             else if ((m = INTEGER_REGEX.matcher(word)).matches())
                 return Int.of(Integer.decode(word));
             else if ((m = BINARY_REGEX.matcher(word)).matches())
-                return Int.of(Integer.parseInt(m.group(1), 2));
+                return Int.of(Integer.parseInt(
+                    (m.group(1) == null ? "" : m.group(1)) + m.group(2) , 2));
             else
                 return Context.code(word);
         }
@@ -820,6 +829,8 @@ public class Stack {
                 throw new ParseException("unexpected ']'");
             case '"':
                 return parseString();
+            case '/':
+                return parseSymbol();
             default:
                 return parseWordNumber();
             }

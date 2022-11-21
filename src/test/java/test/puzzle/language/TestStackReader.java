@@ -49,6 +49,7 @@ public class TestStackReader {
     @Test
     public void testChar() {
         assertEquals(Int.of('a'), read("'a'"));
+        assertEquals(Int.of('a'), read("\n'a'"));
         assertEquals(Int.of('あ'), read("'あ'"));
         assertEquals(Int.of("𩸽".codePointAt(0)), read("'𩸽'"));
     }

@@ -65,6 +65,7 @@ public class TestStackReader {
         assertEquals(Str.of("𩸽"), read("\"\\u{29e3d}\""));
         assertEquals(Str.of("\r\n"), read("\"\\u{d}\\u{a}\""));
         assertEquals(Str.of("𩸽は"), read("\"\\u{d867}\\u{de3d}は\""));
+        assertEquals(Str.of("\ud867\ude3dは"), read("\"\\u{d867}\\u{de3d}は\""));
     }
 
     @Test

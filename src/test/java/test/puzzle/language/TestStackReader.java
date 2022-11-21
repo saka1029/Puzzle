@@ -54,4 +54,9 @@ public class TestStackReader {
         assertEquals(Int.of("𩸽".codePointAt(0)), read("'𩸽'"));
     }
 
+    @Test
+    public void testEnd() {
+        assertEquals(Reader.END, read("  "));
+    }
+
 }

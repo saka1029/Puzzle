@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -169,7 +170,7 @@ public class Stack {
             if (tail instanceof Cons cons)
                 return Cons.of(this, cons);
             if (tail instanceof Str str)
-                return Str.cons(((Int)this).value, str.value);
+                return Str.cons(((Int) this).value, str.value);
             throw new UnsupportedOperationException();
         }
 
@@ -198,45 +199,45 @@ public class Stack {
         }
 
         default Value and(Value right) {
-            return Bool.of(((Bool)this).value & ((Bool)right).value);
+            return Bool.of(((Bool) this).value & ((Bool) right).value);
         }
 
         default Value or(Value right) {
-            return Bool.of(((Bool)this).value | ((Bool)right).value);
+            return Bool.of(((Bool) this).value | ((Bool) right).value);
         }
 
         default Value not() {
-            return Bool.of(!((Bool)this).value);
+            return Bool.of(!((Bool) this).value);
         }
 
         default Value add(Value right) {
             if (this instanceof Int i)
-                return Int.of(i.value + ((Int)right).value);
+                return Int.of(i.value + ((Int) right).value);
             if (this instanceof Cons c)
-                return c.append((Cons)right);
+                return c.append((Cons) right);
             if (this instanceof Str s)
-                return s.append((Str)right);
+                return s.append((Str) right);
             throw new UnsupportedOperationException();
         }
 
         default Value sub(Value right) {
-            return Int.of(((Int)this).value - ((Int)right).value);
+            return Int.of(((Int) this).value - ((Int) right).value);
         }
 
         default Value mul(Value right) {
-            return Int.of(((Int)this).value * ((Int)right).value);
+            return Int.of(((Int) this).value * ((Int) right).value);
         }
 
         default Value div(Value right) {
-            return Int.of(((Int)this).value / ((Int)right).value);
+            return Int.of(((Int) this).value / ((Int) right).value);
         }
 
         default Value mod(Value right) {
-            return Int.of(((Int)this).value % ((Int)right).value);
+            return Int.of(((Int) this).value % ((Int) right).value);
         }
 
         default Value sqrt() {
-            return Int.of((int)Math.sqrt(((Int)this).value));
+            return Int.of((int) Math.sqrt(((Int) this).value));
         }
 
         default Cons list() {
@@ -494,7 +495,7 @@ public class Stack {
 
         public static class Builder {
 
-            ArrayList<Integer> list= new ArrayList<>();
+            ArrayList<Integer> list = new ArrayList<>();
 
             public Builder add(int n) {
                 list.add(n);
@@ -557,7 +558,7 @@ public class Stack {
         int istart = ((Int) start).value;
         int iend = ((Int) end).value;
         return new Value() {
-            
+
             @Override
             public Iterator<Value> iterator() {
                 return new Iterator<>() {
@@ -588,8 +589,7 @@ public class Stack {
             public Iterator<Value> iterator() {
                 return new Iterator<>() {
                     Iterator<Value> iterator = collection.iterator();
-                    
-                    
+
                     @Override
                     public boolean hasNext() {
                         return iterator.hasNext();
@@ -617,7 +617,7 @@ public class Stack {
                     Iterator<Value> iterator = collection.iterator();
                     boolean hasNext = advance();
                     Value next;
-                    
+
                     boolean advance() {
                         while (iterator.hasNext()) {
                             next = iterator.next();
@@ -652,7 +652,9 @@ public class Stack {
         };
     }
 
-    public static final Value END_OF_STREAM = Context.code("End of stream", c -> { throw new RuntimeException(); });
+    public static final Value END_OF_STREAM = Context.code("End of stream", c -> {
+        throw new RuntimeException();
+    });
     static final Pattern CHAR_PAT = Pattern.compile("'.'");
     static final Pattern INTEGER_PAT = Pattern.compile("[-+]?(\\d+|0x[0-9a-f]+|0b[01]+)", Pattern.CASE_INSENSITIVE);
     static final Pattern DOUBLE_PAT = Pattern.compile("[-+]?\\d*\\.?\\d+([e][-+]?\\d+)?", Pattern.CASE_INSENSITIVE);
@@ -660,12 +662,13 @@ public class Stack {
 
     public static class ParseException extends RuntimeException {
         private static final long serialVersionUID = 1L;
+
         public ParseException(String format, Object... args) {
             super(format.formatted(args));
         }
     }
-    static final Pattern BINARY_REGEX = Pattern.compile("[+-]?0b[01]+", Pattern.CASE_INSENSITIVE);
-    static final Pattern INTEGER_REGEX = Pattern.compile("[+-]?([0-9]+|0x[0-9a-f]+|0[0-7]+)", Pattern.CASE_INSENSITIVE);
+
+
     /**
      * <pre>
      * SYNTAX
@@ -679,32 +682,35 @@ public class Stack {
      *             | ( '0x' | '0X' ) hex-digits
      *             | '0' octal-digits )
      * string      = '"' { string-char } '"'
+     * string-char = '\r' | '\n' | '\t' | '\f' | '\' 'u' '{' hexadecimal-digits '}' | any-char-except-quote-and-escape
      * symbol      = '\' symbol-char { symbol-char }
      * </pre>
+     * 
      * word-charは'[', ']'以外の文字の並びです。
      * integerは<code>Integer.decode(String nm) throws NumberFormatException</code>で
      * 読み取り可能な整数表現です。
      */
     public static class Reader {
-        public static final Value END = new Value() {};
+        public static final Value END = new Value() {
+        };
         final java.io.Reader reader;
         int ch;
-        
+
         public Reader(java.io.Reader reader) {
             this.reader = reader;
             get();
         }
-        
+
         void get() {
             try {
                 int ch = reader.read();
                 if (ch == -1)
                     this.ch = ch;
-                else if (Character.isHighSurrogate((char)ch)) {
+                else if (Character.isHighSurrogate((char) ch)) {
                     int low = reader.read();
                     if (ch == -1)
                         throw new IOException("expected low surrogate");
-                    this.ch = Character.toCodePoint((char)ch, (char)low);
+                    this.ch = Character.toCodePoint((char) ch, (char) low);
                 } else
                     this.ch = ch;
             } catch (IOException e) {
@@ -712,31 +718,99 @@ public class Stack {
             }
         }
 
-        static boolean isWordChar(int ch) {
-            return switch (ch) {
-            case -1, '[', ']' -> true;
-            default -> !Character.isWhitespace(ch);
-            };
+        public Value parseList() {
+            get();  // eat '['
+            Cons.Builder cb = Cons.builder();
+            while (ch != -1 && ch != ']')
+                cb.add(read());
+            if (ch != ']')
+                throw new ParseException("']' expected");
+            get();  // eat ']'
+            return cb.build();
         }
         
-        void skipSpaces() {
+        void appendGet(StringBuilder sb, int ch) {
+            sb.appendCodePoint(ch);
+            get();
+        }
+        
+        static boolean isHexadecimalDigit(int ch) {
+            return ch >= '0' && ch <= '9' 
+                || ch >= 'a' && ch <= 'f'
+                || ch >= 'A' && ch <= 'F';
+        }
+
+        public Str parseString() {
+            get(); // eat '"'
+            StringBuilder sb = new StringBuilder();
+            while (ch != -1 && ch != '"') {
+                if (ch == '\\') {
+                    get(); // eat '\\'
+                    if (ch == 'r')
+                        appendGet(sb, '\r');
+                    else if (ch == 'n')
+                        appendGet(sb, '\n');
+                    else if (ch == 't')
+                        appendGet(sb, '\t');
+                    else if (ch == 'b')
+                        appendGet(sb, '\b');
+                    else if (ch == 'f')
+                        appendGet(sb, '\f');
+                    else if (ch == 'u') {
+                        get(); // eat 'u'
+                        if (ch == '{') {
+                            get(); // eat '{'
+                            StringBuilder uni = new StringBuilder();
+                            while (isHexadecimalDigit(ch))
+                                appendGet(uni, ch);
+                            if (ch != '}')
+                                throw new ParseException("unicode escape sequence '}' expected");
+                            if (uni.length() == 0)
+                                throw new ParseException("empty unicode escape sequence");
+                            appendGet(sb, Integer.parseInt(uni.toString(), 16));
+                        } else
+                            appendGet(sb, 'u');
+                        break;
+                    } else
+                        appendGet(sb, ch);
+                } else 
+                    appendGet(sb, ch);
+            }
+            if (ch != '"')
+                throw new ParseException("'\"' expected");
+            get();  // eat '"'
+            return Str.of(sb.toString());
+        }
+
+        static boolean isWordChar(int ch) {
+            return ch != -1
+                && !Character.isWhitespace(ch)
+                && ch != '[' && ch != ']';
+        }
+
+        static final Pattern CHAR_REGEX = Pattern.compile("(?i)'(.)'");
+        static final Pattern INTEGER_REGEX = Pattern.compile("(?i)[+-]?([0-9]+|0x[0-9a-f]+|0[0-7]+)");
+        static final Pattern BINARY_REGEX = Pattern.compile("(?i)[+-]?0b([01]+)");
+
+        public Value parseWordNumber() {
+            StringBuilder sb = new StringBuilder();
+            while (isWordChar(ch))
+                appendGet(sb, ch);
+            String word = sb.toString();
+            Matcher m;
+            if ((m = CHAR_REGEX.matcher(word)).matches())
+                return Int.of(Character.codePointAt(m.group(1), 0));
+            else if ((m = INTEGER_REGEX.matcher(word)).matches())
+                return Int.of(Integer.decode(word));
+            else if ((m = BINARY_REGEX.matcher(word)).matches())
+                return Int.of(Integer.parseInt(m.group(1), 2));
+            else
+                return Context.code(word);
+        }
+
+        public Value read() {
             while (Character.isWhitespace(ch))
                 get();
-        }
-        
-        public Value parseList() {
-            
-        }
-        
-        public Value parseString() {
-            
-        }
-        
-        public Value parseWord() {
-            
-        }
-        
-        public Value read() {
             switch (ch) {
             case -1:
                 return END;
@@ -747,7 +821,7 @@ public class Stack {
             case '"':
                 return parseString();
             default:
-                return parseWord();
+                return parseWordNumber();
             }
         }
     }
@@ -784,7 +858,7 @@ public class Stack {
                     get(); // skip '\"'
                     StringBuilder builder = new StringBuilder();
                     while (ch != -1 && ch != '\"') {
-                        builder.append((char)ch);
+                        builder.append((char) ch);
                         get();
                     }
                     if (ch != '\"')
@@ -810,7 +884,7 @@ public class Stack {
                 Value readWord() throws IOException {
                     StringBuilder sb = new StringBuilder();
                     while (ch != -1 && !Character.isWhitespace(ch) && ch != ']') {
-                        sb.append((char)ch);
+                        sb.append((char) ch);
                         get();
                     }
                     String word = sb.toString();
@@ -894,39 +968,97 @@ public class Stack {
             .put("drop", c -> c.pop())
             .put("dup", c -> c.push(c.peek(0)))
             .put("over", c -> c.push(c.peek(1)))
-            .put("swap", c -> { Value t = c.pop(), s = c.pop(); c.push(t); c.push(s); })
+            .put("swap", c -> {
+                Value t = c.pop(), s = c.pop();
+                c.push(t);
+                c.push(s);
+            })
             .put("head", c -> c.push(c.pop().head()))
             .put("tail", c -> c.push(c.pop().tail()))
-            .put("cons", c -> { Value t = c.pop(); c.push(c.pop().cons(t)); })
-            .put("&", c -> { Value r = c.pop(); c.push(c.pop().and(r)); })
-            .put("|", c -> { Value r = c.pop(); c.push(c.pop().or(r)); })
+            .put("cons", c -> {
+                Value t = c.pop();
+                c.push(c.pop().cons(t));
+            })
+            .put("&", c -> {
+                Value r = c.pop();
+                c.push(c.pop().and(r));
+            })
+            .put("|", c -> {
+                Value r = c.pop();
+                c.push(c.pop().or(r));
+            })
             .put("!", c -> c.push(c.pop().not()))
-            .put("==", c -> { Value r = c.pop(); c.push(c.pop().eq(r)); })
-            .put("!=", c -> { Value r = c.pop(); c.push(c.pop().ne(r)); })
-            .put("<", c -> { Value r = c.pop(); c.push(c.pop().lt(r)); })
-            .put("<=", c -> { Value r = c.pop(); c.push(c.pop().le(r)); })
-            .put(">", c -> { Value r = c.pop(); c.push(c.pop().gt(r)); })
-            .put(">=", c -> { Value r = c.pop(); c.push(c.pop().ge(r)); })
-            .put("+", c -> { Value r = c.pop(); c.push(c.pop().add(r)); })
-            .put("-", c -> { Value r = c.pop(); c.push(c.pop().sub(r)); })
-            .put("*", c -> { Value r = c.pop(); c.push(c.pop().mul(r)); })
-            .put("/", c -> { Value r = c.pop(); c.push(c.pop().div(r)); })
-            .put("%", c -> { Value r = c.pop(); c.push(c.pop().mod(r)); })
+            .put("==", c -> {
+                Value r = c.pop();
+                c.push(c.pop().eq(r));
+            })
+            .put("!=", c -> {
+                Value r = c.pop();
+                c.push(c.pop().ne(r));
+            })
+            .put("<", c -> {
+                Value r = c.pop();
+                c.push(c.pop().lt(r));
+            })
+            .put("<=", c -> {
+                Value r = c.pop();
+                c.push(c.pop().le(r));
+            })
+            .put(">", c -> {
+                Value r = c.pop();
+                c.push(c.pop().gt(r));
+            })
+            .put(">=", c -> {
+                Value r = c.pop();
+                c.push(c.pop().ge(r));
+            })
+            .put("+", c -> {
+                Value r = c.pop();
+                c.push(c.pop().add(r));
+            })
+            .put("-", c -> {
+                Value r = c.pop();
+                c.push(c.pop().sub(r));
+            })
+            .put("*", c -> {
+                Value r = c.pop();
+                c.push(c.pop().mul(r));
+            })
+            .put("/", c -> {
+                Value r = c.pop();
+                c.push(c.pop().div(r));
+            })
+            .put("%", c -> {
+                Value r = c.pop();
+                c.push(c.pop().mod(r));
+            })
             .put("sqrt", c -> c.push(c.pop().sqrt()))
             .put("exec", c -> c.pop().run(c))
             .put("if", c -> {
                 Value orElse = c.pop(), then = c.pop(), predicate = c.pop();
-                if (((Bool)predicate).value)
+                if (((Bool) predicate).value)
                     then.run(c);
                 else
                     orElse.run(c);
             })
-            .put("map", c -> { Value f = c.pop(); c.push(map(c.pop(), function(c, f))); })
-            .put("filter", c -> { Value f = c.pop(); c.push(filter(c.pop(), function(c, f))); })
-            .put("define", c -> { Value f = c.pop(); c.globals.put(c.pop().toString(), f); })
+            .put("map", c -> {
+                Value f = c.pop();
+                c.push(map(c.pop(), function(c, f)));
+            })
+            .put("filter", c -> {
+                Value f = c.pop();
+                c.push(filter(c.pop(), function(c, f)));
+            })
+            .put("define", c -> {
+                Value f = c.pop();
+                c.globals.put(c.pop().toString(), f);
+            })
             .put("list", c -> c.push(c.pop().list()))
             .put("str", c -> c.push(c.pop().str()))
-            .put("range", c -> { Value e = c.pop(); c.push(range(c.pop(), e)); })
+            .put("range", c -> {
+                Value e = c.pop();
+                c.push(range(c.pop(), e));
+            })
             .put("for", c -> {
                 Value lambda = c.pop(), i = c.pop();
                 for (Value v : i) {
@@ -938,12 +1070,11 @@ public class Stack {
                 Value body = c.pop(), predicate = c.pop();
                 while (true) {
                     predicate.run(c);
-                    if (!((Bool)c.pop()).value)
+                    if (!((Bool) c.pop()).value)
                         break;
                     body.run(c);
                 }
-            })
-            ;
+            });
         return context;
     }
 }

@@ -203,6 +203,8 @@ public class TestStack {
         methodName();
         testEval("[1 2]", "1 2 [] cons cons");
         testEval("3", "1 2 [+] cons cons exec");
+        testEval("3", "1 2 true [+] [-] if");
+        testEval("-1", "1 2 false [+] [-] if");
         testEval("3", "1 2 true [+] [-] [if] cons cons cons exec");
         testEval("-1", "1 2 false [+] [-] [if] cons cons cons exec");
     }

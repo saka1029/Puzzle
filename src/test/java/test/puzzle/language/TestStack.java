@@ -276,7 +276,7 @@ public class TestStack {
         testEval("[5 4 3 2 1]", "/reverse [[] swap [swap cons] for] define"
             + " [1 2 3 4 5] reverse");
         // 再帰版
-        testEval("[5 4 3 2 1]", "/reverse [dup [] == [] [dup cdr reverse swap car [] cons +] if] define"
+        testEval("[5 4 3 2 1]", "/reverse [dup null [] [dup cdr reverse swap car [] cons +] if] define"
             + " [1 2 3 4 5] reverse");
     }
 

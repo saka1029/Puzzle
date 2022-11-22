@@ -879,6 +879,7 @@ public class Stack {
                 c.push(t);
                 c.push(s);
             })
+            .put("null", c -> c.push(c.pop().eq(Cons.NIL)))
             .put("car", c -> c.push(c.pop().car()))
             .put("cdr", c -> c.push(c.pop().cdr()))
             .put("cons", c -> {

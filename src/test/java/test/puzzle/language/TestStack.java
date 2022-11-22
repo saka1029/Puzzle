@@ -32,7 +32,7 @@ public class TestStack {
 //        logger.info("*** " + Thread.currentThread().getStackTrace()[2].getMethodName());
     }
 
-    Context context = context(20) ;//.traceTo(logger::info);
+    Context context = context(20);//.traceTo(logger::info);
 
     static Cons l(Value... elements) {
         return Cons.of(elements);
@@ -252,6 +252,12 @@ public class TestStack {
     public void testSum() {
         methodName();
         testEval("55", "\"sum\" [0 swap [+] for] define 1 10 range sum");
+    }
+
+    @Test
+    public void testReverse() {
+        methodName();
+        testEval("[5 4 3 2 1]", "/reverse [[] swap [swap cons] for] define [1 2 3 4 5] reverse");
     }
 
     @Test

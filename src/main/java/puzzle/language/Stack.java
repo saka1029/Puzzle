@@ -91,22 +91,23 @@ public class Stack {
                 .collect(Collectors.joining(" ", "[", "]"));
         }
 
+        record NamedCode(String name) implements Value {
+            @Override
+            public void execute(Context c) {
+                Value x = c.globals.get(name);
+                if (x == null)
+                    throw new RuntimeException(name + " is not defined");
+                x.run(c);
+            }
+            
+            @Override
+            public String toString() {
+                return name;
+            }
+        }
+
         public static Value code(String name) {
-            return new Value() {
-
-                @Override
-                public void execute(Context c) {
-                    Value x = c.globals.get(name);
-                    if (x == null)
-                        throw new RuntimeException(name + " is not defined");
-                    x.run(c);
-                }
-
-                @Override
-                public String toString() {
-                    return name;
-                }
-            };
+            return new NamedCode(name);
         }
 
         public static Value code(String name, Executable e) {

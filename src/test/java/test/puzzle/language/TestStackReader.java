@@ -6,6 +6,8 @@ import java.io.StringReader;
 
 import org.junit.Test;
 
+import puzzle.language.Stack.Cons;
+import puzzle.language.Stack.Context;
 import puzzle.language.Stack.Int;
 import puzzle.language.Stack.Reader;
 import puzzle.language.Stack.Str;
@@ -53,6 +55,24 @@ public class TestStackReader {
         assertEquals(Int.of('a'), read("\n'a'"));
         assertEquals(Int.of('あ'), read("'あ'"));
         assertEquals(Int.of("𩸽".codePointAt(0)), read("'𩸽'"));
+    }
+
+    @Test
+    public void testWord() {
+        assertEquals(Context.code("+"), read("+"));
+    }
+
+    @Test
+    public void testSymbol() {
+        assertEquals(Str.of("abc"), read("/abc"));
+    }
+
+    @Test
+    public void testCons() {
+        assertEquals(Cons.END, read("[]"));
+        assertEquals(Cons.of(Int.ONE), read("[1]"));
+        assertEquals(Cons.of(Int.ONE, Int.of(2), Int.of(3)), read("[1 2 3]"));
+        assertEquals(Cons.of(Str.of("𩸽")), read("[\"𩸽\"]"));
     }
 
     @Test

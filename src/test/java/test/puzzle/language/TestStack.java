@@ -187,15 +187,15 @@ public class TestStack {
     }
 
     @Test
-    public void testHead() {
+    public void testCar() {
         methodName();
-        testEval("1", "[1 2] head");
+        testEval("1", "[1 2] car");
     }
 
     @Test
-    public void testTail() {
+    public void testCdr() {
         methodName();
-        testEval("[2]", "[1 2] tail");
+        testEval("[2]", "[1 2] cdr");
     }
 
     @Test
@@ -210,6 +210,7 @@ public class TestStack {
     @Test
     public void testAppend() {
         methodName();
+        testEval("[1 2 3 4]", "[1 2] [3 4] +");
         testEval("3", "[1 2] [+] + exec");
     }
 
@@ -269,7 +270,12 @@ public class TestStack {
     @Test
     public void testReverse() {
         methodName();
-        testEval("[5 4 3 2 1]", "/reverse [[] swap [swap cons] for] define [1 2 3 4 5] reverse");
+        // 繰り返し版
+        testEval("[5 4 3 2 1]", "/reverse [[] swap [swap cons] for] define"
+            + " [1 2 3 4 5] reverse");
+        // 再帰版
+        testEval("[5 4 3 2 1]", "/reverse [dup [] == [] [dup cdr reverse swap car [] cons +] if] define"
+            + " [1 2 3 4 5] reverse");
     }
 
     @Test
@@ -377,8 +383,8 @@ public class TestStack {
     public void testStr() {
         methodName();
         testEval("\"ABC\"", "\"abc\" [0x20 -] map str");
-        testEval("'A'", "\"ABC\" head");
-        testEval("\"BC\"", "\"ABC\" tail");
+        testEval("'A'", "\"ABC\" car");
+        testEval("\"BC\"", "\"ABC\" cdr");
         testEval("\"ABC\"", "'A' \"BC\" cons");
         testEval("\"ABCDE\"", "\"ABC\" \"DE\" +");
         testEval("\"A\nBC\"", "\"A\nBC\"");
@@ -398,9 +404,9 @@ public class TestStack {
         testContext("[2 1]", context, "swap");
         testContext("[3]", context, "+");
         testContext("[]", context, "drop");
-        testContext("[1]", context, "[1 2 3] head");
+        testContext("[1]", context, "[1 2 3] car");
         testContext("[]", context, "drop");
-        testContext("[[2 3]]", context, "[1 2 3] tail");
+        testContext("[[2 3]]", context, "[1 2 3] cdr");
         testContext("[]", context, "drop");
         testContext("[[1 2 3]]", context, "1 [2 3] cons");
         testContext("[]", context, "drop");

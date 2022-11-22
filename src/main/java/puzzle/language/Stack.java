@@ -141,17 +141,17 @@ public class Stack {
             throw new UnsupportedOperationException();
         }
 
-        default Value head() {
+        default Value car() {
             if (this instanceof Cons cons)
-                return cons.head;
+                return cons.car;
             if (this instanceof Str str)
                 return Int.of(str.value[0]);
             throw new UnsupportedOperationException();
         }
 
-        default Value tail() {
+        default Value cdr() {
             if (this instanceof Cons cons)
-                return cons.tail;
+                return cons.cdr;
             if (this instanceof Str str)
                 return Str.of(Arrays.copyOfRange(str.value, 1, str.value.length));
             throw new UnsupportedOperationException();
@@ -342,12 +342,12 @@ public class Stack {
     public static class Cons implements Value {
 
         public static final Cons NIL = new Cons(null, null);
-        public final Value head;
-        public final Cons tail;
+        public final Value car;
+        public final Cons cdr;
 
-        private Cons(Value head, Cons tail) {
-            this.head = head;
-            this.tail = tail;
+        private Cons(Value car, Cons cdr) {
+            this.car = car;
+            this.cdr = cdr;
         }
 
         public static Cons of(Value... values) {
@@ -365,7 +365,7 @@ public class Stack {
             if (this == NIL)
                 return right;
             else
-                return new Cons(head, tail.append(right));
+                return new Cons(car, cdr.append(right));
         }
 
         public static Builder builder() {
@@ -391,8 +391,8 @@ public class Stack {
 
         @Override
         public void run(Context c) {
-            for (Cons cons = this; cons != NIL; cons = cons.tail)
-                c.execute(cons.head);
+            for (Cons cons = this; cons != NIL; cons = cons.cdr)
+                c.execute(cons.car);
             c.trace();
         }
 
@@ -400,8 +400,8 @@ public class Stack {
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            for (Cons c = this; c != NIL; c = c.tail)
-                result = prime * result + head.hashCode();
+            for (Cons c = this; c != NIL; c = c.cdr)
+                result = prime * result + car.hashCode();
             return result;
         }
 
@@ -416,15 +416,15 @@ public class Stack {
             Cons other = (Cons) obj;
             if (this == NIL || other == NIL)
                 return false;
-            return head.equals(other.head) && tail.equals(other.tail);
+            return car.equals(other.car) && cdr.equals(other.cdr);
         }
 
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("[");
             String sep = "";
-            for (Cons c = this; c != NIL; c = c.tail, sep = " ")
-                sb.append(sep).append(c.head);
+            for (Cons c = this; c != NIL; c = c.cdr, sep = " ")
+                sb.append(sep).append(c.car);
             sb.append("]");
             return sb.toString();
         }
@@ -441,8 +441,8 @@ public class Stack {
 
                 @Override
                 public Value next() {
-                    Value result = cons.head;
-                    cons = cons.tail;
+                    Value result = cons.car;
+                    cons = cons.cdr;
                     return result;
                 }
             };
@@ -879,8 +879,8 @@ public class Stack {
                 c.push(t);
                 c.push(s);
             })
-            .put("head", c -> c.push(c.pop().head()))
-            .put("tail", c -> c.push(c.pop().tail()))
+            .put("car", c -> c.push(c.pop().car()))
+            .put("cdr", c -> c.push(c.pop().cdr()))
             .put("cons", c -> {
                 Value t = c.pop();
                 c.push(c.pop().cons(t));

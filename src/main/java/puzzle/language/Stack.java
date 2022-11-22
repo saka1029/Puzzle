@@ -91,23 +91,13 @@ public class Stack {
                 .collect(Collectors.joining(" ", "[", "]"));
         }
 
-        record NamedCode(String name) implements Value {
-            @Override
-            public void execute(Context c) {
+        public static Value code(String name) {
+            return code(name, c -> {
                 Value x = c.globals.get(name);
                 if (x == null)
                     throw new RuntimeException(name + " is not defined");
                 x.run(c);
-            }
-            
-            @Override
-            public String toString() {
-                return name;
-            }
-        }
-
-        public static Value code(String name) {
-            return new NamedCode(name);
+            });
         }
 
         public static Value code(String name, Executable e) {
@@ -351,7 +341,7 @@ public class Stack {
 
     public static class Cons implements Value {
 
-        public static final Cons END = new Cons(null, null);
+        public static final Cons NIL = new Cons(null, null);
         public final Value head;
         public final Cons tail;
 
@@ -361,7 +351,7 @@ public class Stack {
         }
 
         public static Cons of(Value... values) {
-            Cons result = END;
+            Cons result = NIL;
             for (int i = values.length - 1; i >= 0; --i)
                 result = new Cons(values[i], result);
             return result;
@@ -372,7 +362,7 @@ public class Stack {
         }
 
         public Cons append(Cons right) {
-            if (this == END)
+            if (this == NIL)
                 return right;
             else
                 return new Cons(head, tail.append(right));
@@ -392,7 +382,7 @@ public class Stack {
             }
 
             public Cons build() {
-                Cons result = END;
+                Cons result = NIL;
                 for (int i = list.size() - 1; i >= 0; --i)
                     result = new Cons(list.get(i), result);
                 return result;
@@ -401,7 +391,7 @@ public class Stack {
 
         @Override
         public void run(Context c) {
-            for (Cons cons = this; cons != END; cons = cons.tail)
+            for (Cons cons = this; cons != NIL; cons = cons.tail)
                 c.execute(cons.head);
             c.trace();
         }
@@ -410,7 +400,7 @@ public class Stack {
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            for (Cons c = this; c != END; c = c.tail)
+            for (Cons c = this; c != NIL; c = c.tail)
                 result = prime * result + head.hashCode();
             return result;
         }
@@ -424,7 +414,7 @@ public class Stack {
             if (getClass() != obj.getClass())
                 return false;
             Cons other = (Cons) obj;
-            if (this == END || other == END)
+            if (this == NIL || other == NIL)
                 return false;
             return head.equals(other.head) && tail.equals(other.tail);
         }
@@ -433,7 +423,7 @@ public class Stack {
         public String toString() {
             StringBuilder sb = new StringBuilder("[");
             String sep = "";
-            for (Cons c = this; c != END; c = c.tail, sep = " ")
+            for (Cons c = this; c != NIL; c = c.tail, sep = " ")
                 sb.append(sep).append(c.head);
             sb.append("]");
             return sb.toString();
@@ -446,7 +436,7 @@ public class Stack {
 
                 @Override
                 public boolean hasNext() {
-                    return cons != END;
+                    return cons != NIL;
                 }
 
                 @Override
@@ -653,14 +643,6 @@ public class Stack {
         };
     }
 
-    public static final Value END_OF_STREAM = Context.code("End of stream", c -> {
-        throw new RuntimeException();
-    });
-    static final Pattern CHAR_PAT = Pattern.compile("'.'");
-    static final Pattern INTEGER_PAT = Pattern.compile("[-+]?(\\d+|0x[0-9a-f]+|0b[01]+)", Pattern.CASE_INSENSITIVE);
-    static final Pattern DOUBLE_PAT = Pattern.compile("[-+]?\\d*\\.?\\d+([e][-+]?\\d+)?", Pattern.CASE_INSENSITIVE);
-    static final Map<String, Value> CONSTANTS = Map.of("true", Bool.TRUE, "false", Bool.FALSE);
-
     public static class ParseException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
@@ -692,8 +674,8 @@ public class Stack {
      * 読み取り可能な整数表現です。
      */
     public static class Reader {
-        public static final Value END = new Value() {
-        };
+        public static final Value END = Context.code("Reader_END",
+            c -> {throw new RuntimeException("Reader_END");});
         final java.io.Reader reader;
         int ch;
 
@@ -791,9 +773,12 @@ public class Stack {
         static final Pattern CHAR_REGEX = Pattern.compile("(?i)'(.)'");
         static final Pattern INTEGER_REGEX = Pattern.compile("(?i)[+-]?([0-9]+|0x[0-9a-f]+|0[0-7]+)");
         static final Pattern BINARY_REGEX = Pattern.compile("(?i)([+-])?0b([01]+)");
+        static final Map<String, Value> CONSTANTS = Map.of("true", Bool.TRUE, "false", Bool.FALSE);
 
         Value parseSymbol() {
             get();  // eat '/'
+            if (ch == -1 || Character.isWhitespace(ch))
+                return Context.code("/");
             StringBuilder sb = new StringBuilder();
             while (isWordChar(ch))
                 appendGet(sb, ch);
@@ -813,8 +798,10 @@ public class Stack {
             else if ((m = BINARY_REGEX.matcher(word)).matches())
                 return Int.of(Integer.parseInt(
                     (m.group(1) == null ? "" : m.group(1)) + m.group(2) , 2));
-            else
-                return Context.code(word);
+            Value constant = CONSTANTS.get(word);
+            if (constant != null)
+                return constant;
+            return Context.code(word);
         }
 
         public Value read() {
@@ -837,104 +824,11 @@ public class Stack {
         }
     }
 
-    public static Value read(Context context, java.io.Reader reader) {
-        try {
-            return new Object() {
-                int ch = ' ';
-
-                void get() throws IOException {
-                    ch = reader.read();
-                }
-
-                void skipSpaces() throws IOException {
-                    while (Character.isWhitespace(ch))
-                        get();
-                }
-
-                Value readBlock() throws IOException {
-                    get(); // skip '['
-                    skipSpaces();
-                    Cons.Builder builder = Cons.builder();
-                    while (ch != -1 && ch != ']') {
-                        builder.add(read());
-                        skipSpaces();
-                    }
-                    if (ch != ']')
-                        throw new RuntimeException("']' expected");
-                    get(); // skip ']'
-                    return builder.build();
-                }
-
-                Value readString() throws IOException {
-                    get(); // skip '\"'
-                    StringBuilder builder = new StringBuilder();
-                    while (ch != -1 && ch != '\"') {
-                        builder.append((char) ch);
-                        get();
-                    }
-                    if (ch != '\"')
-                        throw new RuntimeException("'\"' expected");
-                    get(); // skip '\"'
-                    return Str.of(builder.toString());
-                }
-
-                int parseInt(String s) {
-                    s = s.toLowerCase();
-                    int radix = 10;
-                    int start = 0;
-                    if (s.startsWith("0b")) {
-                        radix = 2;
-                        start = 2;
-                    } else if (s.startsWith("0x")) {
-                        radix = 16;
-                        start = 2;
-                    }
-                    return Integer.parseInt(s.substring(start), radix);
-                }
-
-                Value readWord() throws IOException {
-                    StringBuilder sb = new StringBuilder();
-                    while (ch != -1 && !Character.isWhitespace(ch) && ch != ']') {
-                        sb.append((char) ch);
-                        get();
-                    }
-                    String word = sb.toString();
-                    if (CHAR_PAT.matcher(word).matches())
-                        return Int.of(word.codePointAt(1));
-                    if (INTEGER_PAT.matcher(word).matches())
-                        return Int.of(parseInt(word));
-//                    if (DOUBLE_PAT.matcher(word).matches())
-//                        return Real.of(Double.parseDouble(word));
-                    if (CONSTANTS.containsKey(word))
-                        return CONSTANTS.get(word);
-                    return Context.code(word);
-                }
-
-                Value read() throws IOException {
-                    skipSpaces();
-                    switch (ch) {
-                    case -1:
-                        return END_OF_STREAM;
-                    case ']':
-                        throw new RuntimeException("unexpected ']'");
-                    case '[':
-                        return readBlock();
-                    case '\"':
-                        return readString();
-                    default:
-                        return readWord();
-                    }
-                }
-            }.read();
-        } catch (IOException e) {
-            throw new RuntimeException("IOException throwed", e);
-        }
-    }
-
     public static void repl(Context context, java.io.Reader reader) {
+        Reader valueReader = new Reader(reader);
         while (true) {
-            Value element = read(context, reader);
-            if (element == END_OF_STREAM)
+            Value element = valueReader.read();
+            if (element == Reader.END)
                 break;
             context.execute(element);
         }
@@ -947,7 +841,8 @@ public class Stack {
 
     public static Value parse(Context context, String source) {
         try (java.io.Reader reader = new StringReader(source)) {
-            return read(context, reader);
+            Reader valueReader = new Reader(reader);
+            return valueReader.read();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

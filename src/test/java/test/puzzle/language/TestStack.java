@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static puzzle.language.Stack.*;
 
+import java.io.StringReader;
 import java.util.Locale;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -53,6 +54,84 @@ public class TestStack {
     @Test
     public void testPlus() {
         assertEquals(i(3), eval(context, l(i(1), i(2), w("+"))));
+    }
+
+    static Value read(String input) {
+        Reader reader = new Reader(new StringReader(input));
+        return reader.read();
+    }
+
+    @Test
+    public void testReaderIntegerDecimal() {
+        assertEquals(Int.of(12345), read("12345"));
+        assertEquals(Int.of(12345), read("+12345"));
+        assertEquals(Int.of(-12345), read("-12345"));
+        assertEquals(Int.of(12345), read("  12345"));
+    }
+
+    @Test
+    public void testReaderIntegerHexadecimal() {
+        assertEquals(Int.of(0x23ab), read("0x23ab"));
+        assertEquals(Int.of(0x23ab), read("+0x23ab"));
+        assertEquals(Int.of(-0x23ab), read("-0x23ab"));
+    }
+
+    @Test
+    public void testReaderIntegerOctal() {
+        assertEquals(Int.of(01234567), read("01234567"));
+        assertEquals(Int.of(01234567), read("+01234567"));
+        assertEquals(Int.of(-01234567), read("-01234567"));
+    }
+
+    @Test
+    public void testReaderIntegerBinary() {
+        assertEquals(Int.of(0b11100110), read("0b11100110"));
+        assertEquals(Int.of(0b11100110), read("+0b11100110"));
+        assertEquals(Int.of(-0b11100110), read("-0b11100110"));
+    }
+
+    @Test
+    public void testReaderChar() {
+        assertEquals(Int.of('a'), read("'a'"));
+        assertEquals(Int.of('a'), read("\n'a'"));
+        assertEquals(Int.of('あ'), read("'あ'"));
+        assertEquals(Int.of("𩸽".codePointAt(0)), read("'𩸽'"));
+    }
+
+    @Test
+    public void testReaderWord() {
+        assertEquals("+", read("+").toString());
+    }
+
+    @Test
+    public void testReaderSymbol() {
+        assertEquals(Str.of("abc"), read("/abc"));
+    }
+
+    @Test
+    public void testReaderCons() {
+        assertEquals(Cons.NIL, read("[]"));
+        assertEquals(Cons.of(Int.ONE), read("[1]"));
+        assertEquals(Cons.of(Int.ONE, Int.of(2), Int.of(3)), read("[1 2 3]"));
+        assertEquals(Cons.of(Str.of("𩸽")), read("[\"𩸽\"]"));
+    }
+
+    @Test
+    public void testReaderStr() {
+        assertEquals(Str.of("a"), read("\"a\""));
+        assertEquals(Str.of("a\nb"), read("\"a\nb\""));
+        assertEquals(Str.of("a\rb"), read("\"a\rb\""));
+        assertEquals(Str.of("a\b"), read("\"a\b\""));
+        assertEquals(Str.of("\tb"), read("\"\tb\""));
+        assertEquals(Str.of("𩸽"), read("\"\\u{29e3d}\""));
+        assertEquals(Str.of("\r\n"), read("\"\\u{d}\\u{a}\""));
+        assertEquals(Str.of("𩸽は"), read("\"\\u{d867}\\u{de3d}は\""));
+        assertEquals(Str.of("\ud867\ude3dは"), read("\"\\u{d867}\\u{de3d}は\""));
+    }
+
+    @Test
+    public void testReaderEnd() {
+        assertEquals(Reader.END, read("  "));
     }
 
     void testEval(String expected, String source) {

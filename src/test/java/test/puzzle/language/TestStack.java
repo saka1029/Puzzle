@@ -53,6 +53,7 @@ public class TestStack {
     
     @Test
     public void testPlus() {
+        methodName();
         assertEquals(i(3), eval(context, l(i(1), i(2), w("+"))));
     }
 
@@ -63,6 +64,7 @@ public class TestStack {
 
     @Test
     public void testReaderIntegerDecimal() {
+        methodName();
         assertEquals(Int.of(12345), read("12345"));
         assertEquals(Int.of(12345), read("+12345"));
         assertEquals(Int.of(-12345), read("-12345"));
@@ -71,6 +73,7 @@ public class TestStack {
 
     @Test
     public void testReaderIntegerHexadecimal() {
+        methodName();
         assertEquals(Int.of(0x23ab), read("0x23ab"));
         assertEquals(Int.of(0x23ab), read("+0x23ab"));
         assertEquals(Int.of(-0x23ab), read("-0x23ab"));
@@ -78,6 +81,7 @@ public class TestStack {
 
     @Test
     public void testReaderIntegerOctal() {
+        methodName();
         assertEquals(Int.of(01234567), read("01234567"));
         assertEquals(Int.of(01234567), read("+01234567"));
         assertEquals(Int.of(-01234567), read("-01234567"));
@@ -85,6 +89,7 @@ public class TestStack {
 
     @Test
     public void testReaderIntegerBinary() {
+        methodName();
         assertEquals(Int.of(0b11100110), read("0b11100110"));
         assertEquals(Int.of(0b11100110), read("+0b11100110"));
         assertEquals(Int.of(-0b11100110), read("-0b11100110"));
@@ -92,6 +97,7 @@ public class TestStack {
 
     @Test
     public void testReaderChar() {
+        methodName();
         assertEquals(Int.of('a'), read("'a'"));
         assertEquals(Int.of('a'), read("\n'a'"));
         assertEquals(Int.of('あ'), read("'あ'"));
@@ -100,16 +106,19 @@ public class TestStack {
 
     @Test
     public void testReaderWord() {
+        methodName();
         assertEquals("+", read("+").toString());
     }
 
     @Test
     public void testReaderSymbol() {
+        methodName();
         assertEquals(Str.of("abc"), read("/abc"));
     }
 
     @Test
     public void testReaderCons() {
+        methodName();
         assertEquals(Cons.NIL, read("[]"));
         assertEquals(Cons.of(Int.ONE), read("[1]"));
         assertEquals(Cons.of(Int.ONE, Int.of(2), Int.of(3)), read("[1 2 3]"));
@@ -118,6 +127,7 @@ public class TestStack {
 
     @Test
     public void testReaderStr() {
+        methodName();
         assertEquals(Str.of("a"), read("\"a\""));
         assertEquals(Str.of("a\nb"), read("\"a\nb\""));
         assertEquals(Str.of("a\rb"), read("\"a\rb\""));
@@ -131,10 +141,12 @@ public class TestStack {
 
     @Test
     public void testReaderEnd() {
+        methodName();
         assertEquals(Reader.END, read("  "));
     }
 
     void testEval(String expected, String source) {
+        methodName();
         assertEquals(parse(context, expected), Stack.eval(context, source));
         assertTrue(context.isEmpty());
     }
@@ -232,26 +244,26 @@ public class TestStack {
     @Test
     public void testDefine() {
         methodName();
-        testEval("2", "\"inc\" [1 +] define 1 inc");
+        testEval("2", "/inc [1 +] define 1 inc");
     }
 
     @Test
     public void testFactRecursive() {
         methodName();
-        testEval("120", "\"fact\" [dup 1 <= [drop 1] [dup 1 - fact *] if] define 5 fact");
+        testEval("120", "/fact [dup 1 <= [drop 1] [dup 1 - fact *] if] define 5 fact");
     }
 
     @Test
     public void testFactLoop() {
         methodName();
-        testEval("[1 2 3]", "\"iota\" [1 swap range] define 3 iota list");
-        testEval("120", "\"fact\" [1 swap iota [*] for] define 5 fact");
+        testEval("[1 2 3]", "/iota [1 swap range] define 3 iota list");
+        testEval("120", "/fact [1 swap iota [*] for] define 5 fact");
     }
 
     @Test
     public void testSum() {
         methodName();
-        testEval("55", "\"sum\" [0 swap [+] for] define 1 10 range sum");
+        testEval("55", "/sum [0 swap [+] for] define 1 10 range sum");
     }
 
     @Test
@@ -263,7 +275,7 @@ public class TestStack {
     @Test
     public void testFibonacciRecursive() {
         methodName();
-        testEval("8", "\"fibonacci\" [dup 1 <= [] [dup 1 - fibonacci swap 2 - fibonacci +] if] define 6 fibonacci");
+        testEval("8", "/fibonacci [dup 1 <= [] [dup 1 - fibonacci swap 2 - fibonacci +] if] define 6 fibonacci");
     }
 
     @Test
@@ -286,8 +298,8 @@ public class TestStack {
         assertEquals((Integer)5, fibonacci.apply(5));
         assertEquals((Integer)8, fibonacci.apply(6));
         assertEquals((Integer)13, fibonacci.apply(7));
-        testEval("[1 2 3]", "\"iota\" [1 swap range] define 3 iota list");
-        testEval("5", "\"fibonacci\" [0 swap 1 swap iota [drop swap over +] for drop] define 5 fibonacci");
+        testEval("[1 2 3]", "/iota [1 swap range] define 3 iota list");
+        testEval("5", "/fibonacci [0 swap 1 swap iota [drop swap over +] for drop] define 5 fibonacci");
         testEval("8", "6 fibonacci");
         testEval("13", "7 fibonacci");
     }
@@ -319,20 +331,20 @@ public class TestStack {
     @Test
     public void testPrime() {
         methodName();
-        testEval("[2 3 5 7 9 11 13 15 17 19]", "\"sieve2\" [2 swap [over over == [drop true] [over % 0 !=] if] filter] define\n"
+        testEval("[2 3 5 7 9 11 13 15 17 19]", "/sieve2 [2 swap [over over == [drop true] [over % 0 !=] if] filter] define\n"
             + "2 20 range sieve2 list swap drop");
-        testEval("[2 3 5 7 9 11 13 15 17 19]", "\"sieve\" [[over over == [drop true] [over % 0 !=] if] filter] define\n"
+        testEval("[2 3 5 7 9 11 13 15 17 19]", "/sieve [[over over == [drop true] [over % 0 !=] if] filter] define\n"
             + "2 20 range 2 swap sieve list swap drop");
         /*
          * ラムダ式が参照すべき引数をラムダ式内に含めることによって、funarg問題を解決する。
          */
         testEval("[2 3 5 7 11 13 17 19]",
-            "\"sieve-of-2\" [[2 over over == [drop drop true] [% 0 !=] if] filter] define\n"
-            + "\"sieve-of-3\" [[3 over over == [drop drop true] [% 0 !=] if] filter] define\n"
+            "/sieve-of-2 [[2 over over == [drop drop true] [% 0 !=] if] filter] define\n"
+            + "/sieve-of-3 [[3 over over == [drop drop true] [% 0 !=] if] filter] define\n"
             + "2 20 range sieve-of-2 sieve-of-3 list");
         testEval("[2 3 5 7 11 13 17 19]",
-            "\"sieve-2\" [2 over over == [drop drop true] [% 0 !=] if] define\n"
-            + "\"sieve-3\" [3 over over == [drop drop true] [% 0 !=] if] define\n"
+            "/sieve-2 [2 over over == [drop drop true] [% 0 !=] if] define\n"
+            + "/sieve-3 [3 over over == [drop drop true] [% 0 !=] if] define\n"
             + "2 20 range [sieve-2] filter [sieve-3] filter list");
     }
 
@@ -350,8 +362,8 @@ public class TestStack {
     @Test
     public void testPrimeMacro() {
         testEval("[2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97]",
-            "\"sieve-macro\" [[over over == [drop drop true] [% 0 !=] if] cons] define\n"
-            + "\"prime\" [dup 2 swap range swap 2 swap sqrt range [sieve-macro filter] for list] define\n"
+            "/sieve-macro [[over over == [drop drop true] [% 0 !=] if] cons] define\n"
+            + "/prime [dup 2 swap range swap 2 swap sqrt range [sieve-macro filter] for list] define\n"
             + "100 prime");
     }
 

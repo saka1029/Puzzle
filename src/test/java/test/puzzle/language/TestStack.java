@@ -261,6 +261,7 @@ public class TestStack {
         methodName();
         testEval("[1 2 3]", "/iota [1 swap range] define 3 iota list");
         testEval("120", "/fact [1 swap iota [*] for] define 5 fact");
+        testEval("120", "5 1 swap 1 swap range [*] for");
     }
 
     @Test
@@ -437,5 +438,32 @@ public class TestStack {
             .map(x -> IntStream.of(x).map(y -> y * 2).toArray())
             .toArray(int[][]::new);
         assertArrayEquals(new int[][] {{2, 4, 6}, {8, 10, 12}, {14, 16, 18}}, b);
+    }
+    
+    record List<T> (T car, List<T> cdr) {
+        @Override public String toString() {
+            return "(" + car + " " + cdr +")";
+        }
+    }
+    static <T> List<T> cons(T value, List<T> next) { return new List<>(value, next); }
+    static <T> List<T> list(T... values) {
+        List<T> r = null;
+        for (int i = values.length - 1; i >= 0; --i)
+            r = cons(values[i], r);
+        return r;
+    }
+    
+    static <T> List<T> append(List<T> a, List<T> b) {
+        if (a == null)
+            return b;
+        else
+            return cons(a.car, append(a.cdr, b));
+    }
+
+    @Test
+    public void testJavaCons() {
+        List<Integer> list1 = list(1, 2, 3);
+        List<Integer> list2 = list(4, 5, 6);
+        System.out.println(append(list1, list2));
     }
 }

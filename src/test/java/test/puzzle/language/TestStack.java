@@ -440,12 +440,22 @@ public class TestStack {
         assertArrayEquals(new int[][] {{2, 4, 6}, {8, 10, 12}, {14, 16, 18}}, b);
     }
     
-    record List<T> (T car, List<T> cdr) {
-        @Override public String toString() {
-            return "(" + car + " " + cdr +")";
-        }
+    record List<T> (T car, List<T> cdr) { }
+
+    static <T> String print(List<T> list) {
+        StringBuilder sb = new StringBuilder("(");
+        String sep = "";
+        for (List<T> e = list; e != null; e = e.cdr, sep = " ")
+            sb.append(sep).append(e.car);
+        sb.append(")");
+        return sb.toString();
     }
-    static <T> List<T> cons(T value, List<T> next) { return new List<>(value, next); }
+
+    static <T> List<T> cons(T value, List<T> next) {
+        return new List<>(value, next);
+    }
+
+    @SafeVarargs
     static <T> List<T> list(T... values) {
         List<T> r = null;
         for (int i = values.length - 1; i >= 0; --i)
@@ -459,11 +469,28 @@ public class TestStack {
         else
             return cons(a.car, append(a.cdr, b));
     }
+    
+    static <T> List<T> reverse(List<T> a) {
+        List<T> r = null;
+        for (List<T> e = a; e != null; e = e.cdr)
+            r = cons(e.car, r);
+        return r;
+    }
+    
+    static <T> List<T> reverse1(List<T> a) {
+        if (a == null)
+            return null;
+        else
+            return append(reverse1(a.cdr), list(a.car));
+    }
 
     @Test
     public void testJavaCons() {
         List<Integer> list1 = list(1, 2, 3);
         List<Integer> list2 = list(4, 5, 6);
-        System.out.println(append(list1, list2));
+        System.out.println(print(append(list1, list2)));
+        System.out.println(print(reverse(list1)));
+        System.out.println(print(reverse1(list1)));
     }
+    
 }

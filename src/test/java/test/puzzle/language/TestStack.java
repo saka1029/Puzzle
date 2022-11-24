@@ -391,6 +391,8 @@ public class TestStack {
         testEval("\"ABC\"", "'A' \"BC\" cons");
         testEval("\"ABCDE\"", "\"ABC\" \"DE\" +");
         testEval("\"A\nBC\"", "\"A\nBC\"");
+        testEval("\"ABC\"", "[65 66 67] str");
+        testEval("[65 66 67]", "\"ABC\" list");
     }
     
     static void testContext(String expected, Context context, String source) {
@@ -439,58 +441,4 @@ public class TestStack {
             .toArray(int[][]::new);
         assertArrayEquals(new int[][] {{2, 4, 6}, {8, 10, 12}, {14, 16, 18}}, b);
     }
-    
-    record List<T> (T car, List<T> cdr) { }
-
-    static <T> String print(List<T> list) {
-        StringBuilder sb = new StringBuilder("(");
-        String sep = "";
-        for (List<T> e = list; e != null; e = e.cdr, sep = " ")
-            sb.append(sep).append(e.car);
-        sb.append(")");
-        return sb.toString();
-    }
-
-    static <T> List<T> cons(T value, List<T> next) {
-        return new List<>(value, next);
-    }
-
-    @SafeVarargs
-    static <T> List<T> list(T... values) {
-        List<T> r = null;
-        for (int i = values.length - 1; i >= 0; --i)
-            r = cons(values[i], r);
-        return r;
-    }
-    
-    static <T> List<T> append(List<T> a, List<T> b) {
-        if (a == null)
-            return b;
-        else
-            return cons(a.car, append(a.cdr, b));
-    }
-    
-    static <T> List<T> reverse(List<T> a) {
-        List<T> r = null;
-        for (List<T> e = a; e != null; e = e.cdr)
-            r = cons(e.car, r);
-        return r;
-    }
-    
-    static <T> List<T> reverse1(List<T> a) {
-        if (a == null)
-            return null;
-        else
-            return append(reverse1(a.cdr), list(a.car));
-    }
-
-    @Test
-    public void testJavaCons() {
-        List<Integer> list1 = list(1, 2, 3);
-        List<Integer> list2 = list(4, 5, 6);
-        System.out.println(print(append(list1, list2)));
-        System.out.println(print(reverse(list1)));
-        System.out.println(print(reverse1(list1)));
-    }
-    
 }

@@ -236,6 +236,8 @@ public class TestStack {
         methodName();
         testEval("[10 20 30]", "[1 2 3] [10 *] map list");
         testEval("[11 21 31]", "[1 2 3] [10 *] map [1 +] map list");
+        testEval("[1 3 6 10 15]", "0 [1 2 3 4 5] [+ dup] map list swap drop");
+        testEval("[1 2 6 24 120]", "1 1 5 range [* dup] map list swap drop");
     }
 
     @Test

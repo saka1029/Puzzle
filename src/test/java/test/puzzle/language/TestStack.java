@@ -148,7 +148,6 @@ public class TestStack {
     void testEval(String expected, String source) {
         methodName();
         assertEquals(parse(context, expected), Stack.eval(context, source));
-        assertEquals(parse(context, expected), Stack.eval(context, source));
         assertTrue("your code returned extra values", context.isEmpty());
     }
 

@@ -3,6 +3,7 @@ package test.puzzle.language;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static puzzle.language.Stack.*;
 
 import java.io.StringReader;
@@ -148,7 +149,10 @@ public class TestStack {
     void testEval(String expected, String source) {
         methodName();
         assertEquals(parse(context, expected), Stack.eval(context, source));
-        assertTrue(context.isEmpty());
+        if (!context.isEmpty()) {
+            System.out.println("stack is not empty: stack = " + context);
+            fail();
+        }
     }
 
     @Test
@@ -208,6 +212,12 @@ public class TestStack {
         testEval("3", "1 2 true [+] [-] [if] cons cons cons exec");
         testEval("-1", "1 2 false [+] [-] [if] cons cons cons exec");
     }
+    
+    @Test
+    public void testCarCdrCons() {
+        methodName();
+        testEval("[4 6]", "[1 2] [3 4] over car over car + over2 cdr car over2 cdr car + [] cons cons swap drop swap drop");
+    }
 
     @Test
     public void testAppend() {
@@ -236,6 +246,7 @@ public class TestStack {
         methodName();
         testEval("[10 20 30]", "[1 2 3] [10 *] map list");
         testEval("[11 21 31]", "[1 2 3] [10 *] map [1 +] map list");
+        // 累積的リスト(cumulative list)
         testEval("[1 3 6 10 15]", "0 [1 2 3 4 5] [+ dup] map list swap drop");
         testEval("[1 2 6 24 120]", "1 1 5 range [* dup] map list swap drop");
     }
@@ -244,6 +255,8 @@ public class TestStack {
     public void testFilter() {
         methodName();
         testEval("[0 2 4]", "[0 1 2 3 4 5] [2 % 0 ==] filter list");
+        testEval("[0 3 6 9]", "/multipliers [[over % 0 ==] filter list swap drop] define"
+            + " 3 0 10 range multipliers list");
     }
 
     @Test

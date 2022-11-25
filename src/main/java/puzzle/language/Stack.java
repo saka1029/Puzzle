@@ -874,6 +874,8 @@ public class Stack {
             .put("drop", c -> c.pop())
             .put("dup", c -> c.push(c.peek(0)))
             .put("over", c -> c.push(c.peek(1)))
+            .put("over2", c -> c.push(c.peek(2)))
+            .put("stack", c -> System.out.println("stack: sp=" + c.sp + " " + c))
             .put("swap", c -> {
                 Value t = c.pop(), s = c.pop();
                 c.push(t);

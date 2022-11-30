@@ -2,7 +2,6 @@ package test.puzzle.language;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static puzzle.language.Stack.*;
 
@@ -414,7 +413,35 @@ public class TestStack {
         repl(context, source);
         assertEquals(expected, context.toString());
     }
-
+    
+    /*
+     * 例えば問題は以下の[drop 1]の部分にある。
+     * 
+     * /fact [dup 1 <= [drop 1] [dup 1 - fact *] if] define
+     * 
+     * この「drop」は引数を捨てるためにある。
+     * 「dup 1 - fact *]は最後の「*」によって引数が消費されるため、「drop]する必要がない。
+     * 引数をすべてdropして戻り値をpush()してから関数を終了する必要がある。
+     * コードを書いている間、脳内にスタックを置いてシミュレートする必要がある。
+     * 
+     * フレームポインタを導入してスタック上の引数やローカル変数に固定したワードでアクセスできるようにすれば、
+     * この問題を解決できる。
+     * 
+     * /fact [ 1 1 $( $0 1 <= [1] [$0 1 - fact $0 *] if )$] define
+     * 
+     * $( : フレームポインタを退避し、新たなフレームを作成する。
+     *      word stack                            operation
+     *      $(   [arg0 1 1]                       stack.push(fp)
+     *           [arg0 1 1 old_fp]                fp = sp - 1;            
+     * )$ : フレームポインタを回復し、戻り値をスタックにpushする。
+     *      )$   [arg0 1 1 old_fp a b ... r]      is = stack[fp - 2]; os = stack[fp - 1]; t = fp; fp = stack[fp]; 
+     *           [arg0 1 1 old_fp a b ... r]      arraycopy(stack, sp - os, t - is - 2, os); sp = t - is - 2 + os;
+     *           [r]
+     * $0 : フレームポインタを使って第1引数を取り出す。
+     *      $0   [arg0 1 1 old_fp a b ... ]       stack.push(stack[fp - stack[fp - 2] - 2 + 0)
+     *      $0   [arg0 arg1 2 1 old_fp a b ... ]  stack.push(stack[fp - stack[fp - 2] - 2 + 0)
+     *      $1   [arg0 arg1 2 1 old_fp a b ... ]  stack.push(stack[fp - stack[fp - 2] - 2 + 1)
+     */
     @Test
     public void testContext() {
         Context context = context(20); // .traceTo(logger::info);

@@ -434,13 +434,15 @@ public class TestStack {
      *      $(   [arg0 1 1]                       stack.push(fp)
      *           [arg0 1 1 old_fp]                fp = sp - 1;            
      * )$ : フレームポインタを回復し、戻り値をスタックにpushする。
-     *      )$   [arg0 1 1 old_fp a b ... r]      is = stack[fp - 2]; os = stack[fp - 1]; t = fp; fp = stack[fp]; 
-     *           [arg0 1 1 old_fp a b ... r]      arraycopy(stack, sp - os, t - is - 2, os); sp = t - is - 2 + os;
+     *      )$   [arg0 1 1 old_fp a b ... r]      is = stack[fp - 2]; os = stack[fp - 1];
+     *                                            t = fp; fp = stack[fp]; 
+     *                                            arraycopy(stack, sp - os, stack, t - 2 - is, os);
+     *                                            sp = t - is - 2 + os;
      *           [r]
      * $0 : フレームポインタを使って第1引数を取り出す。
-     *      $0   [arg0 1 1 old_fp a b ... ]       stack.push(stack[fp - stack[fp - 2] - 2 + 0)
-     *      $0   [arg0 arg1 2 1 old_fp a b ... ]  stack.push(stack[fp - stack[fp - 2] - 2 + 0)
-     *      $1   [arg0 arg1 2 1 old_fp a b ... ]  stack.push(stack[fp - stack[fp - 2] - 2 + 1)
+     *      $0   [arg0 1 1 old_fp a b ... ]       stack.push(stack[fp - 2 - stack[fp - 2] + 0)
+     *      $0   [arg0 arg1 2 1 old_fp a b ... ]  stack.push(stack[fp - 2 - stack[fp - 2] + 0)
+     *      $1   [arg0 arg1 2 1 old_fp a b ... ]  stack.push(stack[fp - 2 - stack[fp - 2] + 1)
      */
     @Test
     public void testContext() {

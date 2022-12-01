@@ -1,9 +1,9 @@
 package test.puzzle.core;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
-import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -116,6 +116,28 @@ public class TestPermutation {
         assertEquals(Permutation.count(4, 2), actual.size());
         assertEquals(EXPECTED_4_2, actual);
     }
+    
+    static int number(int... digits) {
+        int r = 0;
+        for (int i : digits)
+            r = r * 10 + i;
+        return r;
+    }
+
+    static boolean isSendMoreMoney(int[] a) {
+        int s = a[0], e = a[1], n = a[2], d = a[3];
+        int m = a[4], o = a[5], r = a[6], y = a[7];
+        if (s == 0 || m == 0)
+            return false;
+        return number(s, e, n, d) + number(m, o, r, e) == number(m, o, n, e, y);
+    }
+
+    @Test
+    public void testSendMoreMoney() {
+        for (int[] a : Permutation.iterable(10, 8))
+            if (isSendMoreMoney(a))
+                assertArrayEquals(new int[] {9, 5, 6, 7, 1, 0, 8, 2}, a);
+    }
 
     @Test
     public void testIterableIntegerArray_N_R() {
@@ -154,6 +176,7 @@ public class TestPermutation {
     @Test
     public void testStream_65_5() {
         try {
+            @SuppressWarnings("unused")
             Stream<int[]> stream = Permutation.stream(65, 5);
             fail();
         } catch (IllegalArgumentException e) {

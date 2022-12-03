@@ -1,7 +1,5 @@
 package puzzle.core;
 
-import java.util.Arrays;
-
 /**
  * 手番は1,2で表現する。 局面(board)は整数で表現する。
  * 局面は空き(0),手番1(1)、手番2(2)の9個の組み合わせで表現します。
@@ -168,6 +166,20 @@ public class TicTacToe {
         return r;
     }
 
+    /**
+     * すべての局面とその次の局面を格納した3次元配列を返します。
+     * 返す配列はshort[MAX_BOARD][2][9]です。
+     * ただし、ギザギザの配列です。
+     * 例えばall[board]は以下の場合nullです。
+     * (1)通常の対戦ではありえない局面(指し手の数の差が1を超えている、両者共に並びが完成している)
+     * (2)既に勝敗が決定している局面(どちらかが勝ったか、打ち尽くして引き分け)
+     *    (winner(board)で勝者を得ることができます)
+     * all[board][0][i]は次に手番1がiに指した時の次の局面です。
+     * all[board][1][i]は次に手番2がiに指した時の次の局面です。
+     * 次が手番1の番ではないとき、all[board][0]はnullです。
+     * 同様に次が手番2の番ではないとき、all[board][1]はnullです。
+     * @return
+     */
     public static short[][][] all() {
         short[][][] all = new short[MAX_BOARD][][];
         for (int i = 0; i < MAX_BOARD; ++i) {

@@ -90,12 +90,8 @@ public class TestTicTacToe {
         System.out.println(Arrays.deepToString(b));
         int count = 0;
         for (short[][] e : ALL)
-            if (e != null) {
-                if (e[0] != null)
-                    ++count;
-                if (e[1] != null)
-                    ++count;
-            }
+            if (e != null) 
+                ++count;
         System.out.println("count=" + count);
     }
 }

@@ -177,6 +177,13 @@ public class TestIntStack {
         return value & DATA;
     }
 
+    public static class ParseException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        ParseException(String message) {
+            super(message);
+        }
+    }
+
     @Test
     public void testNative() {
         Context context = Context.of(100, 100, 100, 100);

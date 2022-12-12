@@ -27,6 +27,7 @@ public class TestBooleanExpression {
         truthTable("(a = b) = !(a ^ b)");
         truthTable("(a -> b) = (!a | b)");
         truthTable("(a & b -> c) = (a -> (b -> c))");
+        truthTable("(a -> b) & (b -> c) -> (a -> c)");
     }
 
     @Test

@@ -23,7 +23,7 @@ public class TestPL0Parser {
     static final int LOD = 0x00, STO = 0x01, CAL = 0x02;
     static final int LIT = 0x40, INC = 0x41, JMP = 0x42, JPC = 0x43;
     static final int
-    OPRET = 0xC0, OPNEG = 0xC1, OPADD = 0xC2, OPSUB = 0xC3,
+        OPRET = 0xC0, OPNEG = 0xC1, OPADD = 0xC2, OPSUB = 0xC3,
         OPMUL = 0xC4, OPDIV = 0xC5, OPODD = 0xC6, OPINP = 0xC7,
         OPOUT = 0xC8, OPCEQ = 0xC9, OPCNE = 0xCA, OPCLT = 0xCB,
         OPCLE = 0xCC, OPCGT = 0xCD, OPCGE = 0xCE;
@@ -75,14 +75,23 @@ public class TestPL0Parser {
     }
 
     /**
-     * program = block "." . block = [ "const" ident "=" number {"," ident "="
-     * number} ";"] [ "var" ident {"," ident} ";"] { "procedure" ident ";" block ";"
-     * } statement . statement = [ ident ":=" expression | "call" ident | "begin"
-     * statement {";" statement } "end" | "if" condition "then" statement | "while"
-     * condition "do" statement ]. condition = "odd" expression | expression
-     * ("="|"#"|"<"|"<="|">"|">=") expression . expression = [ "+"|"-"] term {
-     * ("+"|"-") term}. term = factor {("*"|"/") factor}. factor = ident | number |
-     * "(" expression ")".
+     * <pre>
+     * program    = block "." .
+     * block      = [ "const" ident "=" number {"," ident "=" number} ";"]
+     *              [ "var" ident {"," ident} ";"]
+     *              { "procedure" ident ";" block ";" }
+     *              statement .
+     * statement  = [ ident ":=" expression
+     *              | "call" ident
+     *              | "begin" statement {";" statement } "end"
+     *              | "if" condition "then" statement
+     *              | "while" condition "do" statement ].
+     * condition  = "odd" expression
+     *              | expression ("="|"#"|"<"|"<="|">"|">=") expression .
+     * expression = [ "+"|"-"] term { ("+"|"-") term}.
+     * term       = factor {("*"|"/") factor}.
+     * factor     = ident | number | "(" expression ")".
+     * </pre>
      */
     static void parse(String source) {
         new Object() {
@@ -271,7 +280,7 @@ public class TestPL0Parser {
                     } while (eat(","));
                     check("';' expected", ";");
                 }
-                if (eat("procedure")) {
+                while (eat("procedure")) {
                     check("ident expected", Type.IDENT);
                     check("';' expected", ";");
                     block();

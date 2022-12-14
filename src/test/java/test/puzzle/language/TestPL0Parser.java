@@ -2,7 +2,9 @@ package test.puzzle.language;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -28,41 +30,55 @@ public class TestPL0Parser {
         OPOUT = 0xC8, OPCEQ = 0xC9, OPCNE = 0xCA, OPCLT = 0xCB,
         OPCLE = 0xCC, OPCGT = 0xCD, OPCGE = 0xCE;
     static final int ADDR_MASK = 0x80, LEVEL_MASK = 0x40;
+    static final Map<Integer, String> OPNAME = Map.ofEntries(
+        Map.entry(LOD, "lod"), Map.entry(STO, "sto"), Map.entry(CAL, "cal"),
+        Map.entry(LIT, "lit"), Map.entry(INC, "inc"), Map.entry(JMP, "jmp"), Map.entry(JPC, "jpc"),
+        Map.entry(OPRET, "ret"), Map.entry(OPNEG, "neg"), Map.entry(OPADD, "add"), Map.entry(OPSUB, "sub"),
+        Map.entry(OPMUL, "mul"), Map.entry(OPDIV, "div"), Map.entry(OPODD, "odd"), Map.entry(OPINP, "inp"),
+        Map.entry(OPOUT, "out"), Map.entry(OPCEQ, "ceq"), Map.entry(OPCNE, "cne"), Map.entry(OPCLT, "clt"),
+        Map.entry(OPCLE, "cle"), Map.entry(OPCGT, "cgt"), Map.entry(OPCGE, "cge"));
+
+    record Instrucion(int opcode, int address, int level) {
+    }
 
     static class Memory {
         final byte[] memory;
         int pointer = 0;
 
-        Memory(byte[] memory) {
+        public Memory(byte[] memory) {
             this.memory = memory;
         }
 
-        Memory(int size) {
+        public Memory(int size) {
             this.memory = new byte[size];
         }
         
-        void set(int address, int value) {
+        public void set(int address, int value) {
             memory[address] = (byte)(value & 0xff);
         }
         
-        void setInt(int address, int value) {
+        public void setInt(int address, int value) {
             set(address, value >> 8);
             set(address + 1, value);
         }
         
-        void add(int instruction) {
-            set(pointer++, instruction);
+        public void add(int opcode) {
+            set(pointer++, opcode);
         }
 
-        void add(int instruction, int level) {
-            add(instruction);
+        public void add(int opcode, int level) {
+            add(opcode);
             add(level);
         }
 
-        void add(int instruction, int level, int operand) {
-            add(instruction, level);
+        public void add(int opcode, int level, int operand) {
+            add(opcode, level);
             setInt(pointer, operand);
             pointer += 2;
+        }
+        
+        public byte[] toByteArray() {
+            return Arrays.copyOfRange(memory, 0, pointer);
         }
 
     }
@@ -83,6 +99,8 @@ public class TestPL0Parser {
      *              statement .
      * statement  = [ ident ":=" expression
      *              | "call" ident
+     *              | "?" ident
+     *              | "!" expression
      *              | "begin" statement {";" statement } "end"
      *              | "if" condition "then" statement
      *              | "while" condition "do" statement ].
@@ -245,6 +263,10 @@ public class TestPL0Parser {
                     expression();
                 } else if (eat("call")) {
                     check("ident expected", Type.IDENT);
+                } else if (eat("?")) {
+                    check("ident expected", Type.IDENT);
+                } else if (eat("!")) {
+                    expression();
                 } else if (eat("begin")) {
                     do {
                         statement();

@@ -5,6 +5,7 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -14,10 +15,30 @@ import org.junit.Test;
 
 public class TestIntLisp {
     
-    public interface Obj {
+    public static abstract class Obj implements Iterable<Obj> {
+        
+        @Override
+        public Iterator<Obj> iterator() {
+            return new Iterator<>() {
+                
+                Obj next = Obj.this;
+
+                @Override
+                public boolean hasNext() {
+                    return next instanceof Cons;
+                }
+
+                @Override
+                public Obj next() {
+                    Obj r = ((Cons)next).car;
+                    next = ((Cons)next).cdr;
+                    return r;
+                }
+            };
+        }
     }
     
-    public static class Cons implements Obj{
+    public static class Cons extends Obj {
         public final Obj car, cdr;
         
         private Cons(Obj car, Obj cdr) {
@@ -63,11 +84,11 @@ public class TestIntLisp {
         }
     }
 
-    public interface Atom extends Obj {
+    public static abstract class Atom extends Obj {
     }
     
     
-    public static class Symbol implements Atom {
+    public static class Symbol extends Atom {
         public final String name;
         static final Map<String, Symbol> ALL = new HashMap<>();
         
@@ -87,7 +108,7 @@ public class TestIntLisp {
 
     public static final Symbol NIL = new Symbol("nil");
     
-    public static class Int implements Atom {
+    public static class Int extends Atom {
         public final int value;
         
         private Int(int value) {
@@ -209,11 +230,12 @@ public class TestIntLisp {
      * @return
      */
     public static Compiler compileBinary(Obj unit, IntBinaryOperator operator) {
+        Code code = c -> { int r = c.pop(); c.push(operator.applyAsInt(c.pop(), r)); };
         return (args, cc) -> {
             cc.compile(unit);
-            for (Obj tail = args; tail instanceof Cons c0; tail = c0.cdr) {
-                cc.compile(c0.car);
-                cc.add(c -> { int r = c.pop(); c.push(operator.applyAsInt(c.pop(), r)); });
+            for (Obj obj : args) {
+                cc.compile(obj);
+                cc.add(code);
             }
         };
     }
@@ -226,19 +248,19 @@ public class TestIntLisp {
      * @return
      */
     public static Compiler compileBinary2(Obj unit, IntBinaryOperator operator) {
-        Code op = c -> { int r = c.pop(); c.push(operator.applyAsInt(c.pop(), r)); };
+        Code code = c -> { int r = c.pop(); c.push(operator.applyAsInt(c.pop(), r)); };
         return (args, cc) -> {
             if (args instanceof Cons c0) {
                 if (c0.cdr instanceof Cons c1) {
                     cc.compile(c0.car);
-                    for (Obj tail = c1; tail instanceof Cons c2; tail = c2.cdr) {
-                        cc.compile(c2.car);
-                        cc.add(op);
+                    for (Obj e : c1) {
+                        cc.compile(e);
+                        cc.add(code);
                     }
                 } else {
                     cc.compile(unit);
                     cc.compile(c0.car);
-                    cc.add(op);
+                    cc.add(code);
                 }
             } else
                 throw new RuntimeException("insufficient arguments");

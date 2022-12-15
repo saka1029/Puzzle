@@ -123,6 +123,28 @@ public class TestIntLisp {
     public static Int i(int value) {
         return Int.of(value);
     }
+    
+    public class Context {
+        final int[] stack;
+        int sp = 0, bp = 0;
+        
+        private Context(int stackSize) {
+            this.stack = new int[stackSize];
+        }
+        
+        public void push(int value) {
+            stack[sp++] = value;
+        }
+
+        public int pop() {
+            return stack[--sp];
+        }
+    }
+    
+    @FunctionalInterface
+    public interface Code {
+        void execute(Context c);
+    }
 
     @Test
     public void testConsToString() {

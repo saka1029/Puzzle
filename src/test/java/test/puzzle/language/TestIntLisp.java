@@ -1,12 +1,14 @@
 package test.puzzle.language;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.IntBinaryOperator;
 
 import org.junit.Test;
 
@@ -26,7 +28,14 @@ public class TestIntLisp {
         public static Cons of(Obj car, Obj cdr) {
             return new Cons(car, cdr);
         }
-        
+
+        public int length() {
+            int length = 0;
+            for (Obj o = this; o instanceof Cons c; o = c.cdr)
+                ++length;
+            return length;
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(car, cdr);
@@ -148,17 +157,92 @@ public class TestIntLisp {
         void execute(RuntimeContext c);
     }
     
-    public static class CompileContext {
-        final List<Code> codes = new ArrayList<>();
+    @FunctionalInterface
+    public interface Compiler {
+        void compile(Obj obj, CompilerContext context);
+    }
+    
+    public static class CompilerContext {
+        public final List<Code> codes = new ArrayList<>();
+        public final Map<Symbol, Compiler> compilers = new HashMap<>();
         
-        public int size() {
-            return codes.size();
+        public void add(Symbol symbol, Compiler compiler) {
+            compilers.put(symbol, compiler);
         }
 
         public void add(Code code) {
             codes.add(code);
         }
         
+        public void compile(Obj obj) {
+            if (obj instanceof Int i)
+                codes.add(c -> c.push(i.value));
+            else if (obj instanceof Cons c) {
+                Compiler compiler = compilers.get(c.car);
+                if (compiler != null)
+                    compiler.compile(c.cdr, this);
+                else
+                    throw new RuntimeException("unknown function " + c.car);
+            } else
+                throw new RuntimeException("can't compile " + obj);
+        }
+        
+        public void run(RuntimeContext rc) {
+            for (Code code : codes)
+                code.execute(rc);
+        }
+        
+        public int compileGo(Obj obj, RuntimeContext rc) {
+            codes.clear();
+            compile(obj);
+            run(rc);
+            return rc.pop();
+        }
+        
+    }
+    
+    /**
+     * 2項演算子operatorを可変長引数に適用する。
+     * +や*はこちらを使う。
+     * @param unit 単位元。+の時は0、*の時は1
+     * @param operator 二項演算子。
+     * @return
+     */
+    public static Compiler compileBinary(Obj unit, IntBinaryOperator operator) {
+        return (args, cc) -> {
+            cc.compile(unit);
+            for (Obj tail = args; tail instanceof Cons c0; tail = c0.cdr) {
+                cc.compile(c0.car);
+                cc.add(c -> { int r = c.pop(); c.push(operator.applyAsInt(c.pop(), r)); });
+            }
+        };
+    }
+    
+    /**
+     * 2項演算子operatorを可変長引数に適用する。
+     * -や/はこちらを使う。
+     * @param unit 単位元。-の時は0、/の時は1
+     * @param operator 二項演算子。
+     * @return
+     */
+    public static Compiler compileBinary2(Obj unit, IntBinaryOperator operator) {
+        Code op = c -> { int r = c.pop(); c.push(operator.applyAsInt(c.pop(), r)); };
+        return (args, cc) -> {
+            if (args instanceof Cons c0) {
+                if (c0.cdr instanceof Cons c1) {
+                    cc.compile(c0.car);
+                    for (Obj tail = c1; tail instanceof Cons c2; tail = c2.cdr) {
+                        cc.compile(c2.car);
+                        cc.add(op);
+                    }
+                } else {
+                    cc.compile(unit);
+                    cc.compile(c0.car);
+                    cc.add(op);
+                }
+            } else
+                throw new RuntimeException("insufficient arguments");
+        };
     }
 
     @Test
@@ -167,5 +251,53 @@ public class TestIntLisp {
         assertEquals("(a 2)", list(sym("a"), i(2)).toString());
         assertEquals(list(sym("a"), i(2)), cons(sym("a"), cons(i(2), NIL)));
         assertEquals(NIL, list());
+    }
+    
+    @Test
+    public void testCompileInt() {
+        CompilerContext cc = new CompilerContext();
+        cc.compile(i(3));
+        RuntimeContext context = new RuntimeContext(20);
+        for (Code c : cc.codes)
+            c.execute(context);
+        assertEquals(3, context.pop());
+    }
+    
+    @Test
+    public void testCompileBinary() {
+        CompilerContext compilerContext = new CompilerContext();
+        compilerContext.add(sym("+"), compileBinary(i(0), (a, b) -> a + b));
+        compilerContext.add(sym("-"), compileBinary2(i(0), (a, b) -> a - b));
+        compilerContext.add(sym("*"), compileBinary(i(1), (a, b) -> a * b));
+        compilerContext.add(sym("/"), compileBinary2(i(1), (a, b) -> a / b));
+        RuntimeContext rc = new RuntimeContext(20);
+        assertEquals(0, compilerContext.compileGo(list(sym("+")), rc));
+        assertEquals(1, compilerContext.compileGo(list(sym("+"), i(1)), rc));
+        assertEquals(3, compilerContext.compileGo(list(sym("+"), i(1), i(2)), rc));
+        assertEquals(6, compilerContext.compileGo(list(sym("+"), i(1), i(2), i(3)), rc));
+        try {
+            assertEquals(0, compilerContext.compileGo(list(sym("-")), rc));
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("insufficient arguments", e.getMessage());
+        }
+        assertEquals(-1, compilerContext.compileGo(list(sym("-"), i(1)), rc));
+        assertEquals(-1, compilerContext.compileGo(list(sym("-"), i(1), i(2)), rc));
+        assertEquals(-4, compilerContext.compileGo(list(sym("-"), i(1), i(2), i(3)), rc));
+        assertEquals(1, compilerContext.compileGo(list(sym("*")), rc));
+        assertEquals(1, compilerContext.compileGo(list(sym("*"), i(1)), rc));
+        assertEquals(2, compilerContext.compileGo(list(sym("*"), i(1), i(2)), rc));
+        assertEquals(6, compilerContext.compileGo(list(sym("*"), i(1), i(2), i(3)), rc));
+        assertEquals(24, compilerContext.compileGo(list(sym("*"), i(1), i(2), i(3), i(4)), rc));
+        try {
+            assertEquals(1, compilerContext.compileGo(list(sym("/")), rc));
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("insufficient arguments", e.getMessage());
+        }
+        assertEquals(1, compilerContext.compileGo(list(sym("/"), i(1)), rc));
+        assertEquals(0, compilerContext.compileGo(list(sym("/"), i(2)), rc));
+        assertEquals(2, compilerContext.compileGo(list(sym("/"), i(4), i(2)), rc));
+        assertEquals(1, compilerContext.compileGo(list(sym("/"), i(8), i(4), i(2)), rc));
     }
 }

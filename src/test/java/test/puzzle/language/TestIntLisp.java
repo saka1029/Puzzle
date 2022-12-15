@@ -124,11 +124,11 @@ public class TestIntLisp {
         return Int.of(value);
     }
     
-    public class Context {
+    public class RuntimeContext {
         final int[] stack;
         int sp = 0, bp = 0;
         
-        private Context(int stackSize) {
+        private RuntimeContext(int stackSize) {
             this.stack = new int[stackSize];
         }
         
@@ -143,7 +143,11 @@ public class TestIntLisp {
     
     @FunctionalInterface
     public interface Code {
-        void execute(Context c);
+        void execute(RuntimeContext c);
+    }
+    
+    public static class CompileContext {
+        
     }
 
     @Test

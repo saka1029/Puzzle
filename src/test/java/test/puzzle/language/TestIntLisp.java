@@ -2,7 +2,9 @@ package test.puzzle.language;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -147,6 +149,15 @@ public class TestIntLisp {
     }
     
     public static class CompileContext {
+        final List<Code> codes = new ArrayList<>();
+        
+        public int size() {
+            return codes.size();
+        }
+
+        public void add(Code code) {
+            codes.add(code);
+        }
         
     }
 

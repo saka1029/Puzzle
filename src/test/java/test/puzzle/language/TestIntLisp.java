@@ -276,9 +276,22 @@ public class TestIntLisp {
             codes.add(code);
         }
         
+        Code push(int value) {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    c.push(value);
+                }
+                @Override
+                public String toString() {
+                    return "" + value;
+                }  
+            };
+        }
+        
         public void compile(Obj obj) {
             if (obj instanceof Int i)
-                codes.add(c -> c.push(i.value));
+                codes.add(push(i.value));
             else if (obj instanceof Cons c) {
                 Compiler compiler = compilers.get(c.car);
                 if (compiler != null)
@@ -303,6 +316,19 @@ public class TestIntLisp {
         
     }
     
+    static Code binary(IntBinaryOperator operator, String name) {
+        return new Code() {
+            @Override
+            public void execute(RuntimeContext c) {
+                int r = c.pop();
+                c.push(operator.applyAsInt(c.pop(), r));
+            }
+            @Override
+            public String toString() {
+                return name;
+            }
+        };
+    }
     /**
      * 2項演算子operatorを可変長引数に適用する。
      * 引数がない場合は単位元を返す。
@@ -311,14 +337,17 @@ public class TestIntLisp {
      * @param operator 二項演算子。
      * @return
      */
-    public static Compiler compileBinary(Obj unit, IntBinaryOperator operator) {
-        Code code = c -> { int r = c.pop(); c.push(operator.applyAsInt(c.pop(), r)); };
+    public static Compiler compileBinary(Obj unit, IntBinaryOperator operator, String name) {
+        Code code = binary(operator, name);
         return (args, cc) -> {
-            cc.compile(unit);
-            for (Obj obj : args) {
-                cc.compile(obj);
-                cc.add(code);
-            }
+            if (args instanceof Cons c0) {
+                cc.compile(c0.car);
+                for (Obj e : c0.cdr) {
+                    cc.compile(e);
+                    cc.add(code);
+                }
+            } else
+                cc.compile(unit);
         };
     }
     
@@ -360,8 +389,8 @@ public class TestIntLisp {
      * @param operator 二項演算子。
      * @return
      */
-    public static Compiler compileBinary2(Obj unit, IntBinaryOperator operator) {
-        Code code = c -> { int r = c.pop(); c.push(operator.applyAsInt(c.pop(), r)); };
+    public static Compiler compileBinary2(Obj unit, IntBinaryOperator operator, String name) {
+        Code code = binary(operator, name);
         return (args, cc) -> {
             if (args instanceof Cons c0) {
                 if (c0.cdr instanceof Cons c1) {
@@ -412,10 +441,10 @@ public class TestIntLisp {
     @Test
     public void testCompileBinary() {
         CompilerContext compilerContext = new CompilerContext();
-        compilerContext.add(sym("+"), compileBinary(i(0), (a, b) -> a + b));
-        compilerContext.add(sym("-"), compileBinary2(i(0), (a, b) -> a - b));
-        compilerContext.add(sym("*"), compileBinary(i(1), (a, b) -> a * b));
-        compilerContext.add(sym("/"), compileBinary2(i(1), (a, b) -> a / b));
+        compilerContext.add(sym("+"), compileBinary(i(0), (a, b) -> a + b, "+"));
+        compilerContext.add(sym("-"), compileBinary2(i(0), (a, b) -> a - b, "-"));
+        compilerContext.add(sym("*"), compileBinary(i(1), (a, b) -> a * b, "*"));
+        compilerContext.add(sym("/"), compileBinary2(i(1), (a, b) -> a / b, "/"));
         RuntimeContext rc = new RuntimeContext(20);
         assertEquals(0, compilerContext.compileGo(list(sym("+")), rc));
         assertEquals(1, compilerContext.compileGo(list(sym("+"), i(1)), rc));
@@ -446,5 +475,6 @@ public class TestIntLisp {
         assertEquals(2, compilerContext.compileGo(list(sym("/"), i(4), i(2)), rc));
         assertEquals(1, compilerContext.compileGo(list(sym("/"), i(8), i(4), i(2)), rc));
         assertEquals(8, compilerContext.compileGo(parse("(+ (* 2 3) (/ 8 4))"), rc));
+        assertEquals("[2, 3, *, 8, 4, /, +]", compilerContext.codes.toString());
     }
 }

@@ -156,6 +156,34 @@ public class TestIntLisp {
         return Int.of(value);
     }
     
+    public static Obj parse(String source) {
+        int length = source.length();
+        return new Object() {
+            int index = 0;
+            String token, nextToken;
+            
+            int ch() {
+                return index < length ? source.charAt(index) : -1;
+            }
+            
+            void get() {
+                while (Character.isWhitespace(ch()))
+                    ++index;
+                
+            }
+            
+            Obj expression() {
+                
+            }
+            
+            Obj parse() {
+                get();
+                Obj result = expression();
+                return result;
+            }
+        }.parse();
+    }
+    
     public class RuntimeContext {
         final int[] stack;
         int sp = 0, bp = 0;
@@ -244,7 +272,7 @@ public class TestIntLisp {
     /**
      * 2項演算子operatorを可変長引数に適用する。
      * -や/はこちらを使う。
-     * <h4><a href='http://www.nct9.ne.jp/m_hiroi/xyzzy_lisp/abclisp02.html'>参考</a></h4>
+     * <h4><a href='http://www.nct9.ne.jp/m_hiroi/xyzzy_lisp/abclisp02.html'>参考(Common Lisp)</a></h4>
      * + は足し算を、* は掛け算を、- は引き算を行います。これらの関数は引数をいくつでも取ることができます。
      * 数以外のデータを引数に与えるとエラーになります。
      * 引数の型が異なる場合は強制的に型変換が行われます。

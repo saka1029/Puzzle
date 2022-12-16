@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntBinaryOperator;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -106,7 +107,7 @@ public class TestIntLisp {
         }
     }
 
-    public static final Symbol NIL = new Symbol("nil");
+    public static final Symbol NIL = Symbol.of("nil");
     
     public static class Int extends Atom {
         public final int value;
@@ -156,24 +157,76 @@ public class TestIntLisp {
         return Int.of(value);
     }
     
+    static final Pattern NUMBER = Pattern.compile("[+-]?\\d+");
+
     public static Obj parse(String source) {
         int length = source.length();
         return new Object() {
-            int index = 0;
-            String token, nextToken;
+            int index = 0, ch;
             
-            int ch() {
-                return index < length ? source.charAt(index) : -1;
+            RuntimeException error(String format, Object... args) {
+                return new RuntimeException(format.formatted(args));
             }
             
             void get() {
-                while (Character.isWhitespace(ch()))
-                    ++index;
-                
+                ch = index < length ? source.charAt(index++) : -1;
+            }
+            
+            boolean isSymbolOrNumber(int ch) {
+                return switch (ch) {
+                    case -1, '(', ')', '.' -> false;
+                    default -> !Character.isWhitespace(ch);
+                };
+            }
+            
+            void spaces() {
+                while (Character.isWhitespace(ch))
+                    get();
+            }
+
+            Obj list() {
+                get();  // skip '('
+                List<Obj> list = new ArrayList<>();
+                spaces();
+                while (ch != -1 && ch != ')' && ch != '.') {
+                    Obj e = expression();
+                    list.add(e);
+                    spaces();
+                }
+                Obj result = NIL;
+                if (ch == '.') {
+                    get();  // skip '.'
+                    result = expression();
+                }
+                spaces();
+                if (ch != ')')
+                    throw error("')' expected");
+                get();  // skip ')'
+                for (int i = list.size() - 1; i >= 0; --i)
+                    result = cons(list.get(i), result);
+                return result;
             }
             
             Obj expression() {
-                
+                spaces();
+                switch (ch) {
+                    case -1:
+                        throw error("unexpected EOS");
+                    case ')': case '.':
+                        throw error("unexpected '%c'", (char)ch);
+                    case '(':
+                        return list();
+                    default:
+                        StringBuilder sb = new StringBuilder();
+                        do {
+                            sb.append((char)ch);
+                            get();
+                        } while (isSymbolOrNumber(ch));
+                        String token = sb.toString();
+                        return token.matches("[+-]?\\d+")
+                            ? i(Integer.parseInt(token))
+                            : sym(token);
+                }
             }
             
             Obj parse() {
@@ -271,8 +324,8 @@ public class TestIntLisp {
     
     /**
      * 2項演算子operatorを可変長引数に適用する。
-     * -や/はこちらを使う。
-     * <h4><a href='http://www.nct9.ne.jp/m_hiroi/xyzzy_lisp/abclisp02.html'>参考(Common Lisp)</a></h4>
+     * -や/はこちらを使う。<br>
+     * <a href='http://www.nct9.ne.jp/m_hiroi/xyzzy_lisp/abclisp02.html'>参考(Common Lisp)</a><br>
      * + は足し算を、* は掛け算を、- は引き算を行います。これらの関数は引数をいくつでも取ることができます。
      * 数以外のデータを引数に与えるとエラーになります。
      * 引数の型が異なる場合は強制的に型変換が行われます。
@@ -333,6 +386,17 @@ public class TestIntLisp {
         assertEquals("(a 2)", list(sym("a"), i(2)).toString());
         assertEquals(list(sym("a"), i(2)), cons(sym("a"), cons(i(2), NIL)));
         assertEquals(NIL, list());
+    }
+    
+    @Test
+    public void testParse() {
+        assertEquals(NIL, parse("nil"));
+        assertEquals(sym("abc"), parse("abc"));
+        assertEquals(NIL, parse("()"));
+        assertEquals(list(sym("a"), sym("b"), sym("c")), parse("(a b c)"));
+        assertEquals(list(sym("a"), i(2), sym("c")), parse("(a 2 c)"));
+        assertEquals(list(sym("+"), list(sym("-"), i(1), i(2)), i(3)), parse("(+ (- 1 2) 3)"));
+        assertEquals(cons(sym("a"), cons(i(0), i(1))), parse("(a 0 . 1)"));
     }
     
     @Test

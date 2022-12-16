@@ -257,6 +257,33 @@ public class TestIntLisp {
     @FunctionalInterface
     public interface Code {
         void execute(RuntimeContext c);
+
+        public static Code push(int value) {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    c.push(value);
+                }
+                @Override
+                public String toString() {
+                    return "" + value;
+                }  
+            };
+        }
+
+        public static Code binary(IntBinaryOperator operator, String name) {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    int r = c.pop();
+                    c.push(operator.applyAsInt(c.pop(), r));
+                }
+                @Override
+                public String toString() {
+                    return name;
+                }
+            };
+        }
     }
     
     @FunctionalInterface
@@ -276,22 +303,9 @@ public class TestIntLisp {
             codes.add(code);
         }
         
-        Code push(int value) {
-            return new Code() {
-                @Override
-                public void execute(RuntimeContext c) {
-                    c.push(value);
-                }
-                @Override
-                public String toString() {
-                    return "" + value;
-                }  
-            };
-        }
-        
         public void compile(Obj obj) {
             if (obj instanceof Int i)
-                codes.add(push(i.value));
+                codes.add(Code.push(i.value));
             else if (obj instanceof Cons c) {
                 Compiler compiler = compilers.get(c.car);
                 if (compiler != null)
@@ -316,19 +330,6 @@ public class TestIntLisp {
         
     }
     
-    static Code binary(IntBinaryOperator operator, String name) {
-        return new Code() {
-            @Override
-            public void execute(RuntimeContext c) {
-                int r = c.pop();
-                c.push(operator.applyAsInt(c.pop(), r));
-            }
-            @Override
-            public String toString() {
-                return name;
-            }
-        };
-    }
     /**
      * 2項演算子operatorを可変長引数に適用する。
      * 引数がない場合は単位元を返す。
@@ -338,7 +339,7 @@ public class TestIntLisp {
      * @return
      */
     public static Compiler compileBinary(Obj unit, IntBinaryOperator operator, String name) {
-        Code code = binary(operator, name);
+        Code code = Code.binary(operator, name);
         return (args, cc) -> {
             if (args instanceof Cons c0) {
                 cc.compile(c0.car);
@@ -390,7 +391,7 @@ public class TestIntLisp {
      * @return
      */
     public static Compiler compileBinary2(Obj unit, IntBinaryOperator operator, String name) {
-        Code code = binary(operator, name);
+        Code code = Code.binary(operator, name);
         return (args, cc) -> {
             if (args instanceof Cons c0) {
                 if (c0.cdr instanceof Cons c1) {

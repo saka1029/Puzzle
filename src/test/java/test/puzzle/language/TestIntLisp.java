@@ -224,6 +224,7 @@ public class TestIntLisp {
     
     /**
      * 2項演算子operatorを可変長引数に適用する。
+     * 引数がない場合は単位元を返す。
      * +や*はこちらを使う。
      * @param unit 単位元。+の時は0、*の時は1
      * @param operator 二項演算子。

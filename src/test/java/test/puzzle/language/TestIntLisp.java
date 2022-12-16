@@ -189,8 +189,7 @@ public class TestIntLisp {
                 List<Obj> list = new ArrayList<>();
                 spaces();
                 while (ch != -1 && ch != ')' && ch != '.') {
-                    Obj e = expression();
-                    list.add(e);
+                    list.add(expression());
                     spaces();
                 }
                 Obj result = NIL;

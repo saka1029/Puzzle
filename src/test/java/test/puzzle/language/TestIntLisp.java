@@ -445,5 +445,6 @@ public class TestIntLisp {
         assertEquals(0, compilerContext.compileGo(list(sym("/"), i(2)), rc));
         assertEquals(2, compilerContext.compileGo(list(sym("/"), i(4), i(2)), rc));
         assertEquals(1, compilerContext.compileGo(list(sym("/"), i(8), i(4), i(2)), rc));
+        assertEquals(8, compilerContext.compileGo(parse("(+ (* 2 3) (/ 8 4))"), rc));
     }
 }

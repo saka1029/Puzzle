@@ -37,6 +37,13 @@ public class TestIntLisp {
                 }
             };
         }
+        
+        public int length() {
+            int length = 0;
+            for (Obj e : this)
+                ++length;
+            return length;
+        }
     }
 
     public static class Cons extends Obj {
@@ -252,6 +259,10 @@ public class TestIntLisp {
             return stack[--sp];
         }
 
+        public void local(int n) {
+            push(stack[bp + n]);
+        }
+
         public void run(List<Code> codes) {
             int size = codes.size();
             sp = bp = pc = 0;
@@ -302,6 +313,8 @@ public class TestIntLisp {
     public static class CompilerContext {
         public final List<Code> codes = new ArrayList<>();
         public final Map<Symbol, Compiler> compilers = new HashMap<>();
+        public final Map<Symbol, Integer> arguments = new HashMap<>();
+        public final Map<Symbol, int[]> functions = new HashMap<>();
 
         private CompilerContext() {
         }
@@ -330,21 +343,41 @@ public class TestIntLisp {
         }
 
         public void compile(Obj obj) {
-            if (obj instanceof Int i)
+            if (obj instanceof Int i) {
                 codes.add(Code.push(i.value));
-            else if (obj instanceof Cons c) {
-                Compiler compiler = compilers.get(c.car);
-                if (compiler != null)
-                    compiler.compile(c.cdr, this);
+            } else if (obj instanceof Cons c) {
+                int[] function = functions.get(c.car);
+                if (function != null) {
+                    if (c.cdr.length() != function[1])
+                        throw new RuntimeException("invalid argument size: %d expected: %d"
+                            .formatted(c.cdr.length(), function[1]));
+                    for (Obj arg : c.cdr)
+                        compile(arg);
+                    codes.add(rc -> {
+                        rc.push(rc.pc);
+                        rc.pc = function[0];
+                    });
+                } else {
+                    Compiler compiler = compilers.get(c.car);
+                    if (compiler != null)
+                        compiler.compile(c.cdr, this);
+                    else
+                        throw new RuntimeException("unknown function " + c.car);
+                }
+            } else if (obj instanceof Symbol s) {
+                Integer argNo = arguments.get(s);
+                if (argNo != null)
+                    codes.add(rc -> rc.local(argNo));
                 else
-                    throw new RuntimeException("unknown function " + c.car);
+                    throw new RuntimeException("undefined variable '%s'".formatted(s));
             } else
                 throw new RuntimeException("can't compile " + obj);
         }
 
-        public int compileGo(Obj obj, RuntimeContext rc) {
+        public int compileGo(RuntimeContext rc, Obj... objs) {
             codes.clear();
-            compile(obj);
+            for (Obj obj : objs)
+                compile(obj);
             rc.run(codes);
             return rc.pop();
         }
@@ -473,43 +506,43 @@ public class TestIntLisp {
     public void testCompileBinary() {
         CompilerContext cc = CompilerContext.create();
         RuntimeContext rc = new RuntimeContext(20);
-        assertEquals(0, cc.compileGo(list(sym("="), i(1), i(2)), rc));
-        assertEquals(1, cc.compileGo(list(sym("/="), i(1), i(2)), rc));
-        assertEquals(1, cc.compileGo(list(sym("<"), i(1), i(2)), rc));
-        assertEquals(1, cc.compileGo(list(sym("<="), i(1), i(2)), rc));
-        assertEquals(0, cc.compileGo(list(sym(">"), i(1), i(2)), rc));
-        assertEquals(0, cc.compileGo(list(sym(">="), i(1), i(2)), rc));
-        assertEquals(0, cc.compileGo(list(sym("+")), rc));
-        assertEquals(1, cc.compileGo(list(sym("+"), i(1)), rc));
-        assertEquals(3, cc.compileGo(list(sym("+"), i(1), i(2)), rc));
-        assertEquals(6, cc.compileGo(list(sym("+"), i(1), i(2), i(3)), rc));
+        assertEquals(0, cc.compileGo(rc, list(sym("="), i(1), i(2))));
+        assertEquals(1, cc.compileGo(rc, list(sym("/="), i(1), i(2))));
+        assertEquals(1, cc.compileGo(rc, list(sym("<"), i(1), i(2))));
+        assertEquals(1, cc.compileGo(rc, list(sym("<="), i(1), i(2))));
+        assertEquals(0, cc.compileGo(rc, list(sym(">"), i(1), i(2))));
+        assertEquals(0, cc.compileGo(rc, list(sym(">="), i(1), i(2))));
+        assertEquals(0, cc.compileGo(rc, list(sym("+"))));
+        assertEquals(1, cc.compileGo(rc, list(sym("+"), i(1))));
+        assertEquals(3, cc.compileGo(rc, list(sym("+"), i(1), i(2))));
+        assertEquals(6, cc.compileGo(rc, list(sym("+"), i(1), i(2), i(3))));
         try {
-            assertEquals(0, cc.compileGo(list(sym("-")), rc));
+            assertEquals(0, cc.compileGo(rc, list(sym("-"))));
             fail();
         } catch (RuntimeException e) {
             assertEquals("insufficient arguments", e.getMessage());
         }
-        assertEquals(-1, cc.compileGo(list(sym("-"), i(1)), rc));
-        assertEquals(-1, cc.compileGo(list(sym("-"), i(1), i(2)), rc));
-        assertEquals(-4, cc.compileGo(list(sym("-"), i(1), i(2), i(3)), rc));
-        assertEquals(1, cc.compileGo(list(sym("*")), rc));
-        assertEquals(1, cc.compileGo(list(sym("*"), i(1)), rc));
-        assertEquals(2, cc.compileGo(list(sym("*"), i(1), i(2)), rc));
-        assertEquals(6, cc.compileGo(list(sym("*"), i(1), i(2), i(3)), rc));
-        assertEquals(24, cc.compileGo(list(sym("*"), i(1), i(2), i(3), i(4)), rc));
+        assertEquals(-1, cc.compileGo(rc, list(sym("-"), i(1))));
+        assertEquals(-1, cc.compileGo(rc, list(sym("-"), i(1), i(2))));
+        assertEquals(-4, cc.compileGo(rc, list(sym("-"), i(1), i(2), i(3))));
+        assertEquals(1, cc.compileGo(rc, list(sym("*"))));
+        assertEquals(1, cc.compileGo(rc, list(sym("*"), i(1))));
+        assertEquals(2, cc.compileGo(rc, list(sym("*"), i(1), i(2))));
+        assertEquals(6, cc.compileGo(rc, list(sym("*"), i(1), i(2), i(3))));
+        assertEquals(24, cc.compileGo(rc, list(sym("*"), i(1), i(2), i(3), i(4))));
         try {
-            assertEquals(1, cc.compileGo(list(sym("/")), rc));
+            assertEquals(1, cc.compileGo(rc, list(sym("/"))));
             fail();
         } catch (RuntimeException e) {
             assertEquals("insufficient arguments", e.getMessage());
         }
-        assertEquals(1, cc.compileGo(list(sym("/"), i(1)), rc));
-        assertEquals(0, cc.compileGo(list(sym("/"), i(2)), rc));
-        assertEquals(2, cc.compileGo(list(sym("/"), i(4), i(2)), rc));
-        assertEquals(1, cc.compileGo(list(sym("/"), i(8), i(4), i(2)), rc));
-        assertEquals(8, cc.compileGo(parse("(+ (* 2 3) (/ 8 4))"), rc));
+        assertEquals(1, cc.compileGo(rc, list(sym("/"), i(1))));
+        assertEquals(0, cc.compileGo(rc, list(sym("/"), i(2))));
+        assertEquals(2, cc.compileGo(rc, list(sym("/"), i(4), i(2))));
+        assertEquals(1, cc.compileGo(rc, list(sym("/"), i(8), i(4), i(2))));
+        assertEquals(8, cc.compileGo(rc, parse("(+ (* 2 3) (/ 8 4))")));
         assertEquals("[2, 3, *, 8, 4, /, +]", cc.codes.toString());
-        assertEquals(1, cc.compileGo(parse("(< 2 3)"), rc));
+        assertEquals(1, cc.compileGo(rc, parse("(< 2 3)")));
         assertEquals("[2, 3, <]", cc.codes.toString());
     }
 }

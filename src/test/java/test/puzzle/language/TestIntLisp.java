@@ -471,45 +471,45 @@ public class TestIntLisp {
 
     @Test
     public void testCompileBinary() {
-        CompilerContext compilerContext = CompilerContext.create();
+        CompilerContext cc = CompilerContext.create();
         RuntimeContext rc = new RuntimeContext(20);
-        assertEquals(0, compilerContext.compileGo(list(sym("="), i(1), i(2)), rc));
-        assertEquals(1, compilerContext.compileGo(list(sym("/="), i(1), i(2)), rc));
-        assertEquals(1, compilerContext.compileGo(list(sym("<"), i(1), i(2)), rc));
-        assertEquals(1, compilerContext.compileGo(list(sym("<="), i(1), i(2)), rc));
-        assertEquals(0, compilerContext.compileGo(list(sym(">"), i(1), i(2)), rc));
-        assertEquals(0, compilerContext.compileGo(list(sym(">="), i(1), i(2)), rc));
-        assertEquals(0, compilerContext.compileGo(list(sym("+")), rc));
-        assertEquals(1, compilerContext.compileGo(list(sym("+"), i(1)), rc));
-        assertEquals(3, compilerContext.compileGo(list(sym("+"), i(1), i(2)), rc));
-        assertEquals(6, compilerContext.compileGo(list(sym("+"), i(1), i(2), i(3)), rc));
+        assertEquals(0, cc.compileGo(list(sym("="), i(1), i(2)), rc));
+        assertEquals(1, cc.compileGo(list(sym("/="), i(1), i(2)), rc));
+        assertEquals(1, cc.compileGo(list(sym("<"), i(1), i(2)), rc));
+        assertEquals(1, cc.compileGo(list(sym("<="), i(1), i(2)), rc));
+        assertEquals(0, cc.compileGo(list(sym(">"), i(1), i(2)), rc));
+        assertEquals(0, cc.compileGo(list(sym(">="), i(1), i(2)), rc));
+        assertEquals(0, cc.compileGo(list(sym("+")), rc));
+        assertEquals(1, cc.compileGo(list(sym("+"), i(1)), rc));
+        assertEquals(3, cc.compileGo(list(sym("+"), i(1), i(2)), rc));
+        assertEquals(6, cc.compileGo(list(sym("+"), i(1), i(2), i(3)), rc));
         try {
-            assertEquals(0, compilerContext.compileGo(list(sym("-")), rc));
+            assertEquals(0, cc.compileGo(list(sym("-")), rc));
             fail();
         } catch (RuntimeException e) {
             assertEquals("insufficient arguments", e.getMessage());
         }
-        assertEquals(-1, compilerContext.compileGo(list(sym("-"), i(1)), rc));
-        assertEquals(-1, compilerContext.compileGo(list(sym("-"), i(1), i(2)), rc));
-        assertEquals(-4, compilerContext.compileGo(list(sym("-"), i(1), i(2), i(3)), rc));
-        assertEquals(1, compilerContext.compileGo(list(sym("*")), rc));
-        assertEquals(1, compilerContext.compileGo(list(sym("*"), i(1)), rc));
-        assertEquals(2, compilerContext.compileGo(list(sym("*"), i(1), i(2)), rc));
-        assertEquals(6, compilerContext.compileGo(list(sym("*"), i(1), i(2), i(3)), rc));
-        assertEquals(24, compilerContext.compileGo(list(sym("*"), i(1), i(2), i(3), i(4)), rc));
+        assertEquals(-1, cc.compileGo(list(sym("-"), i(1)), rc));
+        assertEquals(-1, cc.compileGo(list(sym("-"), i(1), i(2)), rc));
+        assertEquals(-4, cc.compileGo(list(sym("-"), i(1), i(2), i(3)), rc));
+        assertEquals(1, cc.compileGo(list(sym("*")), rc));
+        assertEquals(1, cc.compileGo(list(sym("*"), i(1)), rc));
+        assertEquals(2, cc.compileGo(list(sym("*"), i(1), i(2)), rc));
+        assertEquals(6, cc.compileGo(list(sym("*"), i(1), i(2), i(3)), rc));
+        assertEquals(24, cc.compileGo(list(sym("*"), i(1), i(2), i(3), i(4)), rc));
         try {
-            assertEquals(1, compilerContext.compileGo(list(sym("/")), rc));
+            assertEquals(1, cc.compileGo(list(sym("/")), rc));
             fail();
         } catch (RuntimeException e) {
             assertEquals("insufficient arguments", e.getMessage());
         }
-        assertEquals(1, compilerContext.compileGo(list(sym("/"), i(1)), rc));
-        assertEquals(0, compilerContext.compileGo(list(sym("/"), i(2)), rc));
-        assertEquals(2, compilerContext.compileGo(list(sym("/"), i(4), i(2)), rc));
-        assertEquals(1, compilerContext.compileGo(list(sym("/"), i(8), i(4), i(2)), rc));
-        assertEquals(8, compilerContext.compileGo(parse("(+ (* 2 3) (/ 8 4))"), rc));
-        assertEquals("[2, 3, *, 8, 4, /, +]", compilerContext.codes.toString());
-        assertEquals(1, compilerContext.compileGo(parse("(< 2 3)"), rc));
-        assertEquals("[2, 3, <]", compilerContext.codes.toString());
+        assertEquals(1, cc.compileGo(list(sym("/"), i(1)), rc));
+        assertEquals(0, cc.compileGo(list(sym("/"), i(2)), rc));
+        assertEquals(2, cc.compileGo(list(sym("/"), i(4), i(2)), rc));
+        assertEquals(1, cc.compileGo(list(sym("/"), i(8), i(4), i(2)), rc));
+        assertEquals(8, cc.compileGo(parse("(+ (* 2 3) (/ 8 4))"), rc));
+        assertEquals("[2, 3, *, 8, 4, /, +]", cc.codes.toString());
+        assertEquals(1, cc.compileGo(parse("(< 2 3)"), rc));
+        assertEquals("[2, 3, <]", cc.codes.toString());
     }
 }

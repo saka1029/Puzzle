@@ -259,7 +259,7 @@ public class TestIntLisp {
             return stack[--sp];
         }
 
-        public void local(int n) {
+        public void argument(int n) {
             push(stack[bp + n]);
         }
 
@@ -362,14 +362,14 @@ public class TestIntLisp {
                     if (compiler != null)
                         compiler.compile(c.cdr, this);
                     else
-                        throw new RuntimeException("unknown function " + c.car);
+                        throw new RuntimeException("unknown function '%s'".formatted(c.car));
                 }
             } else if (obj instanceof Symbol s) {
                 Integer argNo = arguments.get(s);
                 if (argNo != null)
-                    codes.add(rc -> rc.local(argNo));
+                    codes.add(rc -> rc.argument(argNo));
                 else
-                    throw new RuntimeException("undefined variable '%s'".formatted(s));
+                    throw new RuntimeException("undefined argument '%s'".formatted(s));
             } else
                 throw new RuntimeException("can't compile " + obj);
         }

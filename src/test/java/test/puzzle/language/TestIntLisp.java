@@ -319,6 +319,36 @@ public class TestIntLisp {
                 }
             };
         }
+        
+        public static Code jump(int address) {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    c.pc = address;
+                }
+
+                @Override
+                public String toString() {
+                    return "jump " + address;
+                }
+            };
+        }
+        
+        public static Code jumpZ(int address) {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    if (c.pop() == 0)
+                        c.pc = address;
+                }
+
+                @Override
+                public String toString() {
+                    return "jumpZ " + address;
+                }
+            };
+            
+        }
     }
 
     @FunctionalInterface
@@ -347,6 +377,8 @@ public class TestIntLisp {
             cc.add(sym("-"), compileBinary2(i(0), (a, b) -> a - b, "-"));
             cc.add(sym("*"), compileBinary(i(1), (a, b) -> a * b, "*"));
             cc.add(sym("/"), compileBinary2(i(1), (a, b) -> a / b, "/"));
+            cc.add(sym("define"), compileDefine());
+            cc.add(sym("if"), compileIf());
             return cc;
         }
 
@@ -356,6 +388,10 @@ public class TestIntLisp {
 
         public void add(Code code) {
             codes.add(code);
+        }
+
+        public void set(int i, Code code) {
+            codes.set(i, code);
         }
 
         public void compile(Obj obj) {
@@ -406,6 +442,31 @@ public class TestIntLisp {
                 compile(obj);
             rc.run(codes);
             return rc.pop();
+        }
+        
+        public static Compiler compileIf() {
+            return (args, cc) -> {
+                if (args instanceof Cons c0 && c0.cdr instanceof Cons c1 && c1.cdr instanceof Cons c2) {
+                    cc.compile(c0.car); // condition
+                    int w = cc.codes.size();
+                    cc.codes.add(null); // dummy for jump if zero
+                    cc.compile(c1.car); // then part
+                    int x = cc.codes.size();
+                    cc.codes.add(null); // dummy for jump always
+                    int y = cc.codes.size();
+                    cc.set(w, Code.jumpZ(y));
+                    cc.compile(c2.car); // else part
+                    int z = cc.codes.size();
+                    cc.set(x, Code.jump(z));
+                } else
+                    throw new RuntimeException("'if' requires 3 arguments but: " + args);
+            };
+        }
+
+        public static Compiler compileDefine() {
+            return (args, cc) -> {
+                
+            };
         }
 
         public static Compiler compileBinary(IntBinaryOperator operator, String name) {
@@ -570,5 +631,16 @@ public class TestIntLisp {
         assertEquals("[2, 3, *, 8, 4, /, +]", cc.codes.toString());
         assertEquals(1, cc.compileGo(rc, "(< 2 3)"));
         assertEquals("[2, 3, <]", cc.codes.toString());
+    }
+
+    @Test
+    public void testCompileIf() {
+        CompilerContext cc = CompilerContext.create();
+        RuntimeContext rc = new RuntimeContext(20);
+        assertEquals(2, cc.compileGo(rc, "(if 1 2 3)"));
+        assertEquals(3, cc.compileGo(rc, "(if 0 2 3)"));
+        assertEquals(1, cc.compileGo(rc, "(if (< 1 2) 1 2)"));
+        assertEquals(2, cc.compileGo(rc, "(if (> 1 2) 1 2)"));
+        System.out.println(cc.codes);
     }
 }

@@ -291,7 +291,7 @@ public class TestIntLisp {
     public interface Code {
         void execute(RuntimeContext c);
 
-        public static Code push(int value) {
+        public static Code constant(int value) {
             return new Code() {
                 @Override
                 public void execute(RuntimeContext c) {
@@ -459,7 +459,7 @@ public class TestIntLisp {
 
         public void compile(Obj obj) {
             if (obj instanceof Int i) {
-                codes.add(Code.push(i.value));
+                codes.add(Code.constant(i.value));
             } else if (obj instanceof Cons c) {
                 int[] function = functions.get(c.car);
                 if (function != null) {

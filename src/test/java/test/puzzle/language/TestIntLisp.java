@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntBinaryOperator;
-import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -34,9 +33,9 @@ public class TestIntLisp {
 
                 @Override
                 public Obj next() {
-                    Obj r = ((Cons) next).car;
+                    Obj element = ((Cons) next).car;
                     next = ((Cons) next).cdr;
-                    return r;
+                    return element;
                 }
             };
         }
@@ -166,6 +165,16 @@ public class TestIntLisp {
         return Int.of(value);
     }
 
+    /**
+     * 点対はない。
+     * <pre>
+     * SYNTAX
+     * expression = symbol | number | list
+     * symbol     = SYMBOL_CHAR { SYMBOL_CHAR }
+     * number     = [ '+' | '-' ] DIGIT { DIGIT }
+     * list       = '(' { expression } ')'
+     * </pre> 
+     */
     public static class Parser {
         final Reader reader;
         int ch;
@@ -185,7 +194,7 @@ public class TestIntLisp {
         
         static boolean isSymbolOrNumber(int ch) {
             return switch (ch) {
-                case -1, '(', ')', '.' -> false;
+                case -1, '(', ')' -> false;
                 default -> !Character.isWhitespace(ch);
             };
         }
@@ -207,15 +216,11 @@ public class TestIntLisp {
             get(); // skip '('
             List<Obj> list = new ArrayList<>();
             spaces();
-            while (ch != -1 && ch != ')' && ch != '.') {
+            while (ch != -1 && ch != ')') {
                 list.add(expression());
                 spaces();
             }
             Obj result = NIL;
-            if (ch == '.') {
-                get(); // skip '.'
-                result = expression();
-            }
             spaces();
             if (ch != ')')
                 throw error("')' expected");
@@ -231,7 +236,6 @@ public class TestIntLisp {
                 case -1:
                     return null;
                 case ')':
-                case '.':
                     throw error("unexpected '%c'", (char) ch);
                 case '(':
                     return list();
@@ -430,31 +434,19 @@ public class TestIntLisp {
 
         public static CompilerContext create() {
             CompilerContext cc = new CompilerContext();
-            cc.add(sym("="), compileBinary((a, b) -> a == b ? 1 : 0, "="));
-            cc.add(sym("/="), compileBinary((a, b) -> a != b ? 1 : 0, "/="));
-            cc.add(sym("<"), compileBinary((a, b) -> a < b ? 1 : 0, "<"));
-            cc.add(sym("<="), compileBinary((a, b) -> a <= b ? 1 : 0, "<="));
-            cc.add(sym(">"), compileBinary((a, b) -> a > b ? 1 : 0, ">"));
-            cc.add(sym(">="), compileBinary((a, b) -> a >= b ? 1 : 0, ">="));
-            cc.add(sym("+"), compileBinary(i(0), (a, b) -> a + b, "+"));
-            cc.add(sym("-"), compileBinary2(i(0), (a, b) -> a - b, "-"));
-            cc.add(sym("*"), compileBinary(i(1), (a, b) -> a * b, "*"));
-            cc.add(sym("/"), compileBinary2(i(1), (a, b) -> a / b, "/"));
-            cc.add(sym("define"), compileDefine());
-            cc.add(sym("if"), compileIf());
+            cc.compilers.put(sym("="), compileBinary((a, b) -> a == b ? 1 : 0, "="));
+            cc.compilers.put(sym("/="), compileBinary((a, b) -> a != b ? 1 : 0, "/="));
+            cc.compilers.put(sym("<"), compileBinary((a, b) -> a < b ? 1 : 0, "<"));
+            cc.compilers.put(sym("<="), compileBinary((a, b) -> a <= b ? 1 : 0, "<="));
+            cc.compilers.put(sym(">"), compileBinary((a, b) -> a > b ? 1 : 0, ">"));
+            cc.compilers.put(sym(">="), compileBinary((a, b) -> a >= b ? 1 : 0, ">="));
+            cc.compilers.put(sym("+"), compileBinary(i(0), (a, b) -> a + b, "+"));
+            cc.compilers.put(sym("-"), compileBinary2(i(0), (a, b) -> a - b, "-"));
+            cc.compilers.put(sym("*"), compileBinary(i(1), (a, b) -> a * b, "*"));
+            cc.compilers.put(sym("/"), compileBinary2(i(1), (a, b) -> a / b, "/"));
+            cc.compilers.put(sym("define"), compileDefine());
+            cc.compilers.put(sym("if"), compileIf());
             return cc;
-        }
-
-        public void add(Symbol symbol, Compiler compiler) {
-            compilers.put(symbol, compiler);
-        }
-
-        public void add(Code code) {
-            codes.add(code);
-        }
-
-        public void set(int i, Code code) {
-            codes.set(i, code);
         }
 
         public void compile(Obj obj) {
@@ -486,14 +478,6 @@ public class TestIntLisp {
                 throw new RuntimeException("can't compile " + obj);
         }
 
-        public int compileGo(RuntimeContext rc, Obj... objs) {
-            codes.clear();
-            for (Obj obj : objs)
-                compile(obj);
-            rc.run(codes);
-            return rc.pop();
-        }
-        
         public int compileGo(RuntimeContext rc, String source) {
             codes.clear();
             Parser parser = new Parser(source);
@@ -514,10 +498,10 @@ public class TestIntLisp {
                     int x = cc.codes.size();
                     cc.codes.add(null); // dummy for jump
                     int y = cc.codes.size();
-                    cc.set(w, Code.jumpZ(y));
+                    cc.codes.set(w, Code.jumpZ(y));
                     cc.compile(c2.car); // else part
                     int z = cc.codes.size();
-                    cc.set(x, Code.jump(z));
+                    cc.codes.set(x, Code.jump(z));
                 } else
                     throw new RuntimeException("'if' requires 3 arguments but: " + args);
             };
@@ -545,7 +529,7 @@ public class TestIntLisp {
                         cc.compile(c1.car);
                         cc.codes.add(Code.exit());
                         int end = cc.codes.size();
-                        cc.set(begin, Code.jump(end));
+                        cc.codes.set(begin, Code.jump(end));
                         cc.arguments.clear();
                     } else
                         throw new RuntimeException("'(func args)' expected after 'define' but: " + c0.car);
@@ -560,7 +544,7 @@ public class TestIntLisp {
                 if (args instanceof Cons c0 && c0.cdr instanceof Cons c1) {
                     cc.compile(c0.car);
                     cc.compile(c1.car);
-                    cc.add(Code.binary(operator, name));
+                    cc.codes.add(Code.binary(operator, name));
                 } else
                     throw new RuntimeException("invalid args: " + args);
             };
@@ -579,7 +563,7 @@ public class TestIntLisp {
                     cc.compile(c0.car);
                     for (Obj e : c0.cdr) {
                         cc.compile(e);
-                        cc.add(code);
+                        cc.codes.add(code);
                     }
                 } else
                     cc.compile(unit);
@@ -633,12 +617,12 @@ public class TestIntLisp {
                         cc.compile(c0.car);
                         for (Obj e : c1) {
                             cc.compile(e);
-                            cc.add(code);
+                            cc.codes.add(code);
                         }
                     } else {
                         cc.compile(unit);
                         cc.compile(c0.car);
-                        cc.add(code);
+                        cc.codes.add(code);
                     }
                 } else
                     throw new RuntimeException("insufficient arguments");
@@ -662,7 +646,7 @@ public class TestIntLisp {
         assertEquals(list(sym("a"), sym("b"), sym("c")), parse("(a b c)"));
         assertEquals(list(sym("a"), i(2), sym("c")), parse("(a 2 c)"));
         assertEquals(list(sym("+"), list(sym("-"), i(1), i(2)), i(3)), parse("(+ (- 1 2) 3)"));
-        assertEquals(cons(sym("a"), cons(i(0), i(1))), parse("(a 0 . 1)"));
+//        assertEquals(cons(sym("a"), cons(i(0), i(1))), parse("(a 0 . 1)"));
     }
 
     @Test

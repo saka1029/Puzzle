@@ -275,7 +275,7 @@ public class TestIntLisp {
             return stack[--sp];
         }
 
-        public void argument(int n) {
+        public void arg(int n) {
             push(stack[bp + n]);
         }
 
@@ -305,16 +305,16 @@ public class TestIntLisp {
             };
         }
 
-        public static Code argument(int index) {
+        public static Code arg(int index) {
             return new Code() {
                 @Override
                 public void execute(RuntimeContext c) {
-                    c.argument(index);
+                    c.arg(index);
                 }
 
                 @Override
                 public String toString() {
-                    return "argument " + index;
+                    return "arg " + index;
                 }
             };
         }
@@ -363,6 +363,20 @@ public class TestIntLisp {
             };
         }
         
+        public static Code call(int address) {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    c.push(c.pc);
+                    c.pc = address;
+                }
+
+                @Override
+                public String toString() {
+                    return "call " + address;
+                }
+            };
+        }
         public static Code enter(int argc) {
             return new Code() {
                 @Override
@@ -454,10 +468,7 @@ public class TestIntLisp {
                             .formatted(c.cdr.length(), function[1]));
                     for (Obj arg : c.cdr)
                         compile(arg);
-                    codes.add(rc -> {
-                        rc.push(rc.pc);
-                        rc.pc = function[0];
-                    });
+                    codes.add(Code.call(function[0]));
                 } else {
                     Compiler compiler = compilers.get(c.car);
                     if (compiler != null)
@@ -468,7 +479,7 @@ public class TestIntLisp {
             } else if (obj instanceof Symbol s) {
                 Integer argNo = arguments.get(s);
                 if (argNo != null)
-                    codes.add(Code.argument(argNo));
+                    codes.add(Code.arg(argNo));
                 else
                     throw new RuntimeException("undefined argument '%s'".formatted(s));
             } else
@@ -521,8 +532,9 @@ public class TestIntLisp {
                     if (c0.car instanceof Cons a0 && a0.car instanceof Symbol s0) {
                         int begin = cc.codes.size();
                         cc.codes.add(null); // dummy for jump to end
+                        int start = cc.codes.size();
                         int argc = a0.cdr.length();
-                        cc.functions.put(s0, new int[] {begin, argc});
+                        cc.functions.put(s0, new int[] {start, argc});
                         int index = 0;
                         for (Obj arg : a0.cdr)
                             if (arg instanceof Symbol s1)
@@ -716,5 +728,13 @@ public class TestIntLisp {
         assertEquals(1, cc.compileGo(rc, "(if (< 1 2) 1 2)"));
         assertEquals(2, cc.compileGo(rc, "(if (> 1 2) 1 2)"));
         assertEquals("[1, 2, >, jumpZ 6, 1, jump 7, 2]", cc.codes.toString());
+    }
+
+    @Test
+    public void testCompileDefine() {
+        CompilerContext cc = CompilerContext.create();
+        RuntimeContext rc = new RuntimeContext(20);
+        assertEquals(3, cc.compileGo(rc, "(define (add a b) (+ a b)) (add 1 2)"));
+        assertEquals("[jump 6, enter 2, arg 0, arg 1, +, exit, 1, 2, call 1]", cc.codes.toString());
     }
 }

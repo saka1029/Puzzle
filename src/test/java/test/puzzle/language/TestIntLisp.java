@@ -305,6 +305,20 @@ public class TestIntLisp {
             };
         }
 
+        public static Code argument(int index) {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    c.argument(index);
+                }
+
+                @Override
+                public String toString() {
+                    return "argument " + index;
+                }
+            };
+        }
+
         public static Code binary(IntBinaryOperator operator, String name) {
             return new Code() {
                 @Override
@@ -345,6 +359,41 @@ public class TestIntLisp {
                 @Override
                 public String toString() {
                     return "jumpZ " + address;
+                }
+            };
+        }
+        
+        public static Code enter(int argc) {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    c.push(c.bp);
+                    c.bp = c.sp - 2 - argc;
+                }
+
+                @Override
+                public String toString() {
+                    return "enter " + argc;
+                }
+            };
+            
+        }
+        
+        public static Code exit() {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    int bp = c.bp;          // 現在のbpを退避
+                    int result = c.pop();   // 戻り値を退避
+                    c.bp = c.pop();         // bpを回復
+                    c.pc = c.pop();         // pcを回復
+                    c.sp = bp;              // spを回復
+                    c.push(result);         // 戻り値をpush
+                }
+
+                @Override
+                public String toString() {
+                    return "exit";
                 }
             };
             
@@ -419,7 +468,7 @@ public class TestIntLisp {
             } else if (obj instanceof Symbol s) {
                 Integer argNo = arguments.get(s);
                 if (argNo != null)
-                    codes.add(rc -> rc.argument(argNo));
+                    codes.add(Code.argument(argNo));
                 else
                     throw new RuntimeException("undefined argument '%s'".formatted(s));
             } else
@@ -452,7 +501,7 @@ public class TestIntLisp {
                     cc.codes.add(null); // dummy for jump if zero
                     cc.compile(c1.car); // then part
                     int x = cc.codes.size();
-                    cc.codes.add(null); // dummy for jump always
+                    cc.codes.add(null); // dummy for jump
                     int y = cc.codes.size();
                     cc.set(w, Code.jumpZ(y));
                     cc.compile(c2.car); // else part
@@ -463,8 +512,33 @@ public class TestIntLisp {
             };
         }
 
+        /**
+         * (define (name args...) body)
+         */
         public static Compiler compileDefine() {
             return (args, cc) -> {
+                if (args instanceof Cons c0 && c0.cdr instanceof Cons c1) {
+                    if (c0.car instanceof Cons a0 && a0.car instanceof Symbol s0) {
+                        int begin = cc.codes.size();
+                        cc.codes.add(null); // dummy for jump to end
+                        int argc = a0.cdr.length();
+                        cc.functions.put(s0, new int[] {begin, argc});
+                        int index = 0;
+                        for (Obj arg : a0.cdr)
+                            if (arg instanceof Symbol s1)
+                                cc.arguments.put(s1, index++);
+                            else
+                                throw new RuntimeException("symbol expected but: " + arg);
+                        cc.codes.add(Code.enter(argc));
+                        cc.compile(c1.car);
+                        cc.codes.add(Code.exit());
+                        int end = cc.codes.size();
+                        cc.set(begin, Code.jump(end));
+                        cc.arguments.clear();
+                    } else
+                        throw new RuntimeException("'(func args)' expected after 'define' but: " + c0.car);
+                } else
+                    throw new RuntimeException("'define' requires 2 arguments but: " + args);
                 
             };
         }

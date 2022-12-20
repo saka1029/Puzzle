@@ -3,6 +3,9 @@ package test.puzzle.language;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -163,84 +166,97 @@ public class TestIntLisp {
         return Int.of(value);
     }
 
-    static final Pattern NUMBER = Pattern.compile("[+-]?\\d+");
+    public static class Parser {
+        final Reader reader;
+        int ch;
+        
+        public Parser(Reader reader) {
+            this.reader = reader;
+            get();
+        }
+        
+        public Parser(String source) {
+            this(new StringReader(source));
+        }
+        
+        static RuntimeException error(String format, Object... args) {
+            return new RuntimeException(format.formatted(args));
+        }
+        
+        static boolean isSymbolOrNumber(int ch) {
+            return switch (ch) {
+                case -1, '(', ')', '.' -> false;
+                default -> !Character.isWhitespace(ch);
+            };
+        }
+        
+        void get() {
+            try {
+                ch = reader.read();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        void spaces() {
+            while (Character.isWhitespace(ch))
+                get();
+        }
+        
+        Obj list() {
+            get(); // skip '('
+            List<Obj> list = new ArrayList<>();
+            spaces();
+            while (ch != -1 && ch != ')' && ch != '.') {
+                list.add(expression());
+                spaces();
+            }
+            Obj result = NIL;
+            if (ch == '.') {
+                get(); // skip '.'
+                result = expression();
+            }
+            spaces();
+            if (ch != ')')
+                throw error("')' expected");
+            get(); // skip ')'
+            for (int i = list.size() - 1; i >= 0; --i)
+                result = cons(list.get(i), result);
+            return result;
+        }
+        
+        Obj expression() {
+            spaces();
+            switch (ch) {
+                case -1:
+                    return null;
+                case ')':
+                case '.':
+                    throw error("unexpected '%c'", (char) ch);
+                case '(':
+                    return list();
+                default:
+                    StringBuilder sb = new StringBuilder();
+                    do {
+                        sb.append((char) ch);
+                        get();
+                    } while (isSymbolOrNumber(ch));
+                    String token = sb.toString();
+                    return token.matches("[+-]?\\d+")
+                        ? i(Integer.parseInt(token))
+                        : sym(token);
+            }
+        }
+
+        public Obj read() {
+            return expression();
+        }
+    }
 
     public static Obj parse(String source) {
-        int length = source.length();
-        return new Object() {
-            int index = 0, ch;
-
-            RuntimeException error(String format, Object... args) {
-                return new RuntimeException(format.formatted(args));
-            }
-
-            void get() {
-                ch = index < length ? source.charAt(index++) : -1;
-            }
-
-            boolean isSymbolOrNumber(int ch) {
-                return switch (ch) {
-                    case -1, '(', ')', '.' -> false;
-                    default -> !Character.isWhitespace(ch);
-                };
-            }
-
-            void spaces() {
-                while (Character.isWhitespace(ch))
-                    get();
-            }
-
-            Obj list() {
-                get(); // skip '('
-                List<Obj> list = new ArrayList<>();
-                spaces();
-                while (ch != -1 && ch != ')' && ch != '.') {
-                    list.add(expression());
-                    spaces();
-                }
-                Obj result = NIL;
-                if (ch == '.') {
-                    get(); // skip '.'
-                    result = expression();
-                }
-                spaces();
-                if (ch != ')')
-                    throw error("')' expected");
-                get(); // skip ')'
-                for (int i = list.size() - 1; i >= 0; --i)
-                    result = cons(list.get(i), result);
-                return result;
-            }
-
-            Obj expression() {
-                spaces();
-                switch (ch) {
-                    case -1:
-                        throw error("unexpected EOS");
-                    case ')':
-                    case '.':
-                        throw error("unexpected '%c'", (char) ch);
-                    case '(':
-                        return list();
-                    default:
-                        StringBuilder sb = new StringBuilder();
-                        do {
-                            sb.append((char) ch);
-                            get();
-                        } while (isSymbolOrNumber(ch));
-                        String token = sb.toString();
-                        return token.matches("[+-]?\\d+")
-                            ? i(Integer.parseInt(token))
-                            : sym(token);
-                }
-            }
-
-            Obj parse() {
-                get();
-                Obj result = expression();
-                return result;
-            }
-        }.parse();
+        try (StringReader r = new StringReader(source)) {
+            return new Parser(r).read();
+        }
     }
 
     public class RuntimeContext {
@@ -381,6 +397,16 @@ public class TestIntLisp {
             rc.run(codes);
             return rc.pop();
         }
+        
+        public int compileGo(RuntimeContext rc, String source) {
+            codes.clear();
+            Parser parser = new Parser(source);
+            Obj obj;
+            while ((obj = parser.read()) != null) 
+                compile(obj);
+            rc.run(codes);
+            return rc.pop();
+        }
 
         public static Compiler compileBinary(IntBinaryOperator operator, String name) {
             return (args, cc) -> {
@@ -506,43 +532,43 @@ public class TestIntLisp {
     public void testCompileBinary() {
         CompilerContext cc = CompilerContext.create();
         RuntimeContext rc = new RuntimeContext(20);
-        assertEquals(0, cc.compileGo(rc, list(sym("="), i(1), i(2))));
-        assertEquals(1, cc.compileGo(rc, list(sym("/="), i(1), i(2))));
-        assertEquals(1, cc.compileGo(rc, list(sym("<"), i(1), i(2))));
-        assertEquals(1, cc.compileGo(rc, list(sym("<="), i(1), i(2))));
-        assertEquals(0, cc.compileGo(rc, list(sym(">"), i(1), i(2))));
-        assertEquals(0, cc.compileGo(rc, list(sym(">="), i(1), i(2))));
-        assertEquals(0, cc.compileGo(rc, list(sym("+"))));
-        assertEquals(1, cc.compileGo(rc, list(sym("+"), i(1))));
-        assertEquals(3, cc.compileGo(rc, list(sym("+"), i(1), i(2))));
-        assertEquals(6, cc.compileGo(rc, list(sym("+"), i(1), i(2), i(3))));
+        assertEquals(0, cc.compileGo(rc, "(= 1 2)"));
+        assertEquals(1, cc.compileGo(rc, "(/= 1 2)"));
+        assertEquals(1, cc.compileGo(rc, "(< 1 2)"));
+        assertEquals(1, cc.compileGo(rc, "(<= 1 2)"));
+        assertEquals(0, cc.compileGo(rc, "(> 1 2)"));
+        assertEquals(0, cc.compileGo(rc, "(>= 1 2)"));
+        assertEquals(0, cc.compileGo(rc, "(+)"));
+        assertEquals(1, cc.compileGo(rc, "(+ 1)"));
+        assertEquals(3, cc.compileGo(rc, "(+ 1 2)"));
+        assertEquals(6, cc.compileGo(rc, "(+ 1 2 3)"));
         try {
-            assertEquals(0, cc.compileGo(rc, list(sym("-"))));
+            assertEquals(0, cc.compileGo(rc, "(-)"));
             fail();
         } catch (RuntimeException e) {
             assertEquals("insufficient arguments", e.getMessage());
         }
-        assertEquals(-1, cc.compileGo(rc, list(sym("-"), i(1))));
-        assertEquals(-1, cc.compileGo(rc, list(sym("-"), i(1), i(2))));
-        assertEquals(-4, cc.compileGo(rc, list(sym("-"), i(1), i(2), i(3))));
-        assertEquals(1, cc.compileGo(rc, list(sym("*"))));
-        assertEquals(1, cc.compileGo(rc, list(sym("*"), i(1))));
-        assertEquals(2, cc.compileGo(rc, list(sym("*"), i(1), i(2))));
-        assertEquals(6, cc.compileGo(rc, list(sym("*"), i(1), i(2), i(3))));
-        assertEquals(24, cc.compileGo(rc, list(sym("*"), i(1), i(2), i(3), i(4))));
+        assertEquals(-1, cc.compileGo(rc, "(- 1)"));
+        assertEquals(-1, cc.compileGo(rc, "(- 1 2)"));
+        assertEquals(-4, cc.compileGo(rc, "(- 1 2 3)"));
+        assertEquals(1, cc.compileGo(rc, "(*)"));
+        assertEquals(1, cc.compileGo(rc, "(* 1)"));
+        assertEquals(2, cc.compileGo(rc, "(* 1 2)"));
+        assertEquals(6, cc.compileGo(rc, "(* 1 2 3)"));
+        assertEquals(24, cc.compileGo(rc, "(* 1 2 3 4)"));
         try {
-            assertEquals(1, cc.compileGo(rc, list(sym("/"))));
+            assertEquals(1, cc.compileGo(rc, "(/)"));
             fail();
         } catch (RuntimeException e) {
             assertEquals("insufficient arguments", e.getMessage());
         }
-        assertEquals(1, cc.compileGo(rc, list(sym("/"), i(1))));
-        assertEquals(0, cc.compileGo(rc, list(sym("/"), i(2))));
-        assertEquals(2, cc.compileGo(rc, list(sym("/"), i(4), i(2))));
-        assertEquals(1, cc.compileGo(rc, list(sym("/"), i(8), i(4), i(2))));
-        assertEquals(8, cc.compileGo(rc, parse("(+ (* 2 3) (/ 8 4))")));
+        assertEquals(1, cc.compileGo(rc, "(/ 1)"));
+        assertEquals(0, cc.compileGo(rc, "(/ 2)"));
+        assertEquals(2, cc.compileGo(rc, "(/ 4 2)"));
+        assertEquals(1, cc.compileGo(rc, "(/ 8 4 2)"));
+        assertEquals(8, cc.compileGo(rc, "(+ (* 2 3) (/ 8 4))"));
         assertEquals("[2, 3, *, 8, 4, /, +]", cc.codes.toString());
-        assertEquals(1, cc.compileGo(rc, parse("(< 2 3)")));
+        assertEquals(1, cc.compileGo(rc, "(< 2 3)"));
         assertEquals("[2, 3, <]", cc.codes.toString());
     }
 }

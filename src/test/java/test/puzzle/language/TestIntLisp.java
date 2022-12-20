@@ -641,6 +641,6 @@ public class TestIntLisp {
         assertEquals(3, cc.compileGo(rc, "(if 0 2 3)"));
         assertEquals(1, cc.compileGo(rc, "(if (< 1 2) 1 2)"));
         assertEquals(2, cc.compileGo(rc, "(if (> 1 2) 1 2)"));
-        System.out.println(cc.codes);
+        assertEquals("[1, 2, >, jumpZ 6, 1, jump 7, 2]", cc.codes.toString());
     }
 }

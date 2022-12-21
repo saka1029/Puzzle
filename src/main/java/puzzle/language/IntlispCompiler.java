@@ -396,6 +396,12 @@ public class IntlispCompiler {
         public void compile(Obj obj) {
             if (obj instanceof Int i) {
                 codes.add(Code.constant(i.value));
+            } else if (obj instanceof Symbol s) {
+                Integer argNo = arguments.get(s);
+                if (argNo != null)
+                    codes.add(Code.arg(argNo));
+                else
+                    throw new RuntimeException("undefined argument '%s'".formatted(s));
             } else if (obj instanceof Cons c) {
                 int[] function = functions.get(c.car);
                 if (function != null) {
@@ -412,12 +418,6 @@ public class IntlispCompiler {
                     else
                         throw new RuntimeException("unknown function '%s'".formatted(c.car));
                 }
-            } else if (obj instanceof Symbol s) {
-                Integer argNo = arguments.get(s);
-                if (argNo != null)
-                    codes.add(Code.arg(argNo));
-                else
-                    throw new RuntimeException("undefined argument '%s'".formatted(s));
             } else
                 throw new RuntimeException("can't compile " + obj);
         }

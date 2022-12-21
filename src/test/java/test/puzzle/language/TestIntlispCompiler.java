@@ -107,4 +107,42 @@ public class TestIntlispCompiler {
         assertEquals(24, cc.compileGo(rc, "(define (fact n) (if (<= n 1) 1 (* n (fact (- n 1))))) (fact 4)"));
         assertEquals("[jump 15, enter 1, arg 0, 1, <=, jumpZ 8, 1, jump 14, arg 0, arg 0, 1, -, call 1, *, exit, 4, call 1]", cc.codes.toString());
     }
+
+    @Test
+    public void testCompileNot() {
+        CompilerContext cc = CompilerContext.create();
+        RuntimeContext rc = RuntimeContext.create(20);
+        assertEquals(1, cc.compileGo(rc, "(not 0)"));
+        assertEquals(0, cc.compileGo(rc, "(not 1)"));
+        assertEquals(0, cc.compileGo(rc, "(not 2)"));
+        assertEquals("[2, not]", cc.codes.toString());
+    }
+
+    @Test
+    public void testCompileAnd() {
+        CompilerContext cc = CompilerContext.create();
+        RuntimeContext rc = RuntimeContext.create(20);
+        assertEquals(1, cc.compileGo(rc, "(and)"));
+        assertEquals(0, cc.compileGo(rc, "(and 0)"));
+        assertEquals(2, cc.compileGo(rc, "(and 2)"));
+        assertEquals(3, cc.compileGo(rc, "(and 2 3)"));
+        assertEquals(0, cc.compileGo(rc, "(and 2 0)"));
+        assertEquals(0, cc.compileGo(rc, "(and 0 3)"));
+        assertEquals(0, cc.compileGo(rc, "(and 0 0)"));
+        assertEquals("[0, 0, and]", cc.codes.toString());
+    }
+
+    @Test
+    public void testCompileOr() {
+        CompilerContext cc = CompilerContext.create();
+        RuntimeContext rc = RuntimeContext.create(20);
+        assertEquals(0, cc.compileGo(rc, "(or)"));
+        assertEquals(0, cc.compileGo(rc, "(or 0)"));
+        assertEquals(2, cc.compileGo(rc, "(or 2)"));
+        assertEquals(2, cc.compileGo(rc, "(or 2 3)"));
+        assertEquals(2, cc.compileGo(rc, "(or 2 0)"));
+        assertEquals(3, cc.compileGo(rc, "(or 0 3)"));
+        assertEquals(0, cc.compileGo(rc, "(or 0 0)"));
+        assertEquals("[0, 0, or]", cc.codes.toString());
+    }
 }

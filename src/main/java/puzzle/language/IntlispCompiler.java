@@ -323,6 +323,20 @@ public class IntlispCompiler {
             };
         }
 
+        public static Code not() {
+            return new Code() {
+                @Override
+                public void execute(RuntimeContext c) {
+                    c.push(c.pop() == 0 ? 1 : 0);
+                }
+
+                @Override
+                public String toString() {
+                    return "not";
+                }
+            };
+        }
+
         public static Code binary(IntBinaryOperator operator, String name) {
             return new Code() {
                 @Override
@@ -431,18 +445,25 @@ public class IntlispCompiler {
         private CompilerContext() {
         }
 
+        public static int boolToInt(boolean value) {
+            return value ? 1 : 0;
+        }
+        
         public static CompilerContext create() {
             CompilerContext cc = new CompilerContext();
-            cc.compilers.put(sym("="), compileBinary((a, b) -> a == b ? 1 : 0, "="));
-            cc.compilers.put(sym("/="), compileBinary((a, b) -> a != b ? 1 : 0, "/="));
-            cc.compilers.put(sym("<"), compileBinary((a, b) -> a < b ? 1 : 0, "<"));
-            cc.compilers.put(sym("<="), compileBinary((a, b) -> a <= b ? 1 : 0, "<="));
-            cc.compilers.put(sym(">"), compileBinary((a, b) -> a > b ? 1 : 0, ">"));
-            cc.compilers.put(sym(">="), compileBinary((a, b) -> a >= b ? 1 : 0, ">="));
+            cc.compilers.put(sym("="), compileBinary((a, b) -> boolToInt(a == b), "="));
+            cc.compilers.put(sym("/="), compileBinary((a, b) -> boolToInt(a != b), "/="));
+            cc.compilers.put(sym("<"), compileBinary((a, b) -> boolToInt(a < b), "<"));
+            cc.compilers.put(sym("<="), compileBinary((a, b) -> boolToInt(a <= b), "<="));
+            cc.compilers.put(sym(">"), compileBinary((a, b) -> boolToInt(a > b), ">"));
+            cc.compilers.put(sym(">="), compileBinary((a, b) -> boolToInt(a >= b), ">="));
             cc.compilers.put(sym("+"), compileBinary(i(0), (a, b) -> a + b, "+"));
             cc.compilers.put(sym("-"), compileBinary2(i(0), (a, b) -> a - b, "-"));
             cc.compilers.put(sym("*"), compileBinary(i(1), (a, b) -> a * b, "*"));
             cc.compilers.put(sym("/"), compileBinary2(i(1), (a, b) -> a / b, "/"));
+            cc.compilers.put(sym("not"), compileNot());
+            cc.compilers.put(sym("and"), compileBinary(i(1), (a, b) -> a == 0 ? a : b, "and"));
+            cc.compilers.put(sym("or"), compileBinary(i(0), (a, b) -> a != 0 ? a : b, "or"));
             cc.compilers.put(sym("define"), compileDefine());
             cc.compilers.put(sym("if"), compileIf());
             return cc;
@@ -487,6 +508,16 @@ public class IntlispCompiler {
             return rc.pop();
         }
 
+        public static Compiler compileNot() {
+            return (args, cc) -> {
+                if (args instanceof Cons c0) {
+                    cc.compile(c0.car);
+                    cc.codes.add(Code.not());
+                } else
+                    throw new RuntimeException("'not' requires 1 arguments but: " + args);
+            };
+        }
+        
         public static Compiler compileIf() {
             return (args, cc) -> {
                 if (args instanceof Cons c0 && c0.cdr instanceof Cons c1 && c1.cdr instanceof Cons c2) {

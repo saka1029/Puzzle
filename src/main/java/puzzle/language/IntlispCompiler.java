@@ -1,7 +1,4 @@
-package test.puzzle.language;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+package puzzle.language;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -14,9 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntBinaryOperator;
 
-import org.junit.Test;
-
-public class TestIntLisp {
+public class IntlispCompiler {
 
     public static abstract class Obj implements Iterable<Obj> {
 
@@ -39,10 +34,10 @@ public class TestIntLisp {
                 }
             };
         }
-        
+
         public int length() {
             int length = 0;
-            for (Obj e : this)
+            for (@SuppressWarnings("unused") Obj e : this)
                 ++length;
             return length;
         }
@@ -167,38 +162,39 @@ public class TestIntLisp {
 
     /**
      * 点対はない。
+     * 
      * <pre>
      * SYNTAX
      * expression = symbol | number | list
      * symbol     = SYMBOL_CHAR { SYMBOL_CHAR }
      * number     = [ '+' | '-' ] DIGIT { DIGIT }
      * list       = '(' { expression } ')'
-     * </pre> 
+     * </pre>
      */
     public static class Parser {
         final Reader reader;
         int ch;
-        
+
         public Parser(Reader reader) {
             this.reader = reader;
             get();
         }
-        
+
         public Parser(String source) {
             this(new StringReader(source));
         }
-        
+
         static RuntimeException error(String format, Object... args) {
             return new RuntimeException(format.formatted(args));
         }
-        
+
         static boolean isSymbolOrNumber(int ch) {
             return switch (ch) {
                 case -1, '(', ')' -> false;
                 default -> !Character.isWhitespace(ch);
             };
         }
-        
+
         void get() {
             try {
                 ch = reader.read();
@@ -206,12 +202,12 @@ public class TestIntLisp {
                 throw new RuntimeException(e);
             }
         }
-        
+
         void spaces() {
             while (Character.isWhitespace(ch))
                 get();
         }
-        
+
         Obj list() {
             get(); // skip '('
             List<Obj> list = new ArrayList<>();
@@ -229,7 +225,7 @@ public class TestIntLisp {
                 result = cons(list.get(i), result);
             return result;
         }
-        
+
         Obj expression() {
             spaces();
             switch (ch) {
@@ -263,12 +259,16 @@ public class TestIntLisp {
         }
     }
 
-    public class RuntimeContext {
+    public static class RuntimeContext {
         final int[] stack;
         int sp = 0, bp = 0, pc = 0;
 
         private RuntimeContext(int stackSize) {
             this.stack = new int[stackSize];
+        }
+        
+        public static RuntimeContext create(int stackSize) {
+            return new RuntimeContext(stackSize);
         }
 
         public void push(int value) {
@@ -337,7 +337,7 @@ public class TestIntLisp {
                 }
             };
         }
-        
+
         public static Code jump(int address) {
             return new Code() {
                 @Override
@@ -351,7 +351,7 @@ public class TestIntLisp {
                 }
             };
         }
-        
+
         public static Code jumpZ(int address) {
             return new Code() {
                 @Override
@@ -366,7 +366,7 @@ public class TestIntLisp {
                 }
             };
         }
-        
+
         public static Code call(int address) {
             return new Code() {
                 @Override
@@ -381,6 +381,7 @@ public class TestIntLisp {
                 }
             };
         }
+
         public static Code enter(int argc) {
             return new Code() {
                 @Override
@@ -395,17 +396,17 @@ public class TestIntLisp {
                 }
             };
         }
-        
+
         public static Code exit() {
             return new Code() {
                 @Override
                 public void execute(RuntimeContext c) {
-                    int bp = c.bp;          // 現在のbpを退避
-                    int result = c.pop();   // 戻り値を退避
-                    c.bp = c.pop();         // bpを回復
-                    c.pc = c.pop();         // pcを回復
-                    c.sp = bp;              // spを回復
-                    c.push(result);         // 戻り値をpush
+                    int bp = c.bp; // 現在のbpを退避
+                    int result = c.pop(); // 戻り値を退避
+                    c.bp = c.pop(); // bpを回復
+                    c.pc = c.pop(); // pcを回復
+                    c.sp = bp; // spを回復
+                    c.push(result); // 戻り値をpush
                 }
 
                 @Override
@@ -480,12 +481,12 @@ public class TestIntLisp {
             codes.clear();
             Parser parser = new Parser(source);
             Obj obj;
-            while ((obj = parser.read()) != null) 
+            while ((obj = parser.read()) != null)
                 compile(obj);
             rc.run(codes);
             return rc.pop();
         }
-        
+
         public static Compiler compileIf() {
             return (args, cc) -> {
                 if (args instanceof Cons c0 && c0.cdr instanceof Cons c1 && c1.cdr instanceof Cons c2) {
@@ -533,7 +534,7 @@ public class TestIntLisp {
                         throw new RuntimeException("'(func args)' expected after 'define' but: " + c0.car);
                 } else
                     throw new RuntimeException("'define' requires 2 arguments but: " + args);
-                
+
             };
         }
 
@@ -547,6 +548,7 @@ public class TestIntLisp {
                     throw new RuntimeException("invalid args: " + args);
             };
         }
+
         /**
          * 2項演算子operatorを可変長引数に適用する。 引数がない場合は単位元を返す。 +や*はこちらを使う。
          * 
@@ -626,106 +628,5 @@ public class TestIntLisp {
                     throw new RuntimeException("insufficient arguments");
             };
         }
-    }
-
-    @Test
-    public void testConsToString() {
-        assertEquals("(a . 2)", cons(sym("a"), i(2)).toString());
-        assertEquals("(a 2)", list(sym("a"), i(2)).toString());
-        assertEquals(list(sym("a"), i(2)), cons(sym("a"), cons(i(2), NIL)));
-        assertEquals(NIL, list());
-    }
-
-    @Test
-    public void testParse() {
-        assertEquals(NIL, parse("nil"));
-        assertEquals(sym("abc"), parse("abc"));
-        assertEquals(NIL, parse("()"));
-        assertEquals(list(sym("a"), sym("b"), sym("c")), parse("(a b c)"));
-        assertEquals(list(sym("a"), i(2), sym("c")), parse("(a 2 c)"));
-        assertEquals(list(sym("+"), list(sym("-"), i(1), i(2)), i(3)), parse("(+ (- 1 2) 3)"));
-//        assertEquals(cons(sym("a"), cons(i(0), i(1))), parse("(a 0 . 1)"));
-    }
-
-    @Test
-    public void testCompileInt() {
-        CompilerContext cc = CompilerContext.create();
-        cc.compile(i(3));
-        RuntimeContext context = new RuntimeContext(20);
-        for (Code c : cc.codes)
-            c.execute(context);
-        assertEquals(3, context.pop());
-    }
-
-    @Test
-    public void testCompileBinary() {
-        CompilerContext cc = CompilerContext.create();
-        RuntimeContext rc = new RuntimeContext(20);
-        assertEquals(0, cc.compileGo(rc, "(= 1 2)"));
-        assertEquals(1, cc.compileGo(rc, "(/= 1 2)"));
-        assertEquals(1, cc.compileGo(rc, "(< 1 2)"));
-        assertEquals(1, cc.compileGo(rc, "(<= 1 2)"));
-        assertEquals(0, cc.compileGo(rc, "(> 1 2)"));
-        assertEquals(0, cc.compileGo(rc, "(>= 1 2)"));
-        assertEquals(0, cc.compileGo(rc, "(+)"));
-        assertEquals(1, cc.compileGo(rc, "(+ 1)"));
-        assertEquals(3, cc.compileGo(rc, "(+ 1 2)"));
-        assertEquals(6, cc.compileGo(rc, "(+ 1 2 3)"));
-        try {
-            assertEquals(0, cc.compileGo(rc, "(-)"));
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("insufficient arguments", e.getMessage());
-        }
-        assertEquals(-1, cc.compileGo(rc, "(- 1)"));
-        assertEquals(-1, cc.compileGo(rc, "(- 1 2)"));
-        assertEquals(-4, cc.compileGo(rc, "(- 1 2 3)"));
-        assertEquals(1, cc.compileGo(rc, "(*)"));
-        assertEquals(1, cc.compileGo(rc, "(* 1)"));
-        assertEquals(2, cc.compileGo(rc, "(* 1 2)"));
-        assertEquals(6, cc.compileGo(rc, "(* 1 2 3)"));
-        assertEquals(24, cc.compileGo(rc, "(* 1 2 3 4)"));
-        try {
-            assertEquals(1, cc.compileGo(rc, "(/)"));
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("insufficient arguments", e.getMessage());
-        }
-        assertEquals(1, cc.compileGo(rc, "(/ 1)"));
-        assertEquals(0, cc.compileGo(rc, "(/ 2)"));
-        assertEquals(2, cc.compileGo(rc, "(/ 4 2)"));
-        assertEquals(1, cc.compileGo(rc, "(/ 8 4 2)"));
-        assertEquals(8, cc.compileGo(rc, "(+ (* 2 3) (/ 8 4))"));
-        assertEquals("[2, 3, *, 8, 4, /, +]", cc.codes.toString());
-        assertEquals(1, cc.compileGo(rc, "(< 2 3)"));
-        assertEquals("[2, 3, <]", cc.codes.toString());
-    }
-
-    @Test
-    public void testCompileIf() {
-        CompilerContext cc = CompilerContext.create();
-        RuntimeContext rc = new RuntimeContext(20);
-        assertEquals(2, cc.compileGo(rc, "(if 1 2 3)"));
-        assertEquals(3, cc.compileGo(rc, "(if 0 2 3)"));
-        assertEquals(1, cc.compileGo(rc, "(if (< 1 2) 1 2)"));
-        assertEquals(2, cc.compileGo(rc, "(if (> 1 2) 1 2)"));
-        assertEquals("[1, 2, >, jumpZ 6, 1, jump 7, 2]", cc.codes.toString());
-    }
-
-    @Test
-    public void testCompileDefine() {
-        CompilerContext cc = CompilerContext.create();
-        RuntimeContext rc = new RuntimeContext(20);
-        assertEquals(3, cc.compileGo(rc, "(define (add a b) (+ a b)) (add 1 2)"));
-        assertEquals("[jump 6, enter 2, arg 0, arg 1, +, exit, 1, 2, call 1]", cc.codes.toString());
-    }
-
-    @Test
-    public void testCompileFact() {
-        CompilerContext cc = CompilerContext.create();
-        RuntimeContext rc = new RuntimeContext(20);
-        assertEquals(24, cc.compileGo(rc, "(define (fact n) (if (<= n 1) 1 (* n (fact (- n 1))))) (fact 4)"));
-        assertEquals("[jump 15, enter 1, arg 0, 1, <=, jumpZ 8, 1, jump 14, arg 0, arg 0, 1, -, call 1, *, exit, 4, call 1]",
-            cc.codes.toString());
     }
 }

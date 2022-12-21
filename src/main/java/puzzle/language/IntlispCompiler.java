@@ -295,56 +295,14 @@ public class IntlispCompiler {
     public interface Code {
         void execute(RuntimeContext c);
 
-        public static Code constant(int value) {
+        public static Code of(Code code, String name) {
             return new Code() {
+
                 @Override
                 public void execute(RuntimeContext c) {
-                    c.push(value);
+                    code.execute(c);
                 }
-
-                @Override
-                public String toString() {
-                    return "" + value;
-                }
-            };
-        }
-
-        public static Code arg(int index) {
-            return new Code() {
-                @Override
-                public void execute(RuntimeContext c) {
-                    c.arg(index);
-                }
-
-                @Override
-                public String toString() {
-                    return "arg " + index;
-                }
-            };
-        }
-
-        public static Code not() {
-            return new Code() {
-                @Override
-                public void execute(RuntimeContext c) {
-                    c.push(c.pop() == 0 ? 1 : 0);
-                }
-
-                @Override
-                public String toString() {
-                    return "not";
-                }
-            };
-        }
-
-        public static Code binary(IntBinaryOperator operator, String name) {
-            return new Code() {
-                @Override
-                public void execute(RuntimeContext c) {
-                    int r = c.pop();
-                    c.push(operator.applyAsInt(c.pop(), r));
-                }
-
+                
                 @Override
                 public String toString() {
                     return name;
@@ -352,82 +310,47 @@ public class IntlispCompiler {
             };
         }
 
-        public static Code jump(int address) {
-            return new Code() {
-                @Override
-                public void execute(RuntimeContext c) {
-                    c.pc = address;
-                }
-
-                @Override
-                public String toString() {
-                    return "jump " + address;
-                }
-            };
+        public static Code constant(int value) {
+            return Code.of(c -> c.push(value), "" + value);
         }
 
-        public static Code jumpZ(int address) {
-            return new Code() {
-                @Override
-                public void execute(RuntimeContext c) {
-                    if (c.pop() == 0)
-                        c.pc = address;
-                }
+        public static Code arg(int index) {
+            return Code.of(c -> c.arg(index), "arg " + index);
+        }
 
-                @Override
-                public String toString() {
-                    return "jumpZ " + address;
-                }
-            };
+        public static Code not() {
+            return Code.of(c -> c.push(c.pop() == 0 ? 1 : 0), "not");
+        }
+
+        public static Code binary(IntBinaryOperator operator, String name) {
+            return Code.of(c -> { int r = c.pop(); c.push(operator.applyAsInt(c.pop(), r)); }, name);
+        }
+
+        public static Code jump(int address) {
+            return Code.of(c -> c.pc = address, "jump " + address);
+        }
+
+        public static Code jumpF(int address) {
+            return Code.of(c -> { if (c.pop() == 0) c.pc = address; }, "jumpF " + address);
         }
 
         public static Code call(int address) {
-            return new Code() {
-                @Override
-                public void execute(RuntimeContext c) {
-                    c.push(c.pc);
-                    c.pc = address;
-                }
-
-                @Override
-                public String toString() {
-                    return "call " + address;
-                }
-            };
+            return Code.of(c -> { c.push(c.pc); c.pc = address; }, "call " + address);
         }
 
         public static Code enter(int argc) {
-            return new Code() {
-                @Override
-                public void execute(RuntimeContext c) {
-                    c.push(c.bp);
-                    c.bp = c.sp - 2 - argc;
-                }
-
-                @Override
-                public String toString() {
-                    return "enter " + argc;
-                }
-            };
+            return Code.of(c -> { c.push(c.bp); c.bp = c.sp - 2 - argc; }, "enter " + argc);
         }
 
         public static Code exit() {
-            return new Code() {
-                @Override
-                public void execute(RuntimeContext c) {
-                    int bp = c.bp; // 現在のbpを退避
-                    int result = c.pop(); // 戻り値を退避
-                    c.bp = c.pop(); // bpを回復
-                    c.pc = c.pop(); // pcを回復
-                    c.sp = bp; // spを回復
-                    c.push(result); // 戻り値をpush
-                }
-
-                @Override
-                public String toString() {
-                    return "exit";
-                }
-            };
+            return Code.of(c -> {
+                int bp = c.bp; // 現在のbpを退避
+                int result = c.pop(); // 戻り値を退避
+                c.bp = c.pop(); // bpを回復
+                c.pc = c.pop(); // pcを回復
+                c.sp = bp; // spを回復
+                c.push(result); // 戻り値をpush
+            }, "exit");
         }
     }
 
@@ -461,6 +384,7 @@ public class IntlispCompiler {
             cc.compilers.put(sym("-"), compileBinary2(i(0), (a, b) -> a - b, "-"));
             cc.compilers.put(sym("*"), compileBinary(i(1), (a, b) -> a * b, "*"));
             cc.compilers.put(sym("/"), compileBinary2(i(1), (a, b) -> a / b, "/"));
+            cc.compilers.put(sym("%"), compileBinary2(i(1), (a, b) -> a % b, "%"));
             cc.compilers.put(sym("not"), compileNot());
             cc.compilers.put(sym("and"), compileBinary(i(1), (a, b) -> a == 0 ? a : b, "and"));
             cc.compilers.put(sym("or"), compileBinary(i(0), (a, b) -> a != 0 ? a : b, "or"));
@@ -528,7 +452,7 @@ public class IntlispCompiler {
                     int x = cc.codes.size();
                     cc.codes.add(null); // dummy for jump
                     int y = cc.codes.size();
-                    cc.codes.set(w, Code.jumpZ(y));
+                    cc.codes.set(w, Code.jumpF(y));
                     cc.compile(c2.car); // else part
                     int z = cc.codes.size();
                     cc.codes.set(x, Code.jump(z));

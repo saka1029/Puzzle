@@ -79,6 +79,18 @@ public class TestIntlispCompiler {
         assertEquals("[2, 3, *, 8, 4, /, +]", cc.codes.toString());
         assertEquals(1, cc.compileGo(rc, "(< 2 3)"));
         assertEquals("[2, 3, <]", cc.codes.toString());
+        try {
+            assertEquals(1, cc.compileGo(rc, "(%)"));
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("insufficient arguments", e.getMessage());
+        }
+        assertEquals(0, cc.compileGo(rc, "(% 1)"));
+        assertEquals(1, cc.compileGo(rc, "(% 2)"));
+        assertEquals(1, cc.compileGo(rc, "(% 4 3)"));
+        assertEquals(1, cc.compileGo(rc, "(% 11 4 2)"));
+        assertEquals(8, cc.compileGo(rc, "(+ (* 2 3) (% 8 3))"));
+        assertEquals("[2, 3, *, 8, 3, %, +]", cc.codes.toString());
     }
 
     @Test
@@ -89,7 +101,7 @@ public class TestIntlispCompiler {
         assertEquals(3, cc.compileGo(rc, "(if 0 2 3)"));
         assertEquals(1, cc.compileGo(rc, "(if (< 1 2) 1 2)"));
         assertEquals(2, cc.compileGo(rc, "(if (> 1 2) 1 2)"));
-        assertEquals("[1, 2, >, jumpZ 6, 1, jump 7, 2]", cc.codes.toString());
+        assertEquals("[1, 2, >, jumpF 6, 1, jump 7, 2]", cc.codes.toString());
     }
 
     @Test
@@ -105,7 +117,7 @@ public class TestIntlispCompiler {
         CompilerContext cc = CompilerContext.create();
         RuntimeContext rc = RuntimeContext.create(20);
         assertEquals(24, cc.compileGo(rc, "(define (fact n) (if (<= n 1) 1 (* n (fact (- n 1))))) (fact 4)"));
-        assertEquals("[jump 15, enter 1, arg 0, 1, <=, jumpZ 8, 1, jump 14, arg 0, arg 0, 1, -, call 1, *, exit, 4, call 1]", cc.codes.toString());
+        assertEquals("[jump 15, enter 1, arg 0, 1, <=, jumpF 8, 1, jump 14, arg 0, arg 0, 1, -, call 1, *, exit, 4, call 1]", cc.codes.toString());
     }
 
     @Test

@@ -105,22 +105,6 @@ public class TestIntlispCompiler {
     }
 
     @Test
-    public void testCompileDefine() {
-        CompilerContext cc = CompilerContext.create();
-        RuntimeContext rc = RuntimeContext.create(20);
-        assertEquals(3, cc.compileGo(rc, "(define (add a b) (+ a b)) (add 1 2)"));
-        assertEquals("[jump 6, enter 2, arg 0, arg 1, +, exit, 1, 2, call 1]", cc.codes.toString());
-    }
-
-    @Test
-    public void testCompileFact() {
-        CompilerContext cc = CompilerContext.create();
-        RuntimeContext rc = RuntimeContext.create(20);
-        assertEquals(24, cc.compileGo(rc, "(define (fact n) (if (<= n 1) 1 (* n (fact (- n 1))))) (fact 4)"));
-        assertEquals("[jump 15, enter 1, arg 0, 1, <=, jumpF 8, 1, jump 14, arg 0, arg 0, 1, -, call 1, *, exit, 4, call 1]", cc.codes.toString());
-    }
-
-    @Test
     public void testCompileNot() {
         CompilerContext cc = CompilerContext.create();
         RuntimeContext rc = RuntimeContext.create(20);
@@ -156,5 +140,44 @@ public class TestIntlispCompiler {
         assertEquals(3, cc.compileGo(rc, "(or 0 3)"));
         assertEquals(0, cc.compileGo(rc, "(or 0 0)"));
         assertEquals("[0, 0, or]", cc.codes.toString());
+    }
+
+    @Test
+    public void testCompileDefine() {
+        CompilerContext cc = CompilerContext.create();
+        RuntimeContext rc = RuntimeContext.create(20);
+        assertEquals(3, cc.compileGo(rc, "(define (add a b) (+ a b)) (add 1 2)"));
+        assertEquals("[jump 6, enter 2, arg 0, arg 1, +, exit, 1, 2, call 1]", cc.codes.toString());
+    }
+
+    @Test
+    public void testCompileFact() {
+        CompilerContext cc = CompilerContext.create();
+        RuntimeContext rc = RuntimeContext.create(20);
+        assertEquals(24, cc.compileGo(rc, "(define (fact n) (if (<= n 1) 1 (* n (fact (- n 1))))) (fact 4)"));
+        assertEquals("[jump 15, enter 1, arg 0, 1, <=, jumpF 8, 1, jump 14, arg 0, arg 0, 1, -, call 1, *, exit, 4, call 1]", cc.codes.toString());
+    }
+
+    @Test
+    public void testCompileFibonacci() {
+        String source =
+            "(define (fibonacci n)"
+            + " (if (or (= n 0) (= n 1))"
+            + "     n"
+            + "     (+ (fibonacci (- n 2)) (fibonacci (- n 1)))  ))"
+            + "(fibonacci 7)";
+        String codes =
+            /*   0*/ "[jump 22,"
+            + /* 1*/ " enter 1,"
+            + /* 2*/ " arg 0, 0, =, arg 0, 1, =, or, jumpF 12,"
+            + /*10*/ " arg 0, jump 21,"
+            + /*12*/ " arg 0, 2, -, call 1,"
+            + /*16*/ " arg 0, 1, -, call 1, +,"
+            + /*21*/ " exit,"
+            + /*22*/ " 7, call 1]";
+        CompilerContext cc = CompilerContext.create();
+        RuntimeContext rc = RuntimeContext.create(30);
+        assertEquals(13, cc.compileGo(rc, source));
+        assertEquals(codes, cc.codes.toString());
     }
 }

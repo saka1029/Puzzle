@@ -13,15 +13,15 @@ public class TestSudoku {
         return new Object() {
             
             boolean isNumberInRow(int number, int row) {
-                for (int i = 0; i < size; ++i)
-                    if (board[row][i] == number)
+                for (int column = 0; column < size; ++column)
+                    if (board[row][column] == number)
                         return true;
                 return false;
             }
             
             boolean isNumberInColumn(int number, int column) {
-                for (int i = 0; i < size; ++i)
-                    if (board[i][column] == number)
+                for (int row = 0; row < size; ++row)
+                    if (board[row][column] == number)
                         return true;
                 return false;
             }

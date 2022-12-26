@@ -454,8 +454,6 @@ public class TestSudoku {
             {2, 7, 4, 8, 3, 6, 1, 5, 9},
         };
         List<int[][]> result = solveBitmapFast(board);
-        for (int[] row : result.get(0))
-            System.out.println(Arrays.toString(row));
         assertEquals(1, result.size());
         assertArrayEquals(expected, result.get(0));
     }

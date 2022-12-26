@@ -27,8 +27,7 @@ public class TestSendMoreMoney {
             boolean check() {
                 // 01234567
                 // SENDMORY
-                return // n[0] != 0 && n[4] != 0 &&
-                    number(0, 1, 2, 3) + number(4, 5, 6, 1) == number(4, 5, 2, 1, 7);
+                return number(0, 1, 2, 3) + number(4, 5, 6, 1) == number(4, 5, 2, 1, 7);
             }
 
             void solve(int i, int used) {

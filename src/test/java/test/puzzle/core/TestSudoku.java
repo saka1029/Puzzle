@@ -1,16 +1,20 @@
 package test.puzzle.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestSudoku {
 
-    static String method() {
-        return Thread.currentThread().getStackTrace()[2].getMethodName();
+    static void method() {
+//        System.out.println(Thread.currentThread().getStackTrace()[2].getMethodName());
     }
 
     /**
@@ -76,7 +80,7 @@ public class TestSudoku {
 
     @Test
     public void testSolve() {
-        System.out.println(method());
+        method();
         int[][] board = {
             {7, 0, 2, 0, 5, 0, 6, 0, 0},
             {0, 0, 0, 0, 0, 3, 0, 0, 0},
@@ -107,12 +111,14 @@ public class TestSudoku {
      * YouTubeのソルバーを効率化したもの。
      * 未確定のセルを探すロジックを改善した。
      */
-    static void solveSequential(int[][] a) {
+    static List<int[][]> solveSequential(int[][] a) {
         int size = 9;
+        List<int[][]> result = new ArrayList<>();
         new Object() {
             void answer() {
-                for (int[] x : a)
-                    System.out.println(Arrays.toString(x));
+                result.add(Stream.of(a)
+                    .map(x -> Arrays.copyOf(x, x.length))
+                    .toArray(int[][]::new));
             }
             
             boolean isSafe(int n, int r, int c) {
@@ -142,11 +148,12 @@ public class TestSudoku {
                         }
             }
         }.solve(0);
+        return result;
     }
 
     @Test
     public void testSolveSequential() {
-        System.out.println(method());
+        method();
         int[][] board = {
             {7, 0, 2, 0, 5, 0, 6, 0, 0},
             {0, 0, 0, 0, 0, 3, 0, 0, 0},
@@ -158,13 +165,27 @@ public class TestSudoku {
             {0, 0, 0, 2, 0, 0, 0, 0, 0},
             {0, 0, 7, 0, 4, 0, 2, 0, 3},
         };
-        solveSequential(board);
+        int[][] expected = {
+            {7, 3, 2, 4, 5, 8, 6, 1, 9},
+            {9, 5, 6, 1, 7, 3, 8, 2, 4},
+            {1, 8, 4, 6, 2, 9, 5, 3, 7},
+            {8, 7, 1, 5, 6, 4, 3, 9, 2},
+            {6, 4, 3, 8, 9, 2, 7, 5, 1},
+            {2, 9, 5, 3, 1, 7, 4, 6, 8},
+            {3, 2, 9, 7, 8, 6, 1, 4, 5},
+            {4, 1, 8, 2, 3, 5, 9, 7, 6},
+            {5, 6, 7, 9, 4, 1, 2, 8, 3},
+        };
+        List<int[][]> result = solveSequential(board);
+        assertEquals(1, result.size());
+        assertArrayEquals(expected, result.get(0));
     }
 
     /**
      * intによる集合を使うことで、さらに効率化したもの。
      */
-    static void solveBitmap(int[][] a) {
+    static List<int[][]> solveBitmap(int[][] a) {
+        List<int[][]> result = new ArrayList<>();
         new Object() {
             int size = 9;
             int[] rowSet = new int[size], colSet = new int[size], boxSet = new int[size];
@@ -178,8 +199,9 @@ public class TestSudoku {
             }
 
             void answer() {
-                for (int[] x : a)
-                    System.out.println(Arrays.toString(x));
+                result.add(Stream.of(a)
+                    .map(x -> Arrays.copyOf(x, x.length))
+                    .toArray(int[][]::new));
             }
             
             int b(int r, int c) {
@@ -224,11 +246,12 @@ public class TestSudoku {
                         }
             }
         }.solve(0);
+        return result;
     }
 
     @Test
     public void testSolveBitmap() {
-        System.out.println(method());
+        method();
         int[][] board = {
             {7, 0, 2, 0, 5, 0, 6, 0, 0},
             {0, 0, 0, 0, 0, 3, 0, 0, 0},
@@ -240,7 +263,20 @@ public class TestSudoku {
             {0, 0, 0, 2, 0, 0, 0, 0, 0},
             {0, 0, 7, 0, 4, 0, 2, 0, 3},
         };
-        solveBitmap(board);
+        int[][] expected = {
+            {7, 3, 2, 4, 5, 8, 6, 1, 9},
+            {9, 5, 6, 1, 7, 3, 8, 2, 4},
+            {1, 8, 4, 6, 2, 9, 5, 3, 7},
+            {8, 7, 1, 5, 6, 4, 3, 9, 2},
+            {6, 4, 3, 8, 9, 2, 7, 5, 1},
+            {2, 9, 5, 3, 1, 7, 4, 6, 8},
+            {3, 2, 9, 7, 8, 6, 1, 4, 5},
+            {4, 1, 8, 2, 3, 5, 9, 7, 6},
+            {5, 6, 7, 9, 4, 1, 2, 8, 3},
+        };
+        List<int[][]> result = solveBitmap(board);
+        assertEquals(1, result.size());
+        assertArrayEquals(expected, result.get(0));
     }
 
     /**
@@ -253,7 +289,8 @@ public class TestSudoku {
      * 各要素は番号nが使用済みのとき、2ⁿビットがONになっている。
      * nは1から9の数字なので、全ての番号が使用済みの時は0b111_111_111_0となる。
      */
-    static void solveBitmapFast(int[][] a) {
+    static List<int[][]> solveBitmapFast(int[][] a) {
+        List<int[][]> result = new ArrayList<>();
         new Object() {
             int size = 9, mask = 0b111_111_111_0;
             int[] rowSet = new int[size], colSet = new int[size], boxSet = new int[size];
@@ -273,8 +310,9 @@ public class TestSudoku {
             }
 
             void answer() {
-                for (int[] x : a)
-                    System.out.println(Arrays.toString(x));
+                result.add(Stream.of(a)
+                    .map(x -> Arrays.copyOf(x, x.length))
+                    .toArray(int[][]::new));
             }
             
             /**
@@ -326,11 +364,12 @@ public class TestSudoku {
                     }
             }
         }.solve(0);
+        return result;
     }
 
     @Test
     public void testSolveBitmapFast() {
-        System.out.println(method());
+        method();
         int[][] board = {
             {7, 0, 2, 0, 5, 0, 6, 0, 0},
             {0, 0, 0, 0, 0, 3, 0, 0, 0},
@@ -342,13 +381,26 @@ public class TestSudoku {
             {0, 0, 0, 2, 0, 0, 0, 0, 0},
             {0, 0, 7, 0, 4, 0, 2, 0, 3},
         };
-        solveBitmapFast(board);
+        int[][] expected = {
+            {7, 3, 2, 4, 5, 8, 6, 1, 9},
+            {9, 5, 6, 1, 7, 3, 8, 2, 4},
+            {1, 8, 4, 6, 2, 9, 5, 3, 7},
+            {8, 7, 1, 5, 6, 4, 3, 9, 2},
+            {6, 4, 3, 8, 9, 2, 7, 5, 1},
+            {2, 9, 5, 3, 1, 7, 4, 6, 8},
+            {3, 2, 9, 7, 8, 6, 1, 4, 5},
+            {4, 1, 8, 2, 3, 5, 9, 7, 6},
+            {5, 6, 7, 9, 4, 1, 2, 8, 3},
+        };
+        List<int[][]> result = solveBitmapFast(board);
+        assertEquals(1, result.size());
+        assertArrayEquals(expected, result.get(0));
     }
 
 //    @Ignore
     @Test
     public void testSolveBitmapFast17() {
-        System.out.println(method());
+        method();
         int[][] board = {
             {0, 0, 0, 8, 0, 1, 0, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 4, 3},
@@ -360,13 +412,26 @@ public class TestSudoku {
             {0, 0, 3, 4, 0, 0, 0, 0, 0},
             {0, 0, 0, 2, 0, 0, 6, 0, 0},
         };
-        solveBitmapFast(board);
+        int[][] expected = {
+            {2, 3, 7, 8, 4, 1, 5, 6, 9},
+            {1, 8, 6, 7, 9, 5, 2, 4, 3},
+            {5, 9, 4, 3, 2, 6, 7, 1, 8},
+            {3, 1, 5, 6, 7, 4, 8, 9, 2},
+            {4, 6, 9, 5, 8, 2, 1, 3, 7},
+            {7, 2, 8, 1, 3, 9, 4, 5, 6},
+            {6, 4, 2, 9, 1, 8, 3, 7, 5},
+            {8, 5, 3, 4, 6, 7, 9, 2, 1},
+            {9, 7, 1, 2, 5, 3, 6, 8, 4},
+        };
+        List<int[][]> result = solveBitmapFast(board);
+        assertEquals(1, result.size());
+        assertArrayEquals(expected, result.get(0));
     }
 
 //    @Ignore
     @Test
     public void testSolveBitmapFast17_2() {
-        System.out.println(method());
+        method();
         int[][] board = {
             {0, 0, 0, 0, 0, 0, 0, 1, 0},
             {4, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -378,13 +443,28 @@ public class TestSudoku {
             {0, 5, 0, 1, 0, 0, 0, 0, 0},
             {0, 0, 0, 8, 0, 6, 0, 0, 0},
         };
-        solveBitmapFast(board);
+        int[][] expected = {
+            {6, 9, 3, 7, 8, 4, 5, 1, 2},
+            {4, 8, 7, 5, 1, 2, 9, 3, 6},
+            {1, 2, 5, 9, 6, 3, 8, 7, 4},
+            {9, 3, 2, 6, 5, 1, 4, 8, 7},
+            {5, 6, 8, 2, 4, 7, 3, 9, 1},
+            {7, 4, 1, 3, 9, 8, 6, 2, 5},
+            {3, 1, 9, 4, 7, 5, 2, 6, 8},
+            {8, 5, 6, 1, 2, 9, 7, 4, 3},
+            {2, 7, 4, 8, 3, 6, 1, 5, 9},
+        };
+        List<int[][]> result = solveBitmapFast(board);
+        for (int[] row : result.get(0))
+            System.out.println(Arrays.toString(row));
+        assertEquals(1, result.size());
+        assertArrayEquals(expected, result.get(0));
     }
 
 //    @Ignore
     @Test
     public void testSolveBitmapFast17_3() {
-        System.out.println(method());
+        method();
         int[][] board = {
             {0, 0, 0, 0, 0, 0, 0, 0, 1},
             {0, 0, 0, 0, 0, 0, 0, 2, 3},
@@ -396,6 +476,19 @@ public class TestSudoku {
             {0, 1, 0, 0, 0, 4, 0, 0, 0},
             {5, 2, 0, 0, 0, 0, 0, 0, 0},
         };
-        solveBitmapFast(board);
+        int[][] expected = {
+            {6, 7, 2, 9, 8, 3, 4, 5, 1},
+            {9, 5, 1, 4, 7, 6, 8, 2, 3},
+            {3, 8, 4, 2, 1, 5, 9, 7, 6},
+            {4, 6, 8, 1, 5, 9, 2, 3, 7},
+            {2, 9, 5, 7, 3, 8, 6, 1, 4},
+            {1, 3, 7, 6, 4, 2, 5, 8, 9},
+            {8, 4, 3, 5, 6, 7, 1, 9, 2},
+            {7, 1, 9, 8, 2, 4, 3, 6, 5},
+            {5, 2, 6, 3, 9, 1, 7, 4, 8},
+        };
+        List<int[][]> result = solveBitmapFast(board);
+        assertEquals(1, result.size());
+        assertArrayEquals(expected, result.get(0));
     }
 }

@@ -355,10 +355,9 @@ public class TestSudoku {
                         a[r][c] = Integer.numberOfTrailingZeros(bit);
                         solve(i + 1);
                         // 使用済み番号をbitmapから削除する。
-                        int not = ~bit;
-                        rowSet[r] &= not;
-                        colSet[c] &= not;
-                        boxSet[b] &= not;
+                        rowSet[r] ^= bit;
+                        colSet[c] ^= bit;
+                        boxSet[b] ^= bit;
                         // 使用済み番号を配列から取り除く。
                         a[r][c] = 0;
                     }

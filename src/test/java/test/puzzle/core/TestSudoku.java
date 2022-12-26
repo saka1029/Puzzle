@@ -88,30 +88,21 @@ public class TestSudoku {
             {0, 0, 0, 2, 0, 0, 0, 0, 0},
             {0, 0, 7, 0, 4, 0, 2, 0, 3},
         };
-        if (solve(board))
-            for (int[] row : board)
-                System.out.println(Arrays.toString(row));
+        int[][] expected = {
+            {7, 3, 2, 4, 5, 8, 6, 1, 9},
+            {9, 5, 6, 1, 7, 3, 8, 2, 4},
+            {1, 8, 4, 6, 2, 9, 5, 3, 7},
+            {8, 7, 1, 5, 6, 4, 3, 9, 2},
+            {6, 4, 3, 8, 9, 2, 7, 5, 1},
+            {2, 9, 5, 3, 1, 7, 4, 6, 8},
+            {3, 2, 9, 7, 8, 6, 1, 4, 5},
+            {4, 1, 8, 2, 3, 5, 9, 7, 6},
+            {5, 6, 7, 9, 4, 1, 2, 8, 3},
+        };
+        assertTrue(solve(board));
+        assertArrayEquals(expected, board);
     }
 
-    @Test
-    public void testZeros() {
-        System.out.println(method());
-        int[][] board = {
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-        };
-        if (solve(board))
-            for (int[] row : board)
-                System.out.println(Arrays.toString(row));
-    }
-    
     /**
      * YouTubeのソルバーを効率化したもの。
      * 未確定のセルを探すロジックを改善した。
@@ -315,14 +306,15 @@ public class TestSudoku {
                 else
                     // vは適用可能な番号のbitmap、v ^= bitは処理済のbitをvから除外する。
                     for (int v = mask & ~(rowSet[r] | colSet[c] | boxSet[b]), bit = 0; v != 0; v ^= bit) {
-                        // 適用可能な番号のbitmapから左端のビットを取り出す。
+                        // 適用可能な番号のbitmapから右端(最小)のビットを取り出す。
                         bit = Integer.lowestOneBit(v); // or -v & v
                         // 使用済み番号をbitmapに追加する。
                         rowSet[r] |= bit;
                         colSet[c] |= bit;
                         boxSet[b] |= bit;
                         // 使用済み番号を配列に格納する。
-                        a[r][c] = Integer.numberOfTrailingZeros(bit); // bitを数字(1-9)に変換
+                        // bitを数字(1-9)に変換
+                        a[r][c] = Integer.numberOfTrailingZeros(bit);
                         solve(i + 1);
                         // 使用済み番号をbitmapから削除する。
                         int not = ~bit;

@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestSudoku {
@@ -190,7 +191,7 @@ public class TestSudoku {
                     System.out.println(Arrays.toString(x));
             }
             
-            int boxIndex(int r, int c) {
+            int b(int r, int c) {
                 return r - r % 3 + c / 3;
             }
 
@@ -198,7 +199,7 @@ public class TestSudoku {
                 int bit = 1 << n;
                 rowSet[r] |= bit;
                 colSet[c] |= bit;
-                boxSet[boxIndex(r, c)] |= bit;
+                boxSet[b(r, c)] |= bit;
                 a[r][c] = n;
             }
             
@@ -206,7 +207,7 @@ public class TestSudoku {
                 int bit = ~(1 << n);
                 rowSet[r] &= bit;
                 colSet[c] &= bit;
-                boxSet[boxIndex(r, c)] &= bit;
+                boxSet[b(r, c)] &= bit;
                 a[r][c] = 0;
             }
 
@@ -214,7 +215,7 @@ public class TestSudoku {
                 int bit = 1 << n;
                 return (rowSet[r] & bit) == 0
                     && (colSet[c] & bit) == 0
-                    && (boxSet[boxIndex(r, c)] & bit) == 0;
+                    && (boxSet[b(r, c)] & bit) == 0;
             }
 
             void solve(int i) {
@@ -251,8 +252,110 @@ public class TestSudoku {
         solveBitmap(board);
     }
 
+    /**
+     * bitmapを使って適用可能な番号のみを順次取り出すようにし、
+     * 適用不能な番号のチェックを行わずに済むようにした。
+     * つまり、for (int n = 1; n <= 9; ++n)のループを高速化した。
+     * 終盤になると適用不能な番号が増えてくるので、
+     * そのチェックをスキップできると高速化できる。
+     * xxxSet[]は使用済み番号の集合の配列。
+     * 各要素は番号nが使用済みのとき、2ⁿビットがONになっている。
+     * nは1から9の数字なので、全ての番号が使用済みの時は0b111_111_111_0となる。
+     */
+    static void solveBitmapFast(int[][] a) {
+        new Object() {
+            int size = 9, mask = 0b111_111_111_0;
+            int[] rowSet = new int[size], colSet = new int[size], boxSet = new int[size];
+            {
+                // Object初期化：既に確定している番号をbitmapにセットする。
+                for (int r = 0; r < size; ++r)
+                    for (int c = 0; c < size; ++c) {
+                        int n = a[r][c];
+                        if (n != 0) {
+                            int bit = 1 << n;
+                            int b = b(r, c);
+                            rowSet[r] |= bit;
+                            colSet[c] |= bit;
+                            boxSet[b] |= bit;
+                        }
+                    }
+            }
+
+            void answer() {
+                for (int[] x : a)
+                    System.out.println(Arrays.toString(x));
+            }
+            
+            /**
+             * r行c列が属するbox(3x3)のセル位置を求める。
+             * <pre>
+             * \ c 0 1 2 3 4 5 6 7 8
+             * r +------------------
+             * 0 | 0 0 0 1 1 1 2 2 2 
+             * 1 | 0 0 0 1 1 1 2 2 2 
+             * 2 | 0 0 0 1 1 1 2 2 2 
+             * 3 | 3 3 3 4 4 4 5 5 5 
+             * 4 | 3 3 3 4 4 4 5 5 5 
+             * 5 | 3 3 3 4 4 4 5 5 5 
+             * 6 | 6 6 6 7 7 7 8 8 8 
+             * 7 | 6 6 6 7 7 7 8 8 8 
+             * 8 | 6 6 6 7 7 7 8 8 8 
+             * </pre>
+             */
+            int b(int r, int c) {
+                return r - r % 3 + c / 3;
+            }
+
+            void solve(int i) {
+                int r = i / size, c = i % size, b = b(r, c);
+                if (r >= size)
+                    answer();
+                else if (a[r][c] != 0)
+                    solve(i + 1); // 既に番号が付与されている場合は次へ
+                else
+                    // vは適用可能な番号のbitmap、v ^= bitは処理済のbitをvから除外する。
+                    for (int v = mask & ~(rowSet[r] | colSet[c] | boxSet[b]), bit = 0; v != 0; v ^= bit) {
+                        // 適用可能な番号のbitmapから左端のビットを取り出す。
+                        bit = Integer.lowestOneBit(v); // or -v & v
+                        // 使用済み番号をbitmapに追加する。
+                        rowSet[r] |= bit;
+                        colSet[c] |= bit;
+                        boxSet[b] |= bit;
+                        // 使用済み番号を配列に格納する。
+                        a[r][c] = Integer.numberOfTrailingZeros(bit); // bitを数字(1-9)に変換
+                        solve(i + 1);
+                        // 使用済み番号をbitmapから削除する。
+                        int not = ~bit;
+                        rowSet[r] &= not;
+                        colSet[c] &= not;
+                        boxSet[b] &= not;
+                        // 使用済み番号を配列から取り除く。
+                        a[r][c] = 0;
+                    }
+            }
+        }.solve(0);
+    }
+
     @Test
-    public void testSolveBitmap17() {
+    public void testSolveBitmapFast() {
+        System.out.println(method());
+        int[][] board = {
+            {7, 0, 2, 0, 5, 0, 6, 0, 0},
+            {0, 0, 0, 0, 0, 3, 0, 0, 0},
+            {1, 0, 0, 0, 0, 9, 5, 0, 0},
+            {8, 0, 0, 0, 0, 0, 0, 9, 0},
+            {0, 4, 3, 0, 0, 0, 7, 5, 0},
+            {0, 9, 0, 0, 0, 0, 0, 0, 8},
+            {0, 0, 9, 7, 0, 0, 0, 0, 5},
+            {0, 0, 0, 2, 0, 0, 0, 0, 0},
+            {0, 0, 7, 0, 4, 0, 2, 0, 3},
+        };
+        solveBitmapFast(board);
+    }
+
+//    @Ignore
+    @Test
+    public void testSolveBitmapFast17() {
         System.out.println(method());
         int[][] board = {
             {0, 0, 0, 8, 0, 1, 0, 0, 0},
@@ -265,11 +368,12 @@ public class TestSudoku {
             {0, 0, 3, 4, 0, 0, 0, 0, 0},
             {0, 0, 0, 2, 0, 0, 6, 0, 0},
         };
-        solveBitmap(board);
+        solveBitmapFast(board);
     }
 
+//    @Ignore
     @Test
-    public void testSolveBitmap17_2() {
+    public void testSolveBitmapFast17_2() {
         System.out.println(method());
         int[][] board = {
             {0, 0, 0, 0, 0, 0, 0, 1, 0},
@@ -282,11 +386,12 @@ public class TestSudoku {
             {0, 5, 0, 1, 0, 0, 0, 0, 0},
             {0, 0, 0, 8, 0, 6, 0, 0, 0},
         };
-        solveBitmap(board);
+        solveBitmapFast(board);
     }
 
+//    @Ignore
     @Test
-    public void testSolveBitmap17_3() {
+    public void testSolveBitmapFast17_3() {
         System.out.println(method());
         int[][] board = {
             {0, 0, 0, 0, 0, 0, 0, 0, 1},
@@ -299,6 +404,6 @@ public class TestSudoku {
             {0, 1, 0, 0, 0, 4, 0, 0, 0},
             {5, 2, 0, 0, 0, 0, 0, 0, 0},
         };
-        solveBitmap(board);
+        solveBitmapFast(board);
     }
 }

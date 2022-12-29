@@ -1,22 +1,29 @@
 package puzzle.core;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Nonogram {
 
-    enum Direction {
-        Horizontal, Vertical;
-    }
-    
     static class Ran {
-        Direction direction;
+        boolean horizontal;
         int index;
         int order;
         int length;
         int start, minStart, maxStart;
+        @Override
+        public String toString() {
+            return "Ran[horizontal=" + horizontal + ", index=" + index + ", order=" + order + ", length=" + length
+                + ", start=" + start + ", minStart=" + minStart + ", maxStart=" + maxStart + "]";
+        }
     }
     
+    static final Comparator<Ran> RAN_ORDER = Comparator.comparing((Ran r) -> r.maxStart - r.minStart)
+            .thenComparing(r -> !r.horizontal)
+            .thenComparing(r -> r.index)
+            .thenComparing(r -> r.order);
     static final int WHITE = -1, UNKNOWN = 0, BLACK = 1;
     final int height, width, size;
     final int[][] board;
@@ -38,7 +45,7 @@ public class Nonogram {
             int acc = 0;
             for (int order = 0; order < count; ++order) {
                 Ran ran = new Ran();
-                ran.direction = Direction.Horizontal;
+                ran.horizontal = true;
                 ran.index = index;
                 ran.order = order;
                 ran.length = row[order];
@@ -56,7 +63,7 @@ public class Nonogram {
             int acc = 0;
             for (int order = 0; order < count; ++order) {
                 Ran ran = new Ran();
-                ran.direction = Direction.Vertical;
+                ran.horizontal = false;
                 ran.index = index;
                 ran.order = order;
                 ran.length = col[order];
@@ -66,9 +73,13 @@ public class Nonogram {
                 this.rans[i++] = ran;
             }
         }
+        Arrays.sort(rans, RAN_ORDER);
+        System.out.println("height=" + height + " width=" + width); 
+        for (Ran r : rans)
+            System.out.println(r);
     }
 
     public static void solve(int[][] rows, int[][] cols) {
-        new Nonogram(rows, cols);
+        Nonogram nonogram = new Nonogram(rows, cols);
     }
 }

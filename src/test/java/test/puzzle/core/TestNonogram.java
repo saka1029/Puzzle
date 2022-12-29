@@ -1,10 +1,5 @@
 package test.puzzle.core;
 
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
-import java.util.stream.IntStream;
-
 import org.junit.Test;
 
 import puzzle.core.Nonogram;

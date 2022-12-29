@@ -7,19 +7,6 @@ import java.util.stream.Stream;
 
 public class Nonogram {
 
-    static class Ran {
-        boolean horizontal;
-        int index;
-        int order;
-        int length;
-        int start, minStart, maxStart;
-        @Override
-        public String toString() {
-            return "Ran[horizontal=" + horizontal + ", index=" + index + ", order=" + order + ", length=" + length
-                + ", start=" + start + ", minStart=" + minStart + ", maxStart=" + maxStart + "]";
-        }
-    }
-    
     static final Comparator<Ran> RAN_ORDER = Comparator.comparing((Ran r) -> r.maxStart - r.minStart)
             .thenComparing(r -> !r.horizontal)
             .thenComparing(r -> r.index)
@@ -28,6 +15,30 @@ public class Nonogram {
     final int height, width, size;
     final int[][] board;
     final Ran[] rans;
+    
+    class Ran {
+        boolean horizontal;
+        int index;
+        int order;
+        int length;
+        int start, minStart, maxStart;
+
+        @Override
+        public String toString() {
+            return "Ran[horizontal=" + horizontal
+                + ", index=" + index + ", order=" + order
+                + ", length=" + length + ", start=" + start
+                + ", minStart=" + minStart + ", maxStart=" + maxStart + "]";
+        }
+        
+        int end() {
+            return horizontal ? width : height;
+        }
+
+        int get(int col) {
+            return horizontal ? board[index][col] : board[col][index];
+        }
+    }
     
     Nonogram(int[][] rows, int[][] cols) {
         this.height = rows.length;
@@ -73,6 +84,55 @@ public class Nonogram {
                 this.rans[i++] = ran;
             }
         }
+    }
+    
+    void answer() {
+        
+    }
+    
+    int start(int i) {
+        Ran ran = rans[i];
+        int start = ran.minStart;
+        if (i > 0) {
+            Ran prev = rans[i - 1];
+            if (prev.horizontal == ran.horizontal && prev.index == ran.index)
+                start = Math.max(start, prev.start + prev.length + 1);
+        }
+        return start;
+    }
+
+    boolean check(Ran ran, int start) {
+        if (start > 0 && ran.get(start - 1) == BLACK)
+            return false;
+        
+        return true;
+    }
+
+    void set(int i) {
+        Ran ran = rans[i];
+        
+    }
+
+    void unset(int i) {
+        Ran ran = rans[i];
+    }
+
+    void solve(int i) {
+        Ran ran = rans[i];
+        if (i >= size)
+            answer();
+        else {
+            for (int start = start(i); start <= ran.maxStart; ++start) {
+                if (check(ran, start)) {
+                    set(i);
+                    solve(i + 1);
+                    unset(i);
+                }
+            }
+        }
+    }
+
+    void print() {
         Arrays.sort(rans, RAN_ORDER);
         System.out.println("height=" + height + " width=" + width); 
         for (Ran r : rans)
@@ -81,5 +141,6 @@ public class Nonogram {
 
     public static void solve(int[][] rows, int[][] cols) {
         Nonogram nonogram = new Nonogram(rows, cols);
+        nonogram.print();
     }
 }

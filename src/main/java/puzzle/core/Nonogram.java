@@ -102,9 +102,16 @@ public class Nonogram {
     }
 
     boolean check(Ran ran, int start) {
+        // 左隣に黒がないことを確認する。
         if (start > 0 && ran.get(start - 1) == BLACK)
             return false;
-        
+        // 右隣に黒がないことを確認する。
+        if (start + ran.length < ran.end()  && ran.get(start + ran.length) == BLACK)
+            return false;
+        // 黒の並びの配置場所に白がないことを確認する。
+        for (int i = start; i < start + ran.length; ++i)
+            if (ran.get(i) == WHITE)
+                return false;
         return true;
     }
 

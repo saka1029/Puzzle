@@ -102,42 +102,25 @@ public class Nonogram {
         return start;
     }
 
-    boolean check(Ran ran, int start) {
+    void  solve(Ran ran, int start) {
         // 左隣に黒がないことを確認する。
         if (start > 0 && ran.get(start - 1) == BLACK)
-            return false;
+            return;
         // 右隣に黒がないことを確認する。
         if (start + ran.length < ran.end()  && ran.get(start + ran.length) == BLACK)
-            return false;
+            return;
         // 黒の並びの配置場所に白がないことを確認する。
         for (int i = start; i < start + ran.length; ++i)
             if (ran.get(i) == WHITE)
-                return false;
-        return true;
-    }
-
-    void set(int i) {
-        Ran ran = rans[i];
-        
-    }
-
-    void unset(int i) {
-        Ran ran = rans[i];
+                return;
     }
 
     void solve(int i) {
-        Ran ran = rans[i];
         if (i >= size)
             answer();
-        else {
-            for (int start = start(i); start <= ran.maxStart; ++start) {
-                if (check(ran, start)) {
-                    set(i);
-                    solve(i + 1);
-                    unset(i);
-                }
-            }
-        }
+        else
+            for (int start = start(i), max = rans[i].maxStart; start <= max; ++start)
+                solve(rans[i], start);
     }
 
     void print() {

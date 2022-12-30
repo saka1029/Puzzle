@@ -84,6 +84,7 @@ public class Nonogram {
                 this.rans[i++] = ran;
             }
         }
+        Arrays.sort(rans, RAN_ORDER);
     }
     
     void answer() {
@@ -140,7 +141,6 @@ public class Nonogram {
     }
 
     void print() {
-        Arrays.sort(rans, RAN_ORDER);
         System.out.println("height=" + height + " width=" + width); 
         for (Ran r : rans)
             System.out.println(r);

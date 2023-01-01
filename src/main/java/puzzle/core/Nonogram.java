@@ -38,6 +38,13 @@ public class Nonogram {
         int get(int col) {
             return horizontal ? board[index][col] : board[col][index];
         }
+
+        void set(int col, int value) {
+            if (horizontal)
+                board[index][col] = value;
+            else
+                board[col][index] = value;
+        }
     }
     
     Nonogram(int[][] rows, int[][] cols) {
@@ -88,7 +95,8 @@ public class Nonogram {
     }
     
     void answer() {
-        
+        for (int[] row : board)
+            System.out.println(Arrays.toString(row));
     }
     
     int start(int i) {
@@ -102,17 +110,39 @@ public class Nonogram {
         return start;
     }
 
-    void  solve(Ran ran, int start) {
+    void  solve(int i, int start) {
+        Ran ran = rans[i];
+        int end = start + ran.length;
         // 左隣に黒がないことを確認する。
         if (start > 0 && ran.get(start - 1) == BLACK)
             return;
         // 右隣に黒がないことを確認する。
-        if (start + ran.length < ran.end()  && ran.get(start + ran.length) == BLACK)
+        if (end < ran.end()  && ran.get(end) == BLACK)
             return;
         // 黒の並びの配置場所に白がないことを確認する。
-        for (int i = start; i < start + ran.length; ++i)
-            if (ran.get(i) == WHITE)
+        for (int j = start; j < end; ++j)
+            if (ran.get(j) == WHITE)
                 return;
+        // 退避
+        ran.start = start;
+        int left = start > 0 ? start - 1 : 0;
+        int right = end < ran.end() ? end + 1 : end;
+        int[] backup = new int[right - left];
+        for (int j = 0, k = left; k < right; ++j, ++k)
+            backup[j] = ran.get(k);
+        // 配置
+        if (start > 0)
+            ran.set(start - 1, WHITE);
+        for (int j = start; j < end; ++j)
+            ran.set(j, BLACK);
+        if (end < ran.end())
+            ran.set(end, WHITE);
+        // 再帰
+        solve(i + 1);
+        // 回復
+        ran.start = 0;
+        for (int j = 0, k = left; k < right; ++j, ++k)
+            ran.set(k, backup[j]);
     }
 
     void solve(int i) {
@@ -120,7 +150,7 @@ public class Nonogram {
             answer();
         else
             for (int start = start(i), max = rans[i].maxStart; start <= max; ++start)
-                solve(rans[i], start);
+                solve(i, start);
     }
 
     void print() {
@@ -132,5 +162,6 @@ public class Nonogram {
     public static void solve(int[][] rows, int[][] cols) {
         Nonogram nonogram = new Nonogram(rows, cols);
         nonogram.print();
+        nonogram.solve(0);
     }
 }

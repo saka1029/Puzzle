@@ -15,6 +15,7 @@ public class Nonogram {
     final int height, width, size;
     final int[][] board;
     final Ran[] rans;
+    int count = 0;
     
     class Ran {
         boolean horizontal;
@@ -95,8 +96,14 @@ public class Nonogram {
     }
     
     void answer() {
-        for (int[] row : board)
-            System.out.println(Arrays.toString(row));
+        if (count > 5)
+            return;
+        System.out.println(count++ + ":");
+        for (int[] row : board) {
+            for (int c : row)
+                System.out.print(c == BLACK ? "*" : ".");
+            System.out.println();
+        }
     }
     
     int start(int i) {

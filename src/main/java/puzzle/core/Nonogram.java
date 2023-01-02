@@ -27,27 +27,43 @@ public class Nonogram {
             return horizontal ? width : height;
         }
 
-        int get(int row, int col) {
-            return horizontal ? board[row][col] : board[col][row];
+        int get(int col) {
+            return horizontal ? board[index][col] : board[col][index];
         }
         
-        void set(int row, int col, int value) {
+        void set(int col, int value) {
             if (horizontal)
-                board[row][col] = value;
+                board[index][col] = value;
             else
-                board[col][row] = value;
+                board[col][index] = value;
+        }
+        
+        void solve(int seq, int start) {
+            Nonogram.this.solve(index + 1);
+        }
+        
+        void solve() {
+            int[] backup = new int[end()];
+            // backup
+            for (int i = 0; i < end(); ++i)
+                backup[i] = get(i);
+            solve(0, 0);
+            // restore
+            for (int i = 0; i < end(); ++i)
+                set(i, backup[i]);
         }
     }
     
-    final int height, width;
+    final int height, width, size;
     final int[][] board;
     final Line[] lines;
     
     private Nonogram(int[][] rows, int[][] cols) {
         height = rows.length;
         width = cols.length;
+        size = height + width;
         board = new int[height][width];
-        lines = new Line[height + width];
+        lines = new Line[size];
         int i = 0;
         for (int j = 0; j < height; ++j)
             lines[i++] = new Line(true, j, rows[j], width);
@@ -62,6 +78,13 @@ public class Nonogram {
                 System.out.print(c == BLACK ? "*" : ".");
             System.out.println();
         }
+    }
+    
+    void solve(int index) {
+        if (index >= size)
+            print();
+        else
+            lines[index].solve();
     }
     
     public static void solve(int[][] rows, int[][] cols) {

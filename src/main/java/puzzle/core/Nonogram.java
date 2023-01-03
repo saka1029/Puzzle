@@ -1,9 +1,6 @@
 package puzzle.core;
 
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class Nonogram {
     
@@ -14,13 +11,14 @@ public class Nonogram {
     class Line {
         final boolean horizontal;
         final int index, free;
-        final int[] rans;
+        final int[] rans, backup;
         
         Line(boolean horizontal, int index, int[] rans, int end) {
             this.horizontal = horizontal;
             this.index = index;
             this.rans = rans.clone();
             this.free = end - IntStream.of(rans).sum() - rans.length + 1;
+            this.backup = new int[end];
         }
         
         int end() {
@@ -38,12 +36,23 @@ public class Nonogram {
                 board[col][index] = value;
         }
         
-        void solve(int seq, int start) {
-            Nonogram.this.solve(index + 1);
+        void solve(int no, int start) {
+            if (no >= rans.length) {
+                for (int i = start; i < end(); ++i) {
+                    if (backup[i] == BLACK)
+                        return;
+                    else
+                        set(i, WHITE);
+                }
+                Nonogram.this.solve(index + 1);
+            } else {
+                for (int i = start, max = end() - rans[no]; i < max; ++i) {
+                    
+                }
+            }
         }
         
         void solve() {
-            int[] backup = new int[end()];
             // backup
             for (int i = 0; i < end(); ++i)
                 backup[i] = get(i);

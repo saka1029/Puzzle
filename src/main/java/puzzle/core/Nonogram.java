@@ -36,18 +36,32 @@ public class Nonogram {
                 board[col][index] = value;
         }
         
+        boolean fillColor(int i, int fillColor) {
+            if (backup[i] != UNDEF && backup[i] != fillColor)
+                return false;
+            set(i, fillColor);
+            return true;
+        }
+        
         void solve(int no, int start) {
             if (no >= rans.length) {
-                for (int i = start; i < end(); ++i) {
-                    if (backup[i] == BLACK)
-                        return;
-                    else
-                        set(i, WHITE);
-                }
-                Nonogram.this.solve(index + 1);
+                for (int i = start; i < end(); ++i)  // 右の余白をすべて白で埋める。
+                    fillColor(i, WHITE);
+                Nonogram.this.solve(index + 1);  // 次のLineに進む。
             } else {
-                for (int i = start, max = end() - rans[no]; i < max; ++i) {
-                    
+                if (start >= end())
+                    return;
+                int length = rans[no];
+                L: for (int i = start, max = end() - length; i < max; ++i) {
+                    for (int j = start; j < i; ++j)  // 黒並びの前を白で埋める。
+                        if (!fillColor(j, WHITE))
+                            return;
+                    for (int j = i, m = i + length; j < m; ++j)  // 黒並びを黒で埋める。
+                        if (!fillColor(j, BLACK))
+                            continue L;
+                    if (i + length < end() && !fillColor(i + length, WHITE))
+                        continue L;
+                    solve(no + 1, i + length + 1);
                 }
             }
         }

@@ -49,30 +49,36 @@ public class Nonogram {
                 board[col][row] = value;
         }
         
-        boolean fillColor(int i, int fillColor) {
-            if (backup[i] != UNDEF && backup[i] != fillColor)
-                return false;
-            set(i, fillColor);
-            return true;
+        /**
+         * boardに指定色をセットします。
+         * セットする位置に既に設定されている色がUNDEFまたは指定色の場合のみセットします。
+         */
+        boolean setColor(int col, int fillColor) {
+            if (backup[col] == UNDEF) {
+                set(col, fillColor);
+                return true;
+            }
+            return backup[col] == fillColor;
         }
         
         void solve(int index, int no, int start) {
             if (no >= rans.length) {
-                for (int i = start; i < end(); ++i)  // 右の余白をすべて白で埋める。
-                    fillColor(i, WHITE);
-                Nonogram.this.solve(index + 1);  // 次のLineに進む。
+                for (int i = start; i < end(); ++i)  // 右の余白をすべて白で埋めます。
+                    if (!setColor(i, WHITE))
+                        return;
+                Nonogram.this.solve(index + 1);  // 次のLineに進みます。
             } else {
-                if (start >= end())
+                if (start >= end())  // 置き場所がなければ何もしません。
                     return;
                 int length = rans[no];
                 L: for (int i = start, max = end() - length; i <= max; ++i) {
-                    for (int j = start; j < i; ++j)  // 黒並びの前を白で埋める。
-                        if (!fillColor(j, WHITE))
+                    for (int j = start; j < i; ++j)  // 黒並びの前を白で埋めます。
+                        if (!setColor(j, WHITE))
                             return;
-                    for (int j = i, m = i + length; j < m; ++j)  // 黒並びを黒で埋める。
-                        if (!fillColor(j, BLACK))
+                    for (int j = i, m = i + length; j < m; ++j)  // 黒並びを黒で埋めます。
+                        if (!setColor(j, BLACK))
                             continue L;
-                    if (i + length < end() && !fillColor(i + length, WHITE))
+                    if (i + length < end() && !setColor(i + length, WHITE)) // 黒並びの右端が末尾でなければその右隣に白を埋めます。
                         continue L;
                     solve(index, no + 1, i + length + 1);
                 }
@@ -80,12 +86,10 @@ public class Nonogram {
         }
         
         void solve(int index) {
-            // backup
-            for (int i = 0; i < end(); ++i)
+            for (int i = 0; i < end(); ++i) // backup
                 backup[i] = get(i);
             solve(index, 0, 0);
-            // restore
-            for (int i = 0; i < end(); ++i)
+            for (int i = 0; i < end(); ++i) // restore
                 set(i, backup[i]);
         }
     }
@@ -109,7 +113,6 @@ public class Nonogram {
     }
     
     void print() {
-//        System.out.printf("%d x %d%n", height, width);
         for (int[] row : board) {
             for (int c : row)
                 System.out.print(c == BLACK ? "*" : c == WHITE ? ".": "?");
@@ -118,10 +121,9 @@ public class Nonogram {
     }
     
     void solve(int index) {
-        if (index >= size) {
-            System.out.println("[[[ answer ]]]");
+        if (index >= size)
             print();
-        } else
+        else
             lines[index].solve(index);
     }
     

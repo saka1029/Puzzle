@@ -124,8 +124,8 @@ public class Nonogram {
         if (index >= size)
             print();
         else {
-            System.out.println("index=" + index + " line=" + lines[index]);
-            print();
+//            System.out.println("index=" + index + " line=" + lines[index]);
+//            print();
             lines[index].solve(index);
         }
     }

@@ -30,7 +30,7 @@ public class Nonogram {
                 + ", row=" + row
                 + ", rans=" + Arrays.toString(rans)
                 + ", free=" + free
-                + ", backup=" + Arrays.toString(backup)
+//                + ", backup=" + Arrays.toString(backup)
                 + "]";
         }
 
@@ -123,8 +123,11 @@ public class Nonogram {
     void solve(int index) {
         if (index >= size)
             print();
-        else
+        else {
+            System.out.println("index=" + index + " line=" + lines[index]);
+            print();
             lines[index].solve(index);
+        }
     }
     
     public static void solve(int[][] rows, int[][] cols) {

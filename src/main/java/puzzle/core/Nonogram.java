@@ -73,7 +73,7 @@ public class Nonogram {
                 + ", row=" + row
                 + ", free=" + free
                 + ", rans=" + Arrays.toString(rans)
-                + ", sets=[" + sets.stream().map(bytes -> toString(bytes))
+                + ", sets(" + sets.size() + ")=[" + sets.stream().map(bytes -> toString(bytes))
                     .collect(Collectors.joining("|")) + "]"
                 + "]";
         }

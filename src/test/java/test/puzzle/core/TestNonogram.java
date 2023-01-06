@@ -1,11 +1,5 @@
 package test.puzzle.core;
 
-import static org.junit.Assert.assertArrayEquals;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import org.junit.Ignore;
 import org.junit.Test;
 

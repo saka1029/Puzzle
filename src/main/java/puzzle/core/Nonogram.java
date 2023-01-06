@@ -2,11 +2,9 @@ package puzzle.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class Nonogram {
     
@@ -46,7 +44,7 @@ public class Nonogram {
                             for (int j = start; j < i; ++j)
                                 set[j] = WHITE;
                             int e = i + seq;
-                            for (int j = start; j < e; ++j)
+                            for (int j = i; j < e; ++j)
                                 set[j] = BLACK;
                             if (e < end)
                                 set[e] = WHITE;
@@ -75,7 +73,8 @@ public class Nonogram {
                 + ", row=" + row
                 + ", free=" + free
                 + ", rans=" + Arrays.toString(rans)
-                + ", sets=[" + sets.stream().map(bytes -> toString(bytes)).collect(Collectors.joining("/")) + "]"
+                + ", sets=[" + sets.stream().map(bytes -> toString(bytes))
+                    .collect(Collectors.joining("|")) + "]"
                 + "]";
         }
 

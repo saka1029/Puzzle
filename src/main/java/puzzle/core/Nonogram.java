@@ -86,7 +86,7 @@ public class Nonogram {
             return horizontal ? board[row][col] : board[col][row];
         }
         
-        void set(int col, int value) {
+        void set(int col, byte value) {
             if (horizontal)
                 board[row][col] = value;
             else
@@ -95,14 +95,14 @@ public class Nonogram {
     }
     
     final int height, width, size;
-    final int[][] board;
+    final byte[][] board;
     final Line[] lines;
     
     private Nonogram(int[][] rows, int[][] cols) {
         height = rows.length;
         width = cols.length;
         size = height + width;
-        board = new int[height][width];
+        board = new byte[height][width];
         lines = new Line[size];
         int i = 0;
         for (int j = 0; j < height; ++i, ++j)
@@ -114,8 +114,8 @@ public class Nonogram {
     
     void print() {
         System.out.println("board:");
-        for (int[] row : board) {
-            for (int c : row)
+        for (byte[] row : board) {
+            for (byte c : row)
                 System.out.print(c == BLACK ? "*" : c == WHITE ? ".": "?");
             System.out.println();
         }

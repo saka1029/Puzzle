@@ -55,6 +55,15 @@ public class Nonogram {
             }.sets(0, 0);
             return sets;
         }
+        
+        byte[] filter(int col, byte color) {
+            byte[] decided = sets.get(0);
+            for (byte[] set : sets)
+                for (int i = 0; i < end(); ++i)
+                    if (decided[i] != UNDEF && decided[i] != set[i])
+                        decided[i] = UNDEF;
+            return decided;
+        }
 
         String toString(byte[] bytes) {
             StringBuilder sb = new StringBuilder();

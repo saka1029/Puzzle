@@ -112,14 +112,13 @@ public class Nonogram {
         }
     }
     
-    final int height, width, size;
+    final int height, width;
     final byte[][] board;
     final Line[] rows, cols;
     
     private Nonogram(int[][] rows, int[][] cols) {
         height = rows.length;
         width = cols.length;
-        size = height + width;
         board = new byte[height][width];
         this.rows = new Line[height];
         for (int i = 0; i < height; ++i)

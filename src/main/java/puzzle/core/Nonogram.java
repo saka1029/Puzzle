@@ -2,6 +2,7 @@ package puzzle.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -57,12 +58,19 @@ public class Nonogram {
         }
         
         byte[] filter(int col, byte color) {
-            byte[] decided = sets.get(0);
-            for (byte[] set : sets)
-                for (int i = 0; i < end(); ++i)
-                    if (decided[i] != UNDEF && decided[i] != set[i])
-                        decided[i] = UNDEF;
-            return decided;
+            byte[] and = null;
+            for (Iterator<byte[]> it = sets.iterator(); it.hasNext();) {
+                byte[] set = it.next();
+                if (col >= 0 && set[col] != color)
+                    it.remove();
+                else if (and == null)
+                    and = set.clone();
+                else
+                    for (int i = 0; i < end(); ++i)
+                        if (and[i] != UNDEF && and[i] != set[i])
+                            and[i] = UNDEF;
+            }
+            return and != null ? and : new byte[end()];
         }
 
         String toString(byte[] bytes) {
@@ -82,6 +90,7 @@ public class Nonogram {
                 + ", row=" + row
                 + ", free=" + free
                 + ", rans=" + Arrays.toString(rans)
+                + ", and=" + toString(filter(-1, UNDEF))
                 + ", sets(" + sets.size() + ")=[" + sets.stream().map(bytes -> toString(bytes))
                     .collect(Collectors.joining("|")) + "]"
                 + "]";
@@ -105,20 +114,19 @@ public class Nonogram {
     
     final int height, width, size;
     final byte[][] board;
-    final Line[] lines;
+    final Line[] rows, cols;
     
     private Nonogram(int[][] rows, int[][] cols) {
         height = rows.length;
         width = cols.length;
         size = height + width;
         board = new byte[height][width];
-        lines = new Line[size];
-        int i = 0;
-        for (int j = 0; j < height; ++i, ++j)
-            lines[i] = new Line(true, j, rows[j], width);
-        for (int j = 0; j < width; ++i, ++j)
-            lines[i] = new Line(false, j, cols[j], height);
-//        Arrays.sort(lines, Comparator.comparing(line -> line.free));
+        this.rows = new Line[height];
+        for (int i = 0; i < height; ++i)
+            this.rows[i] = new Line(true, i, rows[i], width);
+        this.cols = new Line[width];
+        for (int i = 0; i < width; ++i)
+            this.cols[i] = new Line(false, i, cols[i], height);
     }
     
     void print() {
@@ -128,8 +136,11 @@ public class Nonogram {
                 System.out.print(c == BLACK ? "*" : c == WHITE ? ".": "?");
             System.out.println();
         }
-        System.out.println("lines:");
-        for (Line line : lines)
+        System.out.println("rows:");
+        for (Line line : rows)
+            System.out.println(line);
+        System.out.println("cols:");
+        for (Line line : cols)
             System.out.println(line);
     }
     

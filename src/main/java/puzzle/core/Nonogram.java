@@ -1,8 +1,13 @@
 package puzzle.core;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -112,9 +117,12 @@ public class Nonogram {
         }
     }
     
+    record Change(Line line, int col, byte color) {}
+
     final int height, width;
     final byte[][] board;
     final Line[] rows, cols;
+    final Deque<Change> que = new LinkedList<>();
     
     private Nonogram(int[][] rows, int[][] cols) {
         height = rows.length;
@@ -128,24 +136,31 @@ public class Nonogram {
             this.cols[i] = new Line(false, i, cols[i], height);
     }
     
-    void print() {
-        System.out.println("board:");
-        for (byte[] row : board) {
-            for (byte c : row)
-                System.out.print(c == BLACK ? "*" : c == WHITE ? ".": "?");
-            System.out.println();
+    @Override
+    public String toString() {
+        try (StringWriter sw = new StringWriter();
+            PrintWriter w = new PrintWriter(sw)) {
+            w.println("board:");
+            for (byte[] row : board) {
+                for (byte c : row)
+                    w.print(c == BLACK ? "*" : c == WHITE ? ".": "?");
+                w.println();
+            }
+            w.println("rows:");
+            for (Line line : rows)
+                w.println(line);
+            w.println("cols:");
+            for (Line line : cols)
+                w.println(line);
+            return sw.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        System.out.println("rows:");
-        for (Line line : rows)
-            System.out.println(line);
-        System.out.println("cols:");
-        for (Line line : cols)
-            System.out.println(line);
     }
     
     public static void solve(int[][] rows, int[][] cols) {
         Nonogram nonogram = new Nonogram(rows, cols);
-        nonogram.print();
+        System.out.println(nonogram);
     }
 }
 

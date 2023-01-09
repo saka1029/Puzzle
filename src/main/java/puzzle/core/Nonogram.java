@@ -61,6 +61,45 @@ public class Nonogram {
             }.sets(0, 0);
             return sets;
         }
+
+        int end() {
+            return horizontal ? width : height;
+        }
+
+        byte get(int col) {
+            return horizontal ? board[row][col] : board[col][row];
+        }
+        
+        static Runnable changed(Line line, int col, byte color) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    line.changed(col, color);
+                }
+                @Override
+                public String toString() {
+                    if (line.horizontal)
+                        return "(" + line.row + ", " + col + ", " + color + ")";
+                    else
+                        return "(" + col + ", " + line.row + ", " + color + ")";
+                }
+            };
+        }
+        
+        void set(int col, byte color) {
+            byte old = get(col);
+            if (color == old)
+                return;
+            if (horizontal) {
+                board[row][col] = color;
+                que.add(changed(cols[col], row, color));
+//                que.add(() -> cols[col].changed(row, color));
+            } else {
+                board[col][row] = color;
+                que.add(changed(rows[row], col, color));
+//                que.add(() -> rows[row].changed(col, color));
+            }
+        }
         
         byte[] filter(int col, byte color) {
             byte[] and = null;
@@ -77,16 +116,14 @@ public class Nonogram {
             }
             return and != null ? and : new byte[end()];
         }
-
-        String toString(byte[] bytes) {
-            StringBuilder sb = new StringBuilder();
-            for (byte b : bytes)
-                sb.append(switch (b) {
-                    case WHITE -> '.';
-                    case BLACK -> '*';
-                    default -> '?';
-                });
-            return sb.toString();
+        
+        void changed(int col, byte color) {
+            byte[] and = filter(col, color);
+            for (int i = 0; i < end(); ++i) {
+                byte c = and[i];
+                if (c != UNDEF)
+                    set(i, c);
+            }
         }
 
         @Override
@@ -95,34 +132,17 @@ public class Nonogram {
                 + ", row=" + row
                 + ", free=" + free
                 + ", rans=" + Arrays.toString(rans)
-                + ", and=" + toString(filter(-1, UNDEF))
-                + ", sets(" + sets.size() + ")=[" + sets.stream().map(bytes -> toString(bytes))
+                + ", and=" + Nonogram.toString(filter(-1, UNDEF))
+                + ", sets(" + sets.size() + ")=[" + sets.stream().map(bytes -> Nonogram.toString(bytes))
                     .collect(Collectors.joining("|")) + "]"
                 + "]";
         }
-
-        int end() {
-            return horizontal ? width : height;
-        }
-
-        int get(int col) {
-            return horizontal ? board[row][col] : board[col][row];
-        }
-        
-        void set(int col, byte value) {
-            if (horizontal)
-                board[row][col] = value;
-            else
-                board[col][row] = value;
-        }
     }
     
-    record Change(Line line, int col, byte color) {}
-
     final int height, width;
     final byte[][] board;
     final Line[] rows, cols;
-    final Deque<Change> que = new LinkedList<>();
+    final Deque<Runnable> que = new LinkedList<>();
     
     private Nonogram(int[][] rows, int[][] cols) {
         height = rows.length;
@@ -135,31 +155,52 @@ public class Nonogram {
         for (int i = 0; i < width; ++i)
             this.cols[i] = new Line(false, i, cols[i], height);
     }
+
+    static String toString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes)
+            sb.append(switch (b) {
+                case WHITE -> '.';
+                case BLACK -> '*';
+                default -> '?';
+            });
+        return sb.toString();
+    }
     
     @Override
     public String toString() {
         try (StringWriter sw = new StringWriter();
             PrintWriter w = new PrintWriter(sw)) {
             w.println("board:");
-            for (byte[] row : board) {
-                for (byte c : row)
-                    w.print(c == BLACK ? "*" : c == WHITE ? ".": "?");
-                w.println();
-            }
+            for (byte[] row : board)
+                w.println(toString(row));
             w.println("rows:");
             for (Line line : rows)
                 w.println(line);
             w.println("cols:");
             for (Line line : cols)
                 w.println(line);
+            w.println("que:" + que);
             return sw.toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
     
+    void solve() {
+        for (Line row : rows)
+            row.changed(-1, UNDEF);
+        for (Line col : cols)
+            col.changed(-1, UNDEF);
+        System.out.println(this);
+        while (!que.isEmpty())
+            que.remove().run();
+    }
+    
     public static void solve(int[][] rows, int[][] cols) {
         Nonogram nonogram = new Nonogram(rows, cols);
+        System.out.println(nonogram);
+        nonogram.solve();
         System.out.println(nonogram);
     }
 }

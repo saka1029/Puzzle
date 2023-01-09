@@ -27,7 +27,7 @@ public class TestNonogram {
         Nonogram.solve(rows, cols);
     }
 
-    @Ignore
+//    @Ignore
     @Test
     public void test25x25() {
         printTestCaseName();

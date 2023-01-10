@@ -1,5 +1,8 @@
 package puzzle.core;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
@@ -84,7 +87,7 @@ public class Nonogram {
     public List<Integer> filter(boolean isRow, int row, int col, int color) {
         return isRow
             ? filter(rows.get(row), width, col, color)
-            : filter(cols.get(col), height, row, color);
+            : filter(cols.get(row), height, col, color);
     }
     
     int getColor(boolean isRow, int row, int col) {
@@ -95,20 +98,18 @@ public class Nonogram {
         int old = getColor(isRow, row, col);
         if (color == old)
             return;
-        if (isRow) {
+        if (isRow)
             board[row][col] = color;
-            que.add(new Event(false, row, col, color));
-        } else {
+        else
             board[col][row] = color;
-            que.add(new Event(true, row, col, color));
-        }
+        que.add(new Event(!isRow, row, col, color));
     }
 
     public void changed(boolean isRow, int row, int col, int color) {
         List<Integer> and = filter(isRow, row, col, color);
         for (int i = 0, size = and.size(); i < size; ++i)
             if (and.get(i) != UNDEF)
-                setColor(isRow, row, col, color);
+                setColor(isRow, row, i, and.get(i));
     }
     
     static String string(int color) {
@@ -129,31 +130,45 @@ public class Nonogram {
         
     @Override
     public String toString() {
-//        return "Nonogram [height=" + height + ", width=" + width + ", board=" + Arrays.toString(board) + ", rows="
-//            + rows + ", cols=" + cols + ", que=" + que + "]";
-        StringBuilder sb = new StringBuilder();
-        sb.append(height).append("x").append(width).append(NL);
-        for (int[] row : board) {
-            for (int cell : row)
-                sb.append(switch (cell) {
-                    case BLACK -> '*';
-                    case WHITE -> '.';
-                    default -> '?';
-                });
-            sb.append(NL);
+        try (StringWriter sw = new StringWriter();
+            PrintWriter w = new PrintWriter(sw)) {
+            w.printf("%dx%d%n", height, width);
+            for (int[] row : board) {
+                for (int cell : row)
+                    w.printf("%c", switch (cell) {
+                        case BLACK -> '*';
+                        case WHITE -> '.';
+                        default -> '?';
+                    });
+                w.println();
+            }
+            w.println("rows:");
+            for (int i = 0; i < height; ++i)
+                w.printf("%d: %s%n", i, string(rows.get(i)));
+            w.println("cols:");
+            for (int i = 0; i < width; ++i)
+                w.printf("%d: %s%n", i, string(cols.get(i)));
+            w.println("que:");
+            int i = 0;
+            for (Event e : que)
+                w.printf("%d: %s%n", i++, e);
+            return sw.toString();
+        } catch (IOException e1) {
+            throw new RuntimeException(e1);
         }
-        sb.append("rows:").append(System.lineSeparator());
+    }
+    
+    void solve() {
+        System.out.println(this);
         for (int i = 0; i < height; ++i)
-            sb.append(i).append(": ").append(string(rows.get(i))).append(NL);
-        sb.append("cols:").append(System.lineSeparator());
+            changed(true, i, -1, UNDEF);
         for (int i = 0; i < width; ++i)
-            sb.append(i).append(": ").append(string(cols.get(i))).append(NL);
-        sb.append("que: ").append(que).append(System.lineSeparator());
-        return sb.toString();
+            changed(false, i, -1, UNDEF);
+        System.out.println(this);
     }
 
     public static void solve(int[][] rows, int[][] cols) {
         Nonogram nonogram = new Nonogram(rows, cols);
-        System.out.println(nonogram);
+        nonogram.solve();
     }
 }

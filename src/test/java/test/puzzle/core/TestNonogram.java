@@ -1,9 +1,11 @@
 package test.puzzle.core;
 
 import static org.junit.Assert.assertEquals;
+import static puzzle.core.Nonogram.*;
 
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import puzzle.core.Nonogram;
@@ -23,17 +25,32 @@ public class TestNonogram {
     public void testAvailable() {
         printTestCaseName();
         assertEquals(list(list(1, -1, 1)),
-            Nonogram.available(new int[] {1, 1}, 3));
+            availables(new int[] {1, 1}, 3));
         assertEquals(list(list(1, -1, -1), list(-1, 1, -1), list(-1, -1, 1)),
-            Nonogram.available(new int[] {1}, 3));
+            availables(new int[] {1}, 3));
         assertEquals(list(list(1, -1, 1, -1), list(1, -1, -1, 1), list(-1, 1, -1, 1)),
-            Nonogram.available(new int[] {1, 1}, 4));
+            availables(new int[] {1, 1}, 4));
         assertEquals(list(list(1, 1, -1, 1, -1), list(1, 1, -1, -1, 1), list(-1, 1, 1, -1, 1)),
-            Nonogram.available(new int[] {2, 1}, 5));
+            availables(new int[] {2, 1}, 5));
         assertEquals(list(list(1, 1, 1, 1, 1)),
-            Nonogram.available(new int[] {5}, 5));
+            availables(new int[] {5}, 5));
         assertEquals(list(list(1, 1, -1, 1, 1)),
-            Nonogram.available(new int[] {2, 2}, 5));
+            availables(new int[] {2, 2}, 5));
+    }
+    
+    @Test
+    public void testFilter() {
+        printTestCaseName();
+        assertEquals(list(UNDEF, UNDEF, UNDEF),
+            filter(availables(new int[] {1}, 3), 3, -1, UNDEF));
+        assertEquals(list(UNDEF, BLACK, UNDEF),
+            filter(availables(new int[] {2}, 3), 3, -1, UNDEF));
+        assertEquals(list(BLACK, BLACK, BLACK),
+            filter(availables(new int[] {3}, 3), 3, -1, UNDEF));
+        assertEquals(list(UNDEF, UNDEF, UNDEF, UNDEF),
+            filter(availables(new int[] {2}, 4), 4, -1, UNDEF));
+        assertEquals(list(UNDEF, BLACK, BLACK, UNDEF),
+            filter(availables(new int[] {3}, 4), 4, -1, UNDEF));
     }
 
     @Test
@@ -52,7 +69,7 @@ public class TestNonogram {
         Nonogram.solve(rows, cols);
     }
 
-//    @Ignore
+    @Ignore
     @Test
     public void test25x25() {
         printTestCaseName();

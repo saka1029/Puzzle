@@ -1,6 +1,9 @@
 package test.puzzle.core;
 
-import org.junit.Ignore;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+
 import org.junit.Test;
 
 import puzzle.core.Nonogram;
@@ -9,6 +12,28 @@ public class TestNonogram {
 
     static void printTestCaseName() {
         System.out.println(Thread.currentThread().getStackTrace()[2].getMethodName());
+    }
+    
+    @SafeVarargs
+    static <T> List<T> list(T... elements) {
+        return List.of(elements);
+    }
+
+    @Test
+    public void testAvailable() {
+        printTestCaseName();
+        assertEquals(list(list(1, -1, 1)),
+            Nonogram.available(new int[] {1, 1}, 3));
+        assertEquals(list(list(1, -1, -1), list(-1, 1, -1), list(-1, -1, 1)),
+            Nonogram.available(new int[] {1}, 3));
+        assertEquals(list(list(1, -1, 1, -1), list(1, -1, -1, 1), list(-1, 1, -1, 1)),
+            Nonogram.available(new int[] {1, 1}, 4));
+        assertEquals(list(list(1, 1, -1, 1, -1), list(1, 1, -1, -1, 1), list(-1, 1, 1, -1, 1)),
+            Nonogram.available(new int[] {2, 1}, 5));
+        assertEquals(list(list(1, 1, 1, 1, 1)),
+            Nonogram.available(new int[] {5}, 5));
+        assertEquals(list(list(1, 1, -1, 1, 1)),
+            Nonogram.available(new int[] {2, 2}, 5));
     }
 
     @Test

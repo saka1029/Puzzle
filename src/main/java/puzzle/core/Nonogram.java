@@ -4,13 +4,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class Nonogram {
 
@@ -67,12 +66,18 @@ public class Nonogram {
         }.available(0, 0);
         return availables;
     }
+    
+    static List<Integer> list(int size) {
+        List<Integer> list = new ArrayList<>(size);
+        Collections.fill(list, UNDEF);
+        return list;
+    }
 
-    public static List<Integer> filter(List<List<Integer>> availables, int size, int col, int color) {
+    public List<Integer> filter(List<List<Integer>> availables, int size, int col, int color) {
         List<Integer> and = null;
         for (Iterator<List<Integer>> it = availables.iterator(); it.hasNext();) {
             List<Integer> line = it.next();
-            if (col >= 0 && line.get(col) == color)
+            if (col >= 0 && line.get(col) != color)
                 it.remove();
             else if (and == null)
                 and = new ArrayList<>(line);
@@ -81,28 +86,39 @@ public class Nonogram {
                     if (and.get(i) != UNDEF && !and.get(i).equals(line.get(i)))
                         and.set(i, UNDEF);
         }
-        return and != null ? and : Arrays.asList(new Integer[size]);
+        return and != null ? and : list(size);
     }
 
     public List<Integer> filter(boolean isRow, int row, int col, int color) {
         return isRow
             ? filter(rows.get(row), width, col, color)
-            : filter(cols.get(row), height, col, color);
+            : filter(cols.get(col), height, row, color);
     }
     
     int getColor(boolean isRow, int row, int col) {
         return isRow ? board[row][col] : board[col][row];
+//        return board[row][col];
     }
 
     void setColor(boolean isRow, int row, int col, int color) {
         int old = getColor(isRow, row, col);
         if (color == old)
             return;
-        if (isRow)
-            board[row][col] = color;
-        else
-            board[col][row] = color;
+        if (old != UNDEF)
+            throw new RuntimeException("isRow=%s row=%d col=%d color=%d old=%d"
+                .formatted(isRow, row, col, color, old));
+        board[row][col] = color;
         que.add(new Event(!isRow, row, col, color));
+//        if (isRow) {
+//            board[row][col] = color;
+//            que.add(new Event(!isRow, row, col, color));
+//        } else {
+//            board[col][row] = color;
+//            que.add(new Event(!isRow, col, row, color));
+//        }
+        System.out.printf("setColor isRow=%s row=%d col=%d color=%d old=%d%n", isRow, row, col, color, old);
+        System.out.println(this);
+        System.out.println("");
     }
 
     public void changed(boolean isRow, int row, int col, int color) {
@@ -123,11 +139,9 @@ public class Nonogram {
     static String string(List<List<Integer>> lines) {
         return lines.stream()
             .map(x -> x.stream().map(c -> string(c)).collect(Collectors.joining()))
-            .collect(Collectors.joining(", ", "[", "]"));
+            .collect(Collectors.joining("|"));
     }
 
-    static final String NL = System.lineSeparator();
-        
     @Override
     public String toString() {
         try (StringWriter sw = new StringWriter();
@@ -135,11 +149,7 @@ public class Nonogram {
             w.printf("%dx%d%n", height, width);
             for (int[] row : board) {
                 for (int cell : row)
-                    w.printf("%c", switch (cell) {
-                        case BLACK -> '*';
-                        case WHITE -> '.';
-                        default -> '?';
-                    });
+                    w.print(string(cell));
                 w.println();
             }
             w.println("rows:");
@@ -159,11 +169,16 @@ public class Nonogram {
     }
     
     void solve() {
-        System.out.println(this);
+//        System.out.println(this);
         for (int i = 0; i < height; ++i)
             changed(true, i, -1, UNDEF);
         for (int i = 0; i < width; ++i)
-            changed(false, i, -1, UNDEF);
+            changed(false, -1, i, UNDEF);
+        System.out.println(this);
+        while (!que.isEmpty()) {
+            Event e = que.remove();
+            changed(e.isRow, e.row, e.col, e.color);
+        }
         System.out.println(this);
     }
 

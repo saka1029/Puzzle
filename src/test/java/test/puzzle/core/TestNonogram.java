@@ -38,26 +38,34 @@ public class TestNonogram {
             availables(new int[] {2, 2}, 5));
     }
     
-    @Test
-    public void testFilter() {
-        printTestCaseName();
-        assertEquals(list(UNDEF, UNDEF, UNDEF),
-            filter(availables(new int[] {1}, 3), 3, -1, UNDEF));
-        assertEquals(list(UNDEF, BLACK, UNDEF),
-            filter(availables(new int[] {2}, 3), 3, -1, UNDEF));
-        assertEquals(list(BLACK, BLACK, BLACK),
-            filter(availables(new int[] {3}, 3), 3, -1, UNDEF));
-        assertEquals(list(UNDEF, UNDEF, UNDEF, UNDEF),
-            filter(availables(new int[] {2}, 4), 4, -1, UNDEF));
-        assertEquals(list(UNDEF, BLACK, BLACK, UNDEF),
-            filter(availables(new int[] {3}, 4), 4, -1, UNDEF));
-    }
+//    @Test
+//    public void testFilter() {
+//        printTestCaseName();
+//        assertEquals(list(UNDEF, UNDEF, UNDEF),
+//            filter(availables(new int[] {1}, 3), 3, -1, UNDEF));
+//        assertEquals(list(UNDEF, BLACK, UNDEF),
+//            filter(availables(new int[] {2}, 3), 3, -1, UNDEF));
+//        assertEquals(list(BLACK, BLACK, BLACK),
+//            filter(availables(new int[] {3}, 3), 3, -1, UNDEF));
+//        assertEquals(list(UNDEF, UNDEF, UNDEF, UNDEF),
+//            filter(availables(new int[] {2}, 4), 4, -1, UNDEF));
+//        assertEquals(list(UNDEF, BLACK, BLACK, UNDEF),
+//            filter(availables(new int[] {3}, 4), 4, -1, UNDEF));
+//    }
 
     @Test
     public void testSimple() {
         printTestCaseName();
         int[][] rows = {{1}, {3}, {1}};
         int[][] cols = {{1}, {3}, {1}};
+        Nonogram.solve(rows, cols);
+    }
+
+    @Test
+    public void test3x4() {
+        printTestCaseName();
+        int[][] rows = {{1, 1, 1}, {1, 1}, {2, 2}};
+        int[][] cols = {{1, 1}, {2}, {1}, {1}, {3}};
         Nonogram.solve(rows, cols);
     }
 

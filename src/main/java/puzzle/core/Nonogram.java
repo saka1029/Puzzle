@@ -34,6 +34,12 @@ public class Nonogram {
             this.cols.add(candidates(col, height));
     }
     
+    /**
+     * 黒並びの数の配列から候補のリストを作成します。
+     * @param rans 黒並びの数の配列を指定します。
+     * @param width 黒並びを収める幅を指定します。
+     * @return 候補のリストを返します。
+     */
     public static List<List<Integer>> candidates(int[] rans, int width) {
         int size = rans.length;
         List<List<Integer>> candidates = new ArrayList<>();
@@ -42,7 +48,7 @@ public class Nonogram {
 
             void candidate(int no, int start) {
                 if (no >= size) {
-                    for (int i = start; i < width; ++i)
+                    for (int i = start; i < width; ++i) // 右端に白を詰めます。
                         line[i] = WHITE;
                     candidates.add(List.of(line));
                 } else if (start >= width) {
@@ -53,9 +59,9 @@ public class Nonogram {
                         for (int j = start; j < i; ++j)
                             line[j] = WHITE;
                         int e = i + seq;
-                        for (int j = i; j < e; ++j)
+                        for (int j = i; j < e; ++j) // 黒並びを置きます。
                             line[j] = BLACK;
-                        if (e < width)
+                        if (e < width)  // 右端でなければひとつ白を置きます。
                             line[e] = WHITE;
                         candidate(no + 1, e + 1);
                     }
@@ -84,6 +90,15 @@ public class Nonogram {
         };
     }
     
+    /**
+     * 候補の中からrow,col位置がcolorに合致しないものを取り除きます。
+     * @param candidates 候補のリストを指定します。
+     * @param row
+     * @param col
+     * @param color
+     * @return 残った候補の共通部分を返します。
+     *         候補がなくなった場合はnullを返します。
+     */
     static List<Integer> common(List<List<Integer>> candidates, int row, int col, int color) {
         List<Integer> common = null;
         for (Iterator<List<Integer>> it = candidates.iterator(); it.hasNext();) {

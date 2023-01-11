@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -24,7 +23,7 @@ public class Nonogram {
             return "Event(%s, %d, %d, %d)".formatted(isRow, row, col, color);
         }
     }
-    final Deque<Event> que = new LinkedList<>();
+    final Deque<Runnable> que = new LinkedList<>();
 
     Nonogram(int[][] rows, int[][] cols) {
         height = rows.length;
@@ -67,67 +66,81 @@ public class Nonogram {
         return availables;
     }
     
-    static List<Integer> list(int size) {
-        List<Integer> list = new ArrayList<>(size);
-        Collections.fill(list, UNDEF);
-        return list;
-    }
+    Runnable checker(boolean horizontal, int row, int col, int color) {
+        return new Runnable() {
 
-    public List<Integer> filter(List<List<Integer>> availables, int size, int col, int color) {
-        List<Integer> and = null;
-        for (Iterator<List<Integer>> it = availables.iterator(); it.hasNext();) {
+            @Override
+            public void run() {
+                if (horizontal)
+                    rowCheck(row, col, color);
+                else
+                    colCheck(row, col, color);
+            }
+
+            @Override
+            public String toString() {
+                return (horizontal ? "rowCheck(" : "colCheck(")
+                    + row + ", " + col + ", " + color + ")";
+            }
+        };
+    }
+    
+    void rowCheck(int row, int col, int color) {
+        List<Integer> common = null;
+        for (Iterator<List<Integer>> it = rows.get(row).iterator(); it.hasNext();) {
             List<Integer> line = it.next();
-            if (col >= 0 && line.get(col) != color)
+            if (color != UNDEF && line.get(col) != color)
                 it.remove();
-            else if (and == null)
-                and = new ArrayList<>(line);
-            else
-                for (int i = 0; i < size; ++i)
-                    if (and.get(i) != UNDEF && !and.get(i).equals(line.get(i)))
-                        and.set(i, UNDEF);
+            else if (common == null)
+                common = new ArrayList<>(line);
+            else 
+                for (int i = 0, size = common.size(); i < size; ++i) {
+                    int c = common.get(i);
+                    if (c != UNDEF && c != line.get(i))
+                        common.set(i, UNDEF);
+                }
         }
-        return and != null ? and : list(size);
+        if (common == null)
+            throw new RuntimeException("No available sequence at row " + row);
+        for (int i = 0, size = common.size(); i < size; ++i) {
+            int c = common.get(i), b = board[row][i];
+            if (c == UNDEF) continue;
+            if (b == UNDEF) {
+                board[row][i] = c;
+                que.add(checker(false, row, i, c));
+            } else if (c != b)
+                throw new RuntimeException("Conflict at (" + row + ", " + i + ")");
+        }
     }
 
-    public List<Integer> filter(boolean isRow, int row, int col, int color) {
-        return isRow
-            ? filter(rows.get(row), width, col, color)
-            : filter(cols.get(col), height, row, color);
-    }
-    
-    int getColor(boolean isRow, int row, int col) {
-        return isRow ? board[row][col] : board[col][row];
-//        return board[row][col];
-    }
-
-    void setColor(boolean isRow, int row, int col, int color) {
-        int old = getColor(isRow, row, col);
-        if (color == old)
-            return;
-        if (old != UNDEF)
-            throw new RuntimeException("isRow=%s row=%d col=%d color=%d old=%d"
-                .formatted(isRow, row, col, color, old));
-        board[row][col] = color;
-        que.add(new Event(!isRow, row, col, color));
-//        if (isRow) {
-//            board[row][col] = color;
-//            que.add(new Event(!isRow, row, col, color));
-//        } else {
-//            board[col][row] = color;
-//            que.add(new Event(!isRow, col, row, color));
-//        }
-        System.out.printf("setColor isRow=%s row=%d col=%d color=%d old=%d%n", isRow, row, col, color, old);
-        System.out.println(this);
-        System.out.println("");
+    void colCheck(int row, int col, int color) {
+        List<Integer> common = null;
+        for (Iterator<List<Integer>> it = cols.get(col).iterator(); it.hasNext();) {    // cols col
+            List<Integer> line = it.next();
+            if (color != UNDEF && line.get(row) != color)                               // row
+                it.remove();
+            else if (common == null)
+                common = new ArrayList<>(line);
+            else 
+                for (int i = 0, size = common.size(); i < size; ++i) {
+                    int c = common.get(i);
+                    if (c != UNDEF && c != line.get(i))
+                        common.set(i, UNDEF);
+                }
+        }
+        if (common == null)
+            throw new RuntimeException("No available sequence at col " + col);          // col col
+        for (int i = 0, size = common.size(); i < size; ++i) {
+            int c = common.get(i), b = board[i][col];
+            if (c == UNDEF) continue;
+            if (b == UNDEF) {
+                board[i][col] = c;                                                      // board[i][col]
+                que.add(checker(true, i, col, c));
+            } else if (c != b)
+                throw new RuntimeException("Conflict at (" + i + ", " + col + ")");
+        }
     }
 
-    public void changed(boolean isRow, int row, int col, int color) {
-        List<Integer> and = filter(isRow, row, col, color);
-        for (int i = 0, size = and.size(); i < size; ++i)
-            if (and.get(i) != UNDEF)
-                setColor(isRow, row, i, and.get(i));
-    }
-    
     static String string(int color) {
         return switch (color) {
             case BLACK -> "*";
@@ -160,7 +173,7 @@ public class Nonogram {
                 w.printf("%d: %s%n", i, string(cols.get(i)));
             w.println("que:");
             int i = 0;
-            for (Event e : que)
+            for (Runnable e : que)
                 w.printf("%d: %s%n", i++, e);
             return sw.toString();
         } catch (IOException e1) {
@@ -169,15 +182,14 @@ public class Nonogram {
     }
     
     void solve() {
-//        System.out.println(this);
-        for (int i = 0; i < height; ++i)
-            changed(true, i, -1, UNDEF);
-        for (int i = 0; i < width; ++i)
-            changed(false, -1, i, UNDEF);
+        for (int row = 0; row < height; ++row)
+            rowCheck(row, -1, UNDEF);
+        for (int col = 0; col < width; ++col)
+            colCheck(-1, col, UNDEF);
         System.out.println(this);
         while (!que.isEmpty()) {
-            Event e = que.remove();
-            changed(e.isRow, e.row, e.col, e.color);
+            Runnable r = que.remove();
+            r.run();
         }
         System.out.println(this);
     }

@@ -1,11 +1,11 @@
 package test.puzzle.core;
 
 import static org.junit.Assert.assertEquals;
-import static puzzle.core.Nonogram.*;
+import static puzzle.core.Nonogram.availables;
 
+import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import puzzle.core.Nonogram;
@@ -38,21 +38,6 @@ public class TestNonogram {
             availables(new int[] {2, 2}, 5));
     }
     
-//    @Test
-//    public void testFilter() {
-//        printTestCaseName();
-//        assertEquals(list(UNDEF, UNDEF, UNDEF),
-//            filter(availables(new int[] {1}, 3), 3, -1, UNDEF));
-//        assertEquals(list(UNDEF, BLACK, UNDEF),
-//            filter(availables(new int[] {2}, 3), 3, -1, UNDEF));
-//        assertEquals(list(BLACK, BLACK, BLACK),
-//            filter(availables(new int[] {3}, 3), 3, -1, UNDEF));
-//        assertEquals(list(UNDEF, UNDEF, UNDEF, UNDEF),
-//            filter(availables(new int[] {2}, 4), 4, -1, UNDEF));
-//        assertEquals(list(UNDEF, BLACK, BLACK, UNDEF),
-//            filter(availables(new int[] {3}, 4), 4, -1, UNDEF));
-//    }
-
     @Test
     public void testSimple() {
         printTestCaseName();
@@ -77,64 +62,33 @@ public class TestNonogram {
         Nonogram.solve(rows, cols);
     }
 
-    @Ignore
+    static int[][][] makeProblem(String answer) {
+        String[] lines = answer.lines()
+            .map(s -> s.replaceAll("\\s", ""))
+            .toArray(String[]::new);
+        System.out.println(Arrays.toString(lines));
+        return null;
+    }
+
     @Test
     public void test25x25() {
-        printTestCaseName();
-        int[][] rows = {
-            {1},
-            {1,1},
-            {1,1,1},
-            {5},
-            {3},
-            {3,3},
-            {5},
-            {9},
-            {5,6,3},
-            {8,7,5},
-            {16,2,1},
-            {17,2,1,2},
-            {8,8,2,2},
-            {8,8,6},
-            {8,7,7},
-            {8,7,4},
-            {8,10},
-            {8,2,6},
-            {8,3,2},
-            {9,1,3},
-            {9,4},
-            {9,2},
-            {7},
-            {4},
-            {1},
-        };
-        int[][] cols = {
-            {5,3},
-            {13},
-            {15},
-            {15},
-            {16},
-            {16},
-            {16},
-            {16},
-            {3,7},
-            {4},
-            {1,6,1},
-            {2,7,2},
-            {15},
-            {12},
-            {13},
-            {1,11,1},
-            {2,11,2},
-            {3,2,7},
-            {1,4,1,6,6},
-            {3,11},
-            {2,2,4},
-            {1,2,1,4},
-            {1,3},
-            {5},
-            {2,1},
-        };
-        Nonogram.solve(rows, cols);
+        String answer =
+            "x x x x x x x x x x x x x x x\r\n"
+            + "x x x x x x x x x x - - - x x\r\n"
+            + "x - x x x x x x x - - - - - x\r\n"
+            + "x - - - - - - - - - - - x - x\r\n"
+            + "x - - - - - - - - - - - - - -\r\n"
+            + "x - - - - - - x x x - - - - x\r\n"
+            + "x - - - - x x x x x - - - x x\r\n"
+            + "x x - - x x x x x x - - x x x\r\n"
+            + "x x x - x x x x x - - - x x x\r\n"
+            + "x x x x - - - - - - - x x x -\r\n"
+            + "x x x x x x - x - x x x - x x\r\n"
+            + "x x x x x x - x - x x x x x -\r\n"
+            + "x x x x x - - - - - - x x x x\r\n"
+            + "x x x x x x x x x x x x x x x\r\n"
+            + "x x x x x x x x x x x x x x x";
+        makeProblem(answer);
+//        Nonogram.solve(rows, cols);
     }
 }

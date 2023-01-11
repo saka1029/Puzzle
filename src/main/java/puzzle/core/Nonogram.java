@@ -4,11 +4,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Nonogram {
 
@@ -26,26 +30,28 @@ public class Nonogram {
     final Deque<Runnable> que = new LinkedList<>();
 
     Nonogram(int[][] rows, int[][] cols) {
+        System.out.println("rows=" + Arrays.deepToString(rows));
+        System.out.println("cols=" + Arrays.deepToString(cols));
         height = rows.length;
         width = cols.length;
         board = new int[height][width];
         for (int[] row : rows)
-            this.rows.add(availables(row, width));
+            this.rows.add(candidates(row, width));
         for (int[] col : cols)
-            this.cols.add(availables(col, height));
+            this.cols.add(candidates(col, height));
     }
     
-    public static List<List<Integer>> availables(int[] rans, int width) {
+    public static List<List<Integer>> candidates(int[] rans, int width) {
         int size = rans.length;
-        List<List<Integer>> availables = new ArrayList<>();
+        List<List<Integer>> candidates = new ArrayList<>();
         new Object() {
             Integer[] line = new Integer[width];
 
-            void available(int no, int start) {
+            void candidate(int no, int start) {
                 if (no >= size) {
                     for (int i = start; i < width; ++i)
                         line[i] = WHITE;
-                    availables.add(List.of(line));
+                    candidates.add(List.of(line));
                 } else if (start >= width) {
                     return;
                 } else {
@@ -58,15 +64,16 @@ public class Nonogram {
                             line[j] = BLACK;
                         if (e < width)
                             line[e] = WHITE;
-                        available(no + 1, e + 1);
+                        candidate(no + 1, e + 1);
                     }
                 }
             }
-        }.available(0, 0);
-        return availables;
+        }.candidate(0, 0);
+        return candidates;
     }
     
     Runnable checker(boolean horizontal, int row, int col, int color) {
+        String methodName = horizontal ? "rowCheck" : "colCheck";
         return new Runnable() {
 
             @Override
@@ -79,15 +86,14 @@ public class Nonogram {
 
             @Override
             public String toString() {
-                return (horizontal ? "rowCheck(" : "colCheck(")
-                    + row + ", " + col + ", " + color + ")";
+                return methodName + "(" + row + ", " + col + ", " + color + ")";
             }
         };
     }
     
-    void rowCheck(int row, int col, int color) {
+    static List<Integer> common(List<List<Integer>> candidates, int row, int col, int color) {
         List<Integer> common = null;
-        for (Iterator<List<Integer>> it = rows.get(row).iterator(); it.hasNext();) {
+        for (Iterator<List<Integer>> it = candidates.iterator(); it.hasNext();) {
             List<Integer> line = it.next();
             if (color != UNDEF && line.get(col) != color)
                 it.remove();
@@ -100,8 +106,13 @@ public class Nonogram {
                         common.set(i, UNDEF);
                 }
         }
+        return common;
+    }
+    
+    void rowCheck(int row, int col, int color) {
+        List<Integer> common = common(rows.get(row), row, col, color);
         if (common == null)
-            throw new RuntimeException("No available sequence at row " + row);
+            throw new RuntimeException("No available candidate at row " + row);
         for (int i = 0, size = common.size(); i < size; ++i) {
             int c = common.get(i), b = board[row][i];
             if (c == UNDEF) continue;
@@ -114,22 +125,9 @@ public class Nonogram {
     }
 
     void colCheck(int row, int col, int color) {
-        List<Integer> common = null;
-        for (Iterator<List<Integer>> it = cols.get(col).iterator(); it.hasNext();) {    // cols col
-            List<Integer> line = it.next();
-            if (color != UNDEF && line.get(row) != color)                               // row
-                it.remove();
-            else if (common == null)
-                common = new ArrayList<>(line);
-            else 
-                for (int i = 0, size = common.size(); i < size; ++i) {
-                    int c = common.get(i);
-                    if (c != UNDEF && c != line.get(i))
-                        common.set(i, UNDEF);
-                }
-        }
+        List<Integer> common = common(cols.get(col), col, row, color);
         if (common == null)
-            throw new RuntimeException("No available sequence at col " + col);          // col col
+            throw new RuntimeException("No available candidate at col " + col);          // col col
         for (int i = 0, size = common.size(); i < size; ++i) {
             int c = common.get(i), b = board[i][col];
             if (c == UNDEF) continue;
@@ -191,11 +189,55 @@ public class Nonogram {
             Runnable r = que.remove();
             r.run();
         }
-        System.out.println(this);
+//        System.out.println(this);
+        for (int[] row : board) {
+            for (int cell : row)
+                System.out.print(string(cell));
+            System.out.println();
+        }
     }
 
     public static void solve(int[][] rows, int[][] cols) {
         Nonogram nonogram = new Nonogram(rows, cols);
         nonogram.solve();
+    }
+    
+    /**
+     * 解答から問題を生成します。
+     * @param answer 例えば"- x -\nx x x\n- x -\n"のように
+     *               黒を"x"、白を"-"で与えます。
+     *               各行は改行コード(\r,\r\n,\nのいずれか)で区切ります。
+     *               空白文字は全て無視します。
+     * @param white  空白を表す文字列を指定します。
+     *               黒を表す文字列は指定不要です。
+     * @return new 例えばnew int[][][] {{{1}, {3}, {1}}, {{1}, {3}, {1}}}
+     *             の形式で返します。返す値をrcとすると
+     *             rc[0]は行の制約(int[][])、rc[1]は列の制約(int[][])です。
+     */
+    public static int[][][] makeProblem(String answer, String white) {
+        String sep = Pattern.quote(white) + "+";
+        String[][] matrix = answer.lines()
+            .map(s -> s.replaceAll("\\s", "").split(""))
+            .toArray(String[][]::new);
+        int height = matrix.length, width = matrix[0].length;
+        int rows[][] = IntStream.range(0, height)
+            .mapToObj(r -> Stream.of(IntStream.range(0, width)
+                .mapToObj(c -> matrix[r][c])
+                .collect(Collectors.joining())
+                .split(sep))
+                .mapToInt(s -> s.length())
+                .filter(i -> i > 0)
+                .toArray())
+            .toArray(int[][]::new);
+        int cols[][] = IntStream.range(0, width)
+            .mapToObj(c -> Stream.of(IntStream.range(0, height)
+                .mapToObj(r -> matrix[r][c])
+                .collect(Collectors.joining())
+                .split(sep))
+                .mapToInt(s -> s.length())
+                .filter(i -> i > 0)
+                .toArray())
+            .toArray(int[][]::new);
+        return new int[][][] {rows, cols};
     }
 }

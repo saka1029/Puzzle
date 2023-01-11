@@ -20,13 +20,6 @@ public class Nonogram {
     public final int height, width;
     final int[][] board;
     final List<List<List<Integer>>> rows = new ArrayList<>(), cols = new ArrayList<>();
-
-    record Event(boolean isRow, int row, int col, int color) {
-        @Override
-        public String toString() {
-            return "Event(%s, %d, %d, %d)".formatted(isRow, row, col, color);
-        }
-    }
     final Deque<Runnable> que = new LinkedList<>();
 
     Nonogram(int[][] rows, int[][] cols) {

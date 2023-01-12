@@ -2,6 +2,7 @@ package test.puzzle.core;
 
 import static org.junit.Assert.*;
 
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.junit.Test;
@@ -90,6 +91,26 @@ public class TestCombination {
         assertEquals(6, C(4, 2));
         assertEquals(4, C(4, 3));
         assertEquals(1, C(4, 4));
+    }
+    
+    static int[] ints(int... is) {
+        return is;
+    }
+
+    @Test
+    public void testIterable() {
+        Iterator<int[]> it = Combination.iterable(5, 3).iterator();
+        assertArrayEquals(ints(0, 1, 2), it.next());
+        assertArrayEquals(ints(0, 1, 3), it.next());
+        assertArrayEquals(ints(0, 1, 4), it.next());
+        assertArrayEquals(ints(0, 2, 3), it.next());
+        assertArrayEquals(ints(0, 2, 4), it.next());
+        assertArrayEquals(ints(0, 3, 4), it.next());
+        assertArrayEquals(ints(1, 2, 3), it.next());
+        assertArrayEquals(ints(1, 2, 4), it.next());
+        assertArrayEquals(ints(1, 3, 4), it.next());
+        assertArrayEquals(ints(2, 3, 4), it.next());
+        assertFalse(it.hasNext());
     }
 
 }

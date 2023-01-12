@@ -196,29 +196,24 @@ public class Nonogram {
             this.width = width;
             int size = rans.length;
             new Object() {
-                byte[] line = new byte[width];
-                void candidate(int no, int start) {
-                    if (no >= size) {
-                        for (int i = start; i < width; ++i) // 右端に白を詰めます。
-                            line[i] = Nonogram.WHITE;
-                        candidates.add(line.clone());
+                byte[] candidate = new byte[width];
+                void add(int index, int start) {
+                    if (index >= size) {
+                        Arrays.fill(candidate, start, width, WHITE);  // 残りを白で埋める。
+                        candidates.add(candidate.clone());
                     } else if (start >= width) {
-                        return;
+                        return; // 黒並びを配置できなければ何もしない。
                     } else {
-                        int seq = rans[no];
-                        for (int i = start, max = width - seq; i <= max; ++i) {
-                            for (int j = start; j < i; ++j)
-                                line[j] = Nonogram.WHITE;
-                            int e = i + seq;
-                            for (int j = i; j < e; ++j) // 黒並びを置きます。
-                                line[j] = Nonogram.BLACK;
-                            if (e < width)  // 右端でなければひとつ白を置きます。
-                                line[e] = Nonogram.WHITE;
-                            candidate(no + 1, e + 1);
+                        if (index > 0) // 先頭でなければまず白を追加する。
+                            candidate[start++] = WHITE;
+                        for (int i = start, ran = rans[index]; i + ran <= width; ++i) {
+                            Arrays.fill(candidate, start, i, WHITE);
+                            Arrays.fill(candidate, i, i + ran, BLACK);
+                            add(index + 1, i + ran);
                         }
                     }
                 }
-            }.candidate(0, 0);
+            }.add(0, 0);
         }
 
         /**

@@ -8,6 +8,7 @@ import static puzzle.core.Nonogram.UNDEF;
 import static puzzle.core.Nonogram.WHITE;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -190,12 +191,12 @@ public class TestNonogram {
             byte[] candidate = new byte[width];
             int p = 0;
             for (int i = 0; i < r; ++i) {
-                int blank = combination[i];
-                if (i > 0) blank -= combination[i - 1];
-                for (int j = 0; j < blank; ++j)
-                    candidate[p++] = WHITE;
-                for (int j = 0; j < rans[i]; ++j)
-                    candidate[p++] = BLACK;
+                int whites = combination[i], blacks = rans[i];
+                if (i > 0) whites -= combination[i - 1];
+                Arrays.fill(candidate, p, p + whites, WHITE);
+                p += whites;
+                Arrays.fill(candidate, p, p + blacks, BLACK);
+                p += blacks;
             }
             while (p < width)
                 candidate[p++] = WHITE;

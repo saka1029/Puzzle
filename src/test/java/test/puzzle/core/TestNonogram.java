@@ -2,11 +2,18 @@ package test.puzzle.core;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static puzzle.core.Nonogram.BLACK;
 import static puzzle.core.Nonogram.UNDEF;
+import static puzzle.core.Nonogram.WHITE;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 
+import puzzle.core.Combination;
 import puzzle.core.Nonogram;
 import puzzle.core.Nonogram.CandidateSet;
 
@@ -144,5 +151,82 @@ public class TestNonogram {
             + "- - - - - - - - - - x x x x x x x x x x x x x x x x - - - -";
         int[][][] rc = Nonogram.makeProblem(answer, "-");
         Nonogram.solve(rc[0], rc[1]);
+    }
+    
+    /**
+     * このページではPythonによるNonogramを解くプログラムを紹介しています。
+     * ここではコンビネーションによる候補の列挙を行っています。
+     * 
+     * 120 行のコードでノノグラムを解く | ヘニー デ ハーダー | | データサイエンスに向けて
+     * https://towardsdatascience.com/solving-nonograms-with-120-lines-of-code-a7c6e0f627e4
+     * <pre>
+     * 黒並びの数 : 3
+     * 黒並び    : {1, 1, 1}
+     * 黒並び計  : 3
+     * 幅       : 7
+     * 場所の数  : 5
+     * 組合せ数  : 5C3 = 5*4*3 / 3*2*1 = 10
+     * 5C3       : 並び       5C3の直前の数を引いたもの
+     * 0 1 2     : *.*.*..    0 0 0
+     * 0 1 3     : *.*..*.    0 1 2
+     * 0 1 4     : *.*...*    0 1 3
+     * 0 2 3     : *..*.*.    0 2 1
+     * 0 2 4     : *..*..*    0 2 2
+     * 0 3 4     : *...*.*    0 3 1
+     * 1 2 3     : .*.*.*.    1 1 1
+     * 1 2 4     : .*.*..*    1 1 2
+     * 1 3 4     : .*..*.*    1 2 1
+     * 2 3 4     : ..*.*.*    2 1 1
+     * </pre>
+     * 「5C3の直前の数を引いたもの」が各黒並びの前にある白並びの数となるようです。
+     * これをCombination.iterable(n, r)を使ってコード化したものが以下メソッドです。
+     */
+    static List<byte[]> candidates(int[] rans, int width) {
+        int r = rans.length, sum = IntStream.of(rans).sum();
+        int free = width - sum - r + 1;
+        int n = r + free;
+        List<byte[]> candidates = new ArrayList<>();
+        for (int[] combination : Combination.iterable(n, r)) {
+            byte[] candidate = new byte[width];
+            int p = 0;
+            for (int i = 0; i < r; ++i) {
+                int blank = combination[i];
+                if (i > 0) blank -= combination[i - 1];
+                for (int j = 0; j < blank; ++j)
+                    candidate[p++] = WHITE;
+                for (int j = 0; j < rans[i]; ++j)
+                    candidate[p++] = BLACK;
+            }
+            while (p < width)
+                candidate[p++] = WHITE;
+            candidates.add(candidate);
+        }
+        return candidates;
+    }
+    
+    static void assertCandidatesEquals(List<byte[]> expected, List<byte[]> actual) {
+        int size = expected.size();
+        if (size != actual.size())
+            fail("size expected = " + size + " but actual = " + actual.size());
+        for (int i = 0; i < size; ++i)
+            assertArrayEquals(expected.get(i), actual.get(i));
+    }
+    
+    @Test
+    public void testCandidateByCombination() {
+        printTestCaseName();
+        assertCandidatesEquals(List.of(
+            bytes(BLACK, WHITE, BLACK, WHITE, BLACK, WHITE),
+            bytes(BLACK, WHITE, BLACK, WHITE, WHITE, BLACK),
+            bytes(BLACK, WHITE, WHITE, BLACK, WHITE, BLACK),
+            bytes(WHITE, BLACK, WHITE, BLACK, WHITE, BLACK)),
+            candidates(new int[] {1, 1, 1}, 6));
+        assertCandidatesEquals(List.of(
+            bytes(BLACK, BLACK, BLACK, BLACK, BLACK, WHITE),
+            bytes(WHITE, BLACK, BLACK, BLACK, BLACK, BLACK)),
+            candidates(new int[] {5}, 6));
+        assertCandidatesEquals(List.of(
+            bytes(BLACK, BLACK, BLACK, BLACK, BLACK)),
+            candidates(new int[] {5}, 5));
     }
 }

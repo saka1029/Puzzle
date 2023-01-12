@@ -14,29 +14,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-/**
- * 120 行のコードでノノグラムを解く | ヘニー デ ハーダー | | データサイエンスに向けて
- * https://towardsdatascience.com/solving-nonograms-with-120-lines-of-code-a7c6e0f627e4
- * <pre>
- * 黒並びの数: 3
- * 黒並び    : {1, 1, 1}
- * 黒並び計  : 3
- * 幅        : 7
- * 場所の数  : 5
- * 組合せ数  : 5C3 = 5*4*3 / 3*2*1 = 10
- * 5C3       : 並び       5C3の直前の数を引いたもの
- * 0 1 2     : *.*.*..    0 0 0
- * 0 1 3     : *.*..*.    0 1 2
- * 0 1 4     : *.*...*    0 1 3
- * 0 2 3     : *..*.*.    0 2 1
- * 0 2 4     : *..*..*    0 2 2
- * 0 3 4     : *...*.*    0 3 1
- * 1 2 3     : .*.*.*.    1 1 1
- * 1 2 4     : .*.*..*    1 1 2
- * 1 3 4     : .*..*.*    1 2 1
- * 2 3 4     : ..*.*.*    2 1 1
- * </pre>
- */
 public class Nonogram {
 
     public static final byte UNDEF = 0, BLACK = 1, WHITE = -1;
@@ -106,7 +83,7 @@ public class Nonogram {
         }
     }
 
-    static String string(byte color) {
+    public static String string(byte color) {
         return switch (color) {
             case BLACK -> "*";
             case WHITE -> ".";
@@ -114,7 +91,7 @@ public class Nonogram {
         };
     }
 
-    static String string(byte[] bytes) {
+    public static String string(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes)
             sb.append(string(b));

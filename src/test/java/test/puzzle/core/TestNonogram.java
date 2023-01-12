@@ -7,10 +7,15 @@ import static puzzle.core.Nonogram.BLACK;
 import static puzzle.core.Nonogram.UNDEF;
 import static puzzle.core.Nonogram.WHITE;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
+
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import org.junit.Test;
 
@@ -229,5 +234,124 @@ public class TestNonogram {
         assertCandidatesEquals(List.of(
             bytes(BLACK, BLACK, BLACK, BLACK, BLACK)),
             candidates(new int[] {5}, 5));
+    }
+    
+    public static void main(String args[]){
+        String answer0 =
+            "- x x x - x x x x x x x - x x x x - - x x x x x -\r\n"
+            + "- x x - x x x x x x x x x - x - - x x x x - x x x\r\n"
+            + "x - x - x x - - - x x x x - - - x x - - x x - x x\r\n"
+            + "x - x x x - - x x - x x x x x x x - x x - x - x x\r\n"
+            + "x x - x x x - x - - - - - - - - - - x x - x - x -\r\n"
+            + "x x - x x - - - - - - - - - - - - x - - - x - x -\r\n"
+            + "- x - x x x - x - - - - - - - - - x x - x x - - -\r\n"
+            + "- x - - x x x x - x - - - - - x - - x x x - - - -\r\n"
+            + "- - - - x x x x - x - x x - - x - - x - - - - - -\r\n"
+            + "- - - - - x x x - - - x x - - - - - x - - - - - -\r\n"
+            + "- - - - - x x x x - - x x - - - - x x x - - - - -\r\n"
+            + "- - - - - x x x x x - - - - - x x x - x - - - - -\r\n"
+            + "- - - - - x x x x x x x x x x x - - - x x - - - -\r\n"
+            + "- - - - - - x - - - - - - - - - - - - - x x - - -\r\n"
+            + "- - - - - - x x - - - - - - - - - - - - - x - - -\r\n"
+            + "- - - - - - x x x x x x x x x x x - - - - x x - -\r\n"
+            + "- - - - - - - x x x x - - x x x - - - - - - x - -\r\n"
+            + "- - - - - - - x x x - - - - x - - - - - - - x - -\r\n"
+            + "- - - - - - - x x x - - - - x - - - - - - - x x x\r\n"
+            + "- - - - - - - - x x x - - - - - - - - - - - x - x\r\n"
+            + "- - - - - - - - x x x - - - - - - - - - - x x x x\r\n"
+            + "- - - - - - - - x x x x - - - - - - - - x x - - -\r\n"
+            + "- - - - - - - - - x x x x x x x x x x x x - - - -\r\n"
+            + "- - - - - - - - - x x x x x x x x x x x x x - - -\r\n"
+            + "- - - - - - - - - x x x x x x x x x x x x x - - -";
+        String answer1 =
+            "- - - - - - - - - - - - x x x x x - - -\r\n"
+            + "- - - - - - - - - - x x x x x x x x - -\r\n"
+            + "- - - - - - - - - x x x x x x x - - x -\r\n"
+            + "- - - - - - - - - x x x x x x - - x x -\r\n"
+            + "- - - - - - - - x x x x - x - - x x x x\r\n"
+            + "- - x x x x x - - - x x - - x - x x x x\r\n"
+            + "- x x x x x x x x - - x - - - x x x x x\r\n"
+            + "- x x x x x x x x x x - x x x - - x x x\r\n"
+            + "x x x x x x x - - - x x x - - - - x x x\r\n"
+            + "x x x x x x x x - - x - - x x - - x x x\r\n"
+            + "x x x x x x x - x - x x - - x x x x x x\r\n"
+            + "x x x x x x - - x x - x x - - x x x x x\r\n"
+            + "x x x x x - - x x - - - x x - - x x x x\r\n"
+            + "x x x x - - x x x - - - x x x - - x x x\r\n"
+            + "x - x - - x x x x x x x x x x x - - x x\r\n"
+            + "x x - - x x x x x x x x x x x x x - - x\r\n"
+            + "x x - x - - x x x x x x x x x x x x - x\r\n"
+            + "- x x x x x - - - - - - - - - - - x - x\r\n"
+            + "- - - x x x x x x x x x x x x x x x - x\r\n"
+            + "- - - - - x x x x x x x x x x x x - x -";
+        String answer =
+            "- - - - x x x x x x x x x x x x x x x x - - - - -\r\n"
+            + "- - x x x x x x x x x x x x x x x x x x x - - - -\r\n"
+            + "- x x x x x x x x x x x x x x x x x x x x x - - -\r\n"
+            + "x x x x x x x x x x x x x x x x x x x x x x x - -\r\n"
+            + "x x x x x x x - - - - - x x x x x x x x x x x - -\r\n"
+            + "x x x x x x x - - - - - - - - x x x x x x x x - -\r\n"
+            + "x x x x x x x - - - - - - - - - x x x x x x x - -\r\n"
+            + "- x x x - x x - - - - - x x x - - - x x x x - - -\r\n"
+            + "x x x x - x - - - - x x x x x x x x x x x x - - -\r\n"
+            + "x x x x - x x x x x x x x x x x x x x - x x x - -\r\n"
+            + "- - x x - x x x - - x x x x x x - x - - x x x - -\r\n"
+            + "- - x x x x x x - - - x x x x x - x - - x x x - -\r\n"
+            + "- x x x x x x - - - - - - x x - - - - x x x x - -\r\n"
+            + "- x x x - x x - x - x - - - - - - - - x - x x - -\r\n"
+            + "- x x x - x x - - - - - - - - - - - - x - x - - -\r\n"
+            + "- - x - x x - - - - - - - - x x - - - - - x - - -\r\n"
+            + "- - x - x x - - x x x x x x - - - - - x - - - - -\r\n"
+            + "- - - - - x x - - x x x - - - - - - x x - - - - -\r\n"
+            + "- - - - - x x - - - - - - - - - x x x - - - - - -\r\n"
+            + "- - - - - - x x - - - - - - - x x x - x x - - - -\r\n"
+            + "- - - - - - x - x x - - - - x x x - - x x - - - -\r\n"
+            + "- - - - - - - - - x x x x x x x x - - x x x - - -\r\n"
+            + "- - - - - - x x x x - x x x x x - - - x x x x x x\r\n"
+            + "- - - - - - x x x x - - x x x x - - - - x x x x x\r\n"
+            + "- - - - - - x x x x - - - - x - - - - - - x x x x";
+        int[][][] rc = Nonogram.makeProblem(answer, "-");
+        System.out.println("rows=" + Arrays.deepToString(rc[0]));
+        System.out.println("cols=" + Arrays.deepToString(rc[1]));
+        JFrame frame = new JFrame("test") {
+            byte[][] board;
+            {
+                new Thread(() -> Nonogram.solve(rc[0], rc[1], b -> changed(b))).start();
+            }
+            
+            synchronized void changed(byte[][] board) {
+                int length = board.length;
+                this.board = new byte[length][];
+                for (int i = 0; i < length; ++i)
+                    this.board[i] = Arrays.copyOf(board[i], board[i].length);
+                SwingUtilities.invokeLater(() -> repaint());
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                }
+            }
+            
+            @Override
+            public synchronized void paint(Graphics g) {
+//                super.paint(g);
+                if (board == null)
+                    return;
+                int top = getInsets().top;
+                int h = board.length, w = board[0].length;
+                int unit = Math.min((getHeight() - top) / h, getWidth() / w);
+                for (int i = 0; i < h; ++i)
+                    for (int j = 0; j < w; ++j) {
+                        switch (board[i][j]) {
+                            case BLACK: g.setColor(Color.BLACK); break;
+                            case WHITE: g.setColor(Color.WHITE); break;
+                            default: g.setColor(Color.LIGHT_GRAY); break;
+                        }
+                        g.fillRect(j * unit, i * unit + top, unit, unit);
+                    }
+            }
+        };
+        frame.setSize(600, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
     }
 }

@@ -9,6 +9,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -21,6 +22,7 @@ public class Nonogram {
     final byte[][] board;
     final List<CandidateSet> rows = new ArrayList<>(), cols = new ArrayList<>();
     final Deque<Runnable> que = new LinkedList<>();
+    Consumer<byte[][]> listener = null;
 
     Nonogram(int[][] rows, int[][] cols) {
         System.out.println("rows=" + Arrays.deepToString(rows));
@@ -126,11 +128,17 @@ public class Nonogram {
             rowCheck(row, -1, UNDEF);
         for (int col = 0; col < width; ++col)
             colCheck(-1, col, UNDEF);
+        if (listener != null)
+            listener.accept(board);
         System.out.println(this);
         while (!que.isEmpty()) {
             Runnable r = que.remove();
             r.run();
+            if (listener != null)
+                listener.accept(board);
         }
+        if (listener != null)
+            listener.accept(board);
 //        System.out.println(this);
         for (byte[] row : board)
             System.out.println(string(row));
@@ -138,6 +146,12 @@ public class Nonogram {
 
     public static void solve(int[][] rows, int[][] cols) {
         Nonogram nonogram = new Nonogram(rows, cols);
+        nonogram.solve();
+    }
+
+    public static void solve(int[][] rows, int[][] cols, Consumer<byte[][]> listener) {
+        Nonogram nonogram = new Nonogram(rows, cols);
+        nonogram.listener = listener;
         nonogram.solve();
     }
     

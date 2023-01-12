@@ -2,23 +2,18 @@ package test.puzzle.core;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static puzzle.core.Nonogram.*;
-
-import java.util.List;
+import static puzzle.core.Nonogram.BLACK;
+import static puzzle.core.Nonogram.UNDEF;
 
 import org.junit.Test;
 
 import puzzle.core.Nonogram;
+import puzzle.core.Nonogram.CandidateSet;
 
 public class TestNonogram {
 
     static void printTestCaseName() {
         System.out.println(Thread.currentThread().getStackTrace()[2].getMethodName());
-    }
-    
-    @SafeVarargs
-    static <T> List<T> list(T... elements) {
-        return List.of(elements);
     }
     
     static byte[] bytes(byte... bs) {

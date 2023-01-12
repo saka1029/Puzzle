@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import org.junit.Test;
@@ -237,7 +238,7 @@ public class TestNonogram {
     }
     
     public static void main(String args[]){
-        String answer0 =
+        String answer =
             "- x x x - x x x x x x x - x x x x - - x x x x x -\r\n"
             + "- x x - x x x x x x x x x - x - - x x x x - x x x\r\n"
             + "x - x - x x - - - x x x x - - - x x - - x x - x x\r\n"
@@ -263,57 +264,58 @@ public class TestNonogram {
             + "- - - - - - - - - x x x x x x x x x x x x - - - -\r\n"
             + "- - - - - - - - - x x x x x x x x x x x x x - - -\r\n"
             + "- - - - - - - - - x x x x x x x x x x x x x - - -";
-        String answer1 =
-            "- - - - - - - - - - - - x x x x x - - -\r\n"
-            + "- - - - - - - - - - x x x x x x x x - -\r\n"
-            + "- - - - - - - - - x x x x x x x - - x -\r\n"
-            + "- - - - - - - - - x x x x x x - - x x -\r\n"
-            + "- - - - - - - - x x x x - x - - x x x x\r\n"
-            + "- - x x x x x - - - x x - - x - x x x x\r\n"
-            + "- x x x x x x x x - - x - - - x x x x x\r\n"
-            + "- x x x x x x x x x x - x x x - - x x x\r\n"
-            + "x x x x x x x - - - x x x - - - - x x x\r\n"
-            + "x x x x x x x x - - x - - x x - - x x x\r\n"
-            + "x x x x x x x - x - x x - - x x x x x x\r\n"
-            + "x x x x x x - - x x - x x - - x x x x x\r\n"
-            + "x x x x x - - x x - - - x x - - x x x x\r\n"
-            + "x x x x - - x x x - - - x x x - - x x x\r\n"
-            + "x - x - - x x x x x x x x x x x - - x x\r\n"
-            + "x x - - x x x x x x x x x x x x x - - x\r\n"
-            + "x x - x - - x x x x x x x x x x x x - x\r\n"
-            + "- x x x x x - - - - - - - - - - - x - x\r\n"
-            + "- - - x x x x x x x x x x x x x x x - x\r\n"
-            + "- - - - - x x x x x x x x x x x x - x -";
-        String answer =
-            "- - - - x x x x x x x x x x x x x x x x - - - - -\r\n"
-            + "- - x x x x x x x x x x x x x x x x x x x - - - -\r\n"
-            + "- x x x x x x x x x x x x x x x x x x x x x - - -\r\n"
-            + "x x x x x x x x x x x x x x x x x x x x x x x - -\r\n"
-            + "x x x x x x x - - - - - x x x x x x x x x x x - -\r\n"
-            + "x x x x x x x - - - - - - - - x x x x x x x x - -\r\n"
-            + "x x x x x x x - - - - - - - - - x x x x x x x - -\r\n"
-            + "- x x x - x x - - - - - x x x - - - x x x x - - -\r\n"
-            + "x x x x - x - - - - x x x x x x x x x x x x - - -\r\n"
-            + "x x x x - x x x x x x x x x x x x x x - x x x - -\r\n"
-            + "- - x x - x x x - - x x x x x x - x - - x x x - -\r\n"
-            + "- - x x x x x x - - - x x x x x - x - - x x x - -\r\n"
-            + "- x x x x x x - - - - - - x x - - - - x x x x - -\r\n"
-            + "- x x x - x x - x - x - - - - - - - - x - x x - -\r\n"
-            + "- x x x - x x - - - - - - - - - - - - x - x - - -\r\n"
-            + "- - x - x x - - - - - - - - x x - - - - - x - - -\r\n"
-            + "- - x - x x - - x x x x x x - - - - - x - - - - -\r\n"
-            + "- - - - - x x - - x x x - - - - - - x x - - - - -\r\n"
-            + "- - - - - x x - - - - - - - - - x x x - - - - - -\r\n"
-            + "- - - - - - x x - - - - - - - x x x - x x - - - -\r\n"
-            + "- - - - - - x - x x - - - - x x x - - x x - - - -\r\n"
-            + "- - - - - - - - - x x x x x x x x - - x x x - - -\r\n"
-            + "- - - - - - x x x x - x x x x x - - - x x x x x x\r\n"
-            + "- - - - - - x x x x - - x x x x - - - - x x x x x\r\n"
-            + "- - - - - - x x x x - - - - x - - - - - - x x x x";
+//        String answer =
+//            "- - - - - - - - - - - - x x x x x - - -\r\n"
+//            + "- - - - - - - - - - x x x x x x x x - -\r\n"
+//            + "- - - - - - - - - x x x x x x x - - x -\r\n"
+//            + "- - - - - - - - - x x x x x x - - x x -\r\n"
+//            + "- - - - - - - - x x x x - x - - x x x x\r\n"
+//            + "- - x x x x x - - - x x - - x - x x x x\r\n"
+//            + "- x x x x x x x x - - x - - - x x x x x\r\n"
+//            + "- x x x x x x x x x x - x x x - - x x x\r\n"
+//            + "x x x x x x x - - - x x x - - - - x x x\r\n"
+//            + "x x x x x x x x - - x - - x x - - x x x\r\n"
+//            + "x x x x x x x - x - x x - - x x x x x x\r\n"
+//            + "x x x x x x - - x x - x x - - x x x x x\r\n"
+//            + "x x x x x - - x x - - - x x - - x x x x\r\n"
+//            + "x x x x - - x x x - - - x x x - - x x x\r\n"
+//            + "x - x - - x x x x x x x x x x x - - x x\r\n"
+//            + "x x - - x x x x x x x x x x x x x - - x\r\n"
+//            + "x x - x - - x x x x x x x x x x x x - x\r\n"
+//            + "- x x x x x - - - - - - - - - - - x - x\r\n"
+//            + "- - - x x x x x x x x x x x x x x x - x\r\n"
+//            + "- - - - - x x x x x x x x x x x x - x -";
+//        String answer =
+//            "- - - - x x x x x x x x x x x x x x x x - - - - -\r\n"
+//            + "- - x x x x x x x x x x x x x x x x x x x - - - -\r\n"
+//            + "- x x x x x x x x x x x x x x x x x x x x x - - -\r\n"
+//            + "x x x x x x x x x x x x x x x x x x x x x x x - -\r\n"
+//            + "x x x x x x x - - - - - x x x x x x x x x x x - -\r\n"
+//            + "x x x x x x x - - - - - - - - x x x x x x x x - -\r\n"
+//            + "x x x x x x x - - - - - - - - - x x x x x x x - -\r\n"
+//            + "- x x x - x x - - - - - x x x - - - x x x x - - -\r\n"
+//            + "x x x x - x - - - - x x x x x x x x x x x x - - -\r\n"
+//            + "x x x x - x x x x x x x x x x x x x x - x x x - -\r\n"
+//            + "- - x x - x x x - - x x x x x x - x - - x x x - -\r\n"
+//            + "- - x x x x x x - - - x x x x x - x - - x x x - -\r\n"
+//            + "- x x x x x x - - - - - - x x - - - - x x x x - -\r\n"
+//            + "- x x x - x x - x - x - - - - - - - - x - x x - -\r\n"
+//            + "- x x x - x x - - - - - - - - - - - - x - x - - -\r\n"
+//            + "- - x - x x - - - - - - - - x x - - - - - x - - -\r\n"
+//            + "- - x - x x - - x x x x x x - - - - - x - - - - -\r\n"
+//            + "- - - - - x x - - x x x - - - - - - x x - - - - -\r\n"
+//            + "- - - - - x x - - - - - - - - - x x x - - - - - -\r\n"
+//            + "- - - - - - x x - - - - - - - x x x - x x - - - -\r\n"
+//            + "- - - - - - x - x x - - - - x x x - - x x - - - -\r\n"
+//            + "- - - - - - - - - x x x x x x x x - - x x x - - -\r\n"
+//            + "- - - - - - x x x x - x x x x x - - - x x x x x x\r\n"
+//            + "- - - - - - x x x x - - x x x x - - - - x x x x x\r\n"
+//            + "- - - - - - x x x x - - - - x - - - - - - x x x x";
         int[][][] rc = Nonogram.makeProblem(answer, "-");
         System.out.println("rows=" + Arrays.deepToString(rc[0]));
         System.out.println("cols=" + Arrays.deepToString(rc[1]));
-        JFrame frame = new JFrame("test") {
+        var frame = new JFrame("test") {
+            private static final long serialVersionUID = 1L;
             byte[][] board;
             {
                 new Thread(() -> Nonogram.solve(rc[0], rc[1], b -> changed(b))).start();
@@ -331,25 +333,32 @@ public class TestNonogram {
                 }
             }
             
+        };
+        
+        JPanel panel = new JPanel() {
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public synchronized void paint(Graphics g) {
-//                super.paint(g);
-                if (board == null)
-                    return;
-                int top = getInsets().top;
-                int h = board.length, w = board[0].length;
-                int unit = Math.min((getHeight() - top) / h, getWidth() / w);
-                for (int i = 0; i < h; ++i)
-                    for (int j = 0; j < w; ++j) {
-                        switch (board[i][j]) {
-                            case BLACK: g.setColor(Color.BLACK); break;
-                            case WHITE: g.setColor(Color.WHITE); break;
-                            default: g.setColor(Color.LIGHT_GRAY); break;
+            public void paint(Graphics g) {
+                synchronized (frame) {
+                  super.paint(g);
+                    if (frame.board == null)
+                        return;
+                    int h = frame.board.length, w = frame.board[0].length;
+                    int unit = Math.min(getHeight() / h, getWidth() / w);
+                    for (int i = 0; i < h; ++i)
+                        for (int j = 0; j < w; ++j) {
+                            switch (frame.board[i][j]) {
+                                case BLACK: g.setColor(Color.BLACK); break;
+                                case WHITE: g.setColor(Color.WHITE); break;
+                                default: g.setColor(Color.LIGHT_GRAY); break;
+                            }
+                            g.fillRect(j * unit, i * unit, unit, unit);
                         }
-                        g.fillRect(j * unit, i * unit + top, unit, unit);
-                    }
+                }
             }
         };
+        frame.add(panel);
         frame.setSize(600, 400);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);

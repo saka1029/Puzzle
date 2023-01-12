@@ -9,6 +9,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,7 +22,7 @@ public class Nonogram {
     public final int height, width;
     final byte[][] board;
     final List<CandidateSet> rows = new ArrayList<>(), cols = new ArrayList<>();
-    final Deque<Runnable> que = new LinkedList<>();
+    final Deque<BooleanSupplier> que = new LinkedList<>();
     Consumer<byte[][]> listener = null;
 
     Nonogram(int[][] rows, int[][] cols) {
@@ -36,16 +37,15 @@ public class Nonogram {
             this.cols.add(new CandidateSet(col, height));
     }
     
-    Runnable checker(boolean horizontal, int row, int col, byte color) {
+    BooleanSupplier checker(boolean horizontal, int row, int col, byte color) {
         String methodName = horizontal ? "rowCheck" : "colCheck";
-        return new Runnable() {
+        return new BooleanSupplier() {
 
             @Override
-            public void run() {
-                if (horizontal)
-                    rowCheck(row, col, color);
-                else
-                    colCheck(row, col, color);
+            public boolean getAsBoolean() {
+                return horizontal
+                    ? rowCheck(row, col, color)
+                    : colCheck(row, col, color);
             }
 
             @Override
@@ -55,7 +55,8 @@ public class Nonogram {
         };
     }
     
-    void rowCheck(int row, int col, byte color) {
+    boolean rowCheck(int row, int col, byte color) {
+        boolean changed = false;
         byte[] common = rows.get(row).filter(row, col, color);
         if (common == null)
             throw new RuntimeException("No available candidate at row " + row);
@@ -64,13 +65,16 @@ public class Nonogram {
             if (c == UNDEF) continue;
             if (b == UNDEF) {
                 board[row][i] = c;
+                changed = true;
                 que.add(checker(false, row, i, c));
             } else if (c != b)
                 throw new RuntimeException("Conflict at (" + row + ", " + i + ")");
         }
+        return changed;
     }
 
-    void colCheck(int row, int col, byte color) {
+    boolean colCheck(int row, int col, byte color) {
+        boolean changed = false;
         byte[] common = cols.get(col).filter(col, row, color);
         if (common == null)
             throw new RuntimeException("No available candidate at col " + col);          // col col
@@ -79,10 +83,12 @@ public class Nonogram {
             if (c == UNDEF) continue;
             if (b == UNDEF) {
                 board[i][col] = c;                                                      // board[i][col]
+                changed = true;
                 que.add(checker(true, i, col, c));
             } else if (c != b)
                 throw new RuntimeException("Conflict at (" + i + ", " + col + ")");
         }
+        return changed;
     }
 
     public static String string(byte color) {
@@ -115,7 +121,7 @@ public class Nonogram {
                 w.printf("%d: %s%n", i, cols.get(i));
             w.println("que:");
             int i = 0;
-            for (Runnable e : que)
+            for (BooleanSupplier e : que)
                 w.printf("%d: %s%n", i++, e);
             return sw.toString();
         } catch (IOException e1) {
@@ -132,9 +138,9 @@ public class Nonogram {
             listener.accept(board);
         System.out.println(this);
         while (!que.isEmpty()) {
-            Runnable r = que.remove();
-            r.run();
-            if (listener != null)
+            BooleanSupplier r = que.remove();
+            boolean changed = r.getAsBoolean();
+            if (listener != null && changed)
                 listener.accept(board);
         }
         if (listener != null)

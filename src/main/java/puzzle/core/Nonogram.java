@@ -164,7 +164,7 @@ public class Nonogram {
                 .mapToObj(c -> matrix[r][c])
                 .collect(Collectors.joining())
                 .split(sep))
-                .mapToInt(s -> s.length())
+                .mapToInt(String::length)
                 .filter(i -> i > 0)
                 .toArray())
             .toArray(int[][]::new);
@@ -173,7 +173,7 @@ public class Nonogram {
                 .mapToObj(r -> matrix[r][c])
                 .collect(Collectors.joining())
                 .split(sep))
-                .mapToInt(s -> s.length())
+                .mapToInt(String::length)
                 .filter(i -> i > 0)
                 .toArray())
             .toArray(int[][]::new);
@@ -245,7 +245,7 @@ public class Nonogram {
         @Override
         public String toString() {
             return candidates.stream()
-                .map(bytes -> Nonogram.string(bytes))
+                .map(Nonogram::string)
                 .collect(Collectors.joining("|"));
         }
     }

@@ -104,7 +104,7 @@ public class Nonogram {
             PrintWriter w = new PrintWriter(sw)) {
             w.printf("%dx%d%n", height, width);
             for (byte[] row : board)
-                w.println(row);
+                w.println(string(row));
             w.println("rows:");
             for (int i = 0; i < height; ++i)
                 w.printf("%d: %s%n", i, rows.get(i));
@@ -132,11 +132,8 @@ public class Nonogram {
             r.run();
         }
 //        System.out.println(this);
-        for (byte[] row : board) {
-            for (byte cell : row)
-                System.out.print(string(cell));
-            System.out.println();
-        }
+        for (byte[] row : board)
+            System.out.println(string(row));
     }
 
     public static void solve(int[][] rows, int[][] cols) {

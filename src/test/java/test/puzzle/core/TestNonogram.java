@@ -69,9 +69,13 @@ public class TestNonogram {
     @Test
     public void test3x4() {
         printTestCaseName();
-        int[][] rows = {{1, 1, 1}, {1, 1}, {2, 2}};
-        int[][] cols = {{1, 1}, {2}, {1}, {1}, {3}};
-        Nonogram.solve(rows, cols);
+//        int[][] rows = {{1, 1, 1}, {1, 1}, {2, 2}};
+//        int[][] cols = {{1, 1}, {2}, {1}, {1}, {3}};
+        int[][][] rc = Nonogram.makeProblem(
+            "*.*.*\n"
+            + ".*..*\n"
+            + "**.**\n", ".");
+        Nonogram.solve(rc[0], rc[1]);
     }
 
     @Test

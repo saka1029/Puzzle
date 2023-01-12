@@ -16,10 +16,10 @@ import java.util.stream.Stream;
 
 public class Nonogram {
 
-    public static final int UNDEF = 0, BLACK = 1, WHITE = -1;
+    public static final byte UNDEF = 0, BLACK = 1, WHITE = -1;
     public final int height, width;
-    final int[][] board;
-    final List<List<List<Integer>>> rows = new ArrayList<>(), cols = new ArrayList<>();
+    final byte[][] board;
+    final List<CandidateSet> rows = new ArrayList<>(), cols = new ArrayList<>();
     final Deque<Runnable> que = new LinkedList<>();
 
     Nonogram(int[][] rows, int[][] cols) {
@@ -27,51 +27,14 @@ public class Nonogram {
         System.out.println("cols=" + Arrays.deepToString(cols));
         height = rows.length;
         width = cols.length;
-        board = new int[height][width];
+        board = new byte[height][width];
         for (int[] row : rows)
-            this.rows.add(candidates(row, width));
+            this.rows.add(new CandidateSet(row, width));
         for (int[] col : cols)
-            this.cols.add(candidates(col, height));
+            this.cols.add(new CandidateSet(col, height));
     }
     
-    /**
-     * 黒並びの数の配列から候補のリストを作成します。
-     * @param rans 黒並びの数の配列を指定します。
-     * @param width 黒並びを収める幅を指定します。
-     * @return 候補のリストを返します。
-     */
-    public static List<List<Integer>> candidates(int[] rans, int width) {
-        int size = rans.length;
-        List<List<Integer>> candidates = new ArrayList<>();
-        new Object() {
-            Integer[] line = new Integer[width];
-
-            void candidate(int no, int start) {
-                if (no >= size) {
-                    for (int i = start; i < width; ++i) // 右端に白を詰めます。
-                        line[i] = WHITE;
-                    candidates.add(List.of(line));
-                } else if (start >= width) {
-                    return;
-                } else {
-                    int seq = rans[no];
-                    for (int i = start, max = width - seq; i <= max; ++i) {
-                        for (int j = start; j < i; ++j)
-                            line[j] = WHITE;
-                        int e = i + seq;
-                        for (int j = i; j < e; ++j) // 黒並びを置きます。
-                            line[j] = BLACK;
-                        if (e < width)  // 右端でなければひとつ白を置きます。
-                            line[e] = WHITE;
-                        candidate(no + 1, e + 1);
-                    }
-                }
-            }
-        }.candidate(0, 0);
-        return candidates;
-    }
-    
-    Runnable checker(boolean horizontal, int row, int col, int color) {
+    Runnable checker(boolean horizontal, int row, int col, byte color) {
         String methodName = horizontal ? "rowCheck" : "colCheck";
         return new Runnable() {
 
@@ -90,39 +53,12 @@ public class Nonogram {
         };
     }
     
-    /**
-     * 候補の中からrow,col位置がcolorに合致しないものを取り除きます。
-     * @param candidates 候補のリストを指定します。
-     * @param row
-     * @param col
-     * @param color
-     * @return 残った候補の共通部分を返します。
-     *         候補がなくなった場合はnullを返します。
-     */
-    static List<Integer> common(List<List<Integer>> candidates, int row, int col, int color) {
-        List<Integer> common = null;
-        for (Iterator<List<Integer>> it = candidates.iterator(); it.hasNext();) {
-            List<Integer> line = it.next();
-            if (color != UNDEF && line.get(col) != color)
-                it.remove();
-            else if (common == null)
-                common = new ArrayList<>(line);
-            else 
-                for (int i = 0, size = common.size(); i < size; ++i) {
-                    int c = common.get(i);
-                    if (c != UNDEF && c != line.get(i))
-                        common.set(i, UNDEF);
-                }
-        }
-        return common;
-    }
-    
-    void rowCheck(int row, int col, int color) {
-        List<Integer> common = common(rows.get(row), row, col, color);
+    void rowCheck(int row, int col, byte color) {
+        byte[] common = rows.get(row).filter(row, col, color);
         if (common == null)
             throw new RuntimeException("No available candidate at row " + row);
-        for (int i = 0, size = common.size(); i < size; ++i) {
-            int c = common.get(i), b = board[row][i];
+        for (int i = 0, size = common.length; i < size; ++i) {
+            byte c = common[i], b = board[row][i];
             if (c == UNDEF) continue;
             if (b == UNDEF) {
                 board[row][i] = c;
@@ -132,12 +68,12 @@ public class Nonogram {
         }
     }
 
-    void colCheck(int row, int col, int color) {
-        List<Integer> common = common(cols.get(col), col, row, color);
+    void colCheck(int row, int col, byte color) {
+        byte[] common = cols.get(col).filter(col, row, color);
         if (common == null)
             throw new RuntimeException("No available candidate at col " + col);          // col col
-        for (int i = 0, size = common.size(); i < size; ++i) {
-            int c = common.get(i), b = board[i][col];
+        for (int i = 0, size = common.length; i < size; ++i) {
+            byte c = common[i], b = board[i][col];
             if (c == UNDEF) continue;
             if (b == UNDEF) {
                 board[i][col] = c;                                                      // board[i][col]
@@ -147,7 +83,7 @@ public class Nonogram {
         }
     }
 
-    static String string(int color) {
+    static String string(byte color) {
         return switch (color) {
             case BLACK -> "*";
             case WHITE -> ".";
@@ -155,10 +91,11 @@ public class Nonogram {
         };
     }
 
-    static String string(List<List<Integer>> lines) {
-        return lines.stream()
-            .map(x -> x.stream().map(c -> string(c)).collect(Collectors.joining()))
-            .collect(Collectors.joining("|"));
+    static String string(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes)
+            sb.append(string(b));
+        return sb.toString();
     }
 
     @Override
@@ -166,17 +103,14 @@ public class Nonogram {
         try (StringWriter sw = new StringWriter();
             PrintWriter w = new PrintWriter(sw)) {
             w.printf("%dx%d%n", height, width);
-            for (int[] row : board) {
-                for (int cell : row)
-                    w.print(string(cell));
-                w.println();
-            }
+            for (byte[] row : board)
+                w.println(row);
             w.println("rows:");
             for (int i = 0; i < height; ++i)
-                w.printf("%d: %s%n", i, string(rows.get(i)));
+                w.printf("%d: %s%n", i, rows.get(i));
             w.println("cols:");
             for (int i = 0; i < width; ++i)
-                w.printf("%d: %s%n", i, string(cols.get(i)));
+                w.printf("%d: %s%n", i, cols.get(i));
             w.println("que:");
             int i = 0;
             for (Runnable e : que)
@@ -198,8 +132,8 @@ public class Nonogram {
             r.run();
         }
 //        System.out.println(this);
-        for (int[] row : board) {
-            for (int cell : row)
+        for (byte[] row : board) {
+            for (byte cell : row)
                 System.out.print(string(cell));
             System.out.println();
         }
@@ -247,5 +181,80 @@ public class Nonogram {
                 .toArray())
             .toArray(int[][]::new);
         return new int[][][] {rows, cols};
+    }
+
+    /**
+     * 候補の集合です。
+     */
+    public static class CandidateSet {
+        final int width;
+        final List<byte[]> candidates = new ArrayList<>();
+
+        /**
+         * 黒並びの数の配列から候補のリストを作成します。
+         * @param rans 黒並びの数の配列を指定します。
+         * @param width 黒並びを収める幅を指定します。
+         */
+        public CandidateSet(int[] rans, int width) {
+            this.width = width;
+            int size = rans.length;
+            new Object() {
+                byte[] line = new byte[width];
+                void candidate(int no, int start) {
+                    if (no >= size) {
+                        for (int i = start; i < width; ++i) // 右端に白を詰めます。
+                            line[i] = Nonogram.WHITE;
+                        candidates.add(line.clone());
+                    } else if (start >= width) {
+                        return;
+                    } else {
+                        int seq = rans[no];
+                        for (int i = start, max = width - seq; i <= max; ++i) {
+                            for (int j = start; j < i; ++j)
+                                line[j] = Nonogram.WHITE;
+                            int e = i + seq;
+                            for (int j = i; j < e; ++j) // 黒並びを置きます。
+                                line[j] = Nonogram.BLACK;
+                            if (e < width)  // 右端でなければひとつ白を置きます。
+                                line[e] = Nonogram.WHITE;
+                            candidate(no + 1, e + 1);
+                        }
+                    }
+                }
+            }.candidate(0, 0);
+        }
+
+        /**
+         * 候補の中からrow,col位置がcolorに合致しないものを取り除きます。
+         * @param row
+         * @param col
+         * @param color
+         * @return 残った候補の共通部分を返します。
+         *         候補がなくなった場合はnullを返します。
+         */
+        public byte[] filter(int row, int col, byte color) {
+            byte[] common = null;
+            for (Iterator<byte[]> it = candidates.iterator(); it.hasNext();) {
+                byte[] line = it.next();
+                if (color != Nonogram.UNDEF && line[col] != color)
+                    it.remove();
+                else if (common == null)
+                    common = line.clone();
+                else 
+                    for (int i = 0; i < width; ++i) {
+                        int c = common[i];
+                        if (c != Nonogram.UNDEF && c != line[i])
+                            common[i] = Nonogram.UNDEF;
+                    }
+            }
+            return common;
+        }
+
+        @Override
+        public String toString() {
+            return candidates.stream()
+                .map(bytes -> Nonogram.string(bytes))
+                .collect(Collectors.joining("|"));
+        }
     }
 }

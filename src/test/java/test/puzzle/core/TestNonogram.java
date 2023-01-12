@@ -1,7 +1,8 @@
 package test.puzzle.core;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static puzzle.core.Nonogram.candidates;
+import static puzzle.core.Nonogram.*;
 
 import java.util.List;
 
@@ -19,24 +20,43 @@ public class TestNonogram {
     static <T> List<T> list(T... elements) {
         return List.of(elements);
     }
+    
+    static byte[] bytes(byte... bs) {
+        return bs;
+    }
 
     @Test
-    public void testAvailable() {
+    public void testCandidateSet() {
         printTestCaseName();
-        assertEquals(list(list(1, -1, 1)),
-            candidates(new int[] {1, 1}, 3));
-        assertEquals(list(list(1, -1, -1), list(-1, 1, -1), list(-1, -1, 1)),
-            candidates(new int[] {1}, 3));
-        assertEquals(list(list(1, -1, 1, -1), list(1, -1, -1, 1), list(-1, 1, -1, 1)),
-            candidates(new int[] {1, 1}, 4));
-        assertEquals(list(list(1, 1, -1, 1, -1), list(1, 1, -1, -1, 1), list(-1, 1, 1, -1, 1)),
-            candidates(new int[] {2, 1}, 5));
-        assertEquals(list(list(1, 1, 1, 1, 1)),
-            candidates(new int[] {5}, 5));
-        assertEquals(list(list(1, 1, -1, 1, 1)),
-            candidates(new int[] {2, 2}, 5));
+        assertEquals("*.*",
+            new CandidateSet(new int[] {1, 1}, 3).toString());
+        assertEquals("*..|.*.|..*",
+            new CandidateSet(new int[] {1}, 3).toString());
+        assertEquals("*.*.|*..*|.*.*",
+            new CandidateSet(new int[] {1, 1}, 4).toString());
+        assertEquals("**.*.|**..*|.**.*",
+            new CandidateSet(new int[] {2, 1}, 5).toString());
+        assertEquals("*****",
+            new CandidateSet(new int[] {5}, 5).toString());
+        assertEquals("**.**",
+            new CandidateSet(new int[] {2, 2}, 5).toString());
     }
     
+    @Test
+    public void testFilter() {
+        printTestCaseName();
+        assertArrayEquals(bytes(UNDEF, UNDEF, UNDEF),
+            new CandidateSet(new int[] {1}, 3).filter(3, -1, UNDEF));
+        assertArrayEquals(bytes(UNDEF, BLACK, UNDEF),
+            new CandidateSet(new int[] {2}, 3).filter(3, -1, UNDEF));
+        assertArrayEquals(bytes(BLACK, BLACK, BLACK),
+            new CandidateSet(new int[] {3}, 3).filter(3, -1, UNDEF));
+        assertArrayEquals(bytes(UNDEF, UNDEF, UNDEF, UNDEF),
+            new CandidateSet(new int[] {2}, 4).filter(4, -1, UNDEF));
+        assertArrayEquals(bytes(UNDEF, BLACK, BLACK, UNDEF),
+            new CandidateSet(new int[] {3}, 4).filter(4, -1, UNDEF));
+    }
+
     @Test
     public void test3x3() {
         printTestCaseName();

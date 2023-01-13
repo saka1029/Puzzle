@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -29,7 +30,7 @@ public class TestNonogram {
     static void printTestCaseName() {
         System.out.println(Thread.currentThread().getStackTrace()[2].getMethodName());
     }
-    
+
     static byte[] bytes(byte... bs) {
         return bs;
     }
@@ -50,7 +51,7 @@ public class TestNonogram {
         assertEquals("**.**",
             new CandidateSet(new int[] {2, 2}, 5).toString());
     }
-    
+
     @Test
     public void testFilter() {
         printTestCaseName();
@@ -82,8 +83,9 @@ public class TestNonogram {
 //        int[][] cols = {{1, 1}, {2}, {1}, {1}, {3}};
         int[][][] rc = Nonogram.makeProblem(
             "*.*.*\n"
-            + ".*..*\n"
-            + "**.**\n", ".");
+                + ".*..*\n"
+                + "**.**\n",
+            ".");
         Nonogram.solve(rc[0], rc[1]);
     }
 
@@ -96,14 +98,12 @@ public class TestNonogram {
     }
 
     /**
-     * Nonogramme, Nr. 1
-     * https://www.janko.at/Raetsel/Nonogramme/0001.a.htm
+     * Nonogramme, Nr. 1 https://www.janko.at/Raetsel/Nonogramme/0001.a.htm
      */
     @Test
     public void test15x15() {
         printTestCaseName();
-        String answer =
-            "x x x x x x x x x x x x x x x\r\n"
+        String answer = "x x x x x x x x x x x x x x x\r\n"
             + "x x x x x x x x x x - - - x x\r\n"
             + "x - x x x x x x x - - - - - x\r\n"
             + "x - - - - - - - - - - - x - x\r\n"
@@ -123,10 +123,9 @@ public class TestNonogram {
 //        System.out.println("cols=" + Arrays.deepToString(rc[1]));
         Nonogram.solve(rc[0], rc[1]);
     }
-    
+
     /**
-     * Nonogramme, Nr. 50
-     * https://www.janko.at/Raetsel/Nonogramme/0050.a.htm
+     * Nonogramme, Nr. 50 https://www.janko.at/Raetsel/Nonogramme/0050.a.htm
      */
     @Test
     public void test25x30() {
@@ -159,13 +158,13 @@ public class TestNonogram {
         int[][][] rc = Nonogram.makeProblem(answer, "-");
         Nonogram.solve(rc[0], rc[1]);
     }
-    
+
     /**
-     * このページではPythonによるNonogramを解くプログラムを紹介しています。
-     * ここではコンビネーションによる候補の列挙を行っています。
+     * このページではPythonによるNonogramを解くプログラムを紹介しています。 ここではコンビネーションによる候補の列挙を行っています。
      * 
      * 120 行のコードでノノグラムを解く | ヘニー デ ハーダー | | データサイエンスに向けて
      * https://towardsdatascience.com/solving-nonograms-with-120-lines-of-code-a7c6e0f627e4
+     * 
      * <pre>
      * 黒並びの数 : 3
      * 黒並び    : {1, 1, 1}
@@ -185,8 +184,9 @@ public class TestNonogram {
      * 1 3 4     : .*..*.*    1 2 1
      * 2 3 4     : ..*.*.*    2 1 1
      * </pre>
-     * 「5C3の直前の数を引いたもの」が各黒並びの前にある白並びの数となるようです。
-     * これをCombination.iterable(n, r)を使ってコード化したものが以下メソッドです。
+     * 
+     * 「5C3の直前の数を引いたもの」が各黒並びの前にある白並びの数となるようです。 これをCombination.iterable(n,
+     * r)を使ってコード化したものが以下メソッドです。
      */
     static List<byte[]> candidates(int[] rans, int width) {
         int r = rans.length, sum = IntStream.of(rans).sum();
@@ -198,7 +198,8 @@ public class TestNonogram {
             int p = 0;
             for (int i = 0; i < r; ++i) {
                 int whites = combination[i], blacks = rans[i];
-                if (i > 0) whites -= combination[i - 1];
+                if (i > 0)
+                    whites -= combination[i - 1];
                 Arrays.fill(candidate, p, p + whites, WHITE);
                 p += whites;
                 Arrays.fill(candidate, p, p + blacks, BLACK);
@@ -210,7 +211,7 @@ public class TestNonogram {
         }
         return candidates;
     }
-    
+
     static void assertCandidatesEquals(List<byte[]> expected, List<byte[]> actual) {
         int size = expected.size();
         if (size != actual.size())
@@ -218,7 +219,7 @@ public class TestNonogram {
         for (int i = 0; i < size; ++i)
             assertArrayEquals(expected.get(i), actual.get(i));
     }
-    
+
     @Test
     public void testCandidateByCombination() {
         printTestCaseName();
@@ -236,10 +237,9 @@ public class TestNonogram {
             bytes(BLACK, BLACK, BLACK, BLACK, BLACK)),
             candidates(new int[] {5}, 5));
     }
-    
-    public static void main(String args[]){
-        String answer =
-            "- x x x - x x x x x x x - x x x x - - x x x x x -\r\n"
+
+    public static void main(String args[]) {
+        String answer = "- x x x - x x x x x x x - x x x x - - x x x x x -\r\n"
             + "- x x - x x x x x x x x x - x - - x x x x - x x x\r\n"
             + "x - x - x x - - - x x x x - - - x x - - x x - x x\r\n"
             + "x - x x x - - x x - x x x x x x x - x x - x - x x\r\n"
@@ -314,53 +314,48 @@ public class TestNonogram {
         int[][][] rc = Nonogram.makeProblem(answer, "-");
         System.out.println("rows=" + Arrays.deepToString(rc[0]));
         System.out.println("cols=" + Arrays.deepToString(rc[1]));
-        var frame = new JFrame("test") {
+        JFrame frame = new JFrame("Nonogram") {
             private static final long serialVersionUID = 1L;
             byte[][] board;
-            {
-                new Thread(() -> Nonogram.solve(rc[0], rc[1], b -> changed(b))).start();
-            }
-            
-            synchronized void changed(byte[][] board) {
-                int length = board.length;
-                this.board = new byte[length][];
-                for (int i = 0; i < length; ++i)
-                    this.board[i] = Arrays.copyOf(board[i], board[i].length);
-                SwingUtilities.invokeLater(() -> repaint());
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                }
-            }
-            
-        };
-        
-        JPanel panel = new JPanel() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void paint(Graphics g) {
-                synchronized (frame) {
-                  super.paint(g);
-                    if (frame.board == null)
+            JPanel panel = new JPanel() {
+                private static final long serialVersionUID = 1L;
+                @Override
+                public synchronized void paint(Graphics g) {
+                    super.paint(g);
+                    if (board == null)
                         return;
-                    int h = frame.board.length, w = frame.board[0].length;
+                    int h = board.length, w = board[0].length;
                     int unit = Math.min(getHeight() / h, getWidth() / w);
-                    for (int i = 0; i < h; ++i)
+                    for (int i = 0; i < h; ++i) {
                         for (int j = 0; j < w; ++j) {
-                            switch (frame.board[i][j]) {
+                            switch (board[i][j]) {
                                 case BLACK: g.setColor(Color.BLACK); break;
                                 case WHITE: g.setColor(Color.WHITE); break;
                                 default: g.setColor(Color.LIGHT_GRAY); break;
                             }
                             g.fillRect(j * unit, i * unit, unit, unit);
                         }
+                    }
                 }
+            };
+
+            {
+                new Thread(() -> Nonogram.solve(rc[0], rc[1], b -> changed(b))).start();
+                setSize(600, 400);
+                add(panel);
+                setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                setVisible(true);
+            }
+
+            void changed(byte[][] board) {
+                synchronized (panel) {
+                    this.board = Stream.of(board)
+                        .map(row -> Arrays.copyOf(row, row.length))
+                        .toArray(byte[][]::new);
+                }
+                SwingUtilities.invokeLater(() -> repaint());
+                try { Thread.sleep(50); } catch (InterruptedException e) { }
             }
         };
-        frame.add(panel);
-        frame.setSize(600, 400);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
     }
 }

@@ -2,95 +2,100 @@ package test.puzzle.core;
 
 import static org.junit.Assert.*;
 
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
 import org.junit.Test;
 
 public class TestNumberLink {
 
-    /**
-     * <pre>
-     * dir
-     * 0 T
-     * 1 R
-     * 2 B
-     * 3 L
-     * </pre>
-     * 
-     * <pre>
-     * link  T R B L
-     * 0 └   o o x x
-     * 1 │   o x o x
-     * 2 ┘   o x x o
-     * 3 ┌   x o o x
-     * 4 ─   x o x o
-     * 5 ┐   x x o o
-     * </pre>
-     */
+    public static class NumberLink {
+        static abstract class Cell {
+        }
 
-    static final int[][] DIR_DIR = {
-        {-1, 0, 1, 2},
-        {0, -1, 3, 4},
-        {1, 3, -1, 5},
-        {2, 4, 5, -1},
-    };
-    
-    static final int[][] LINK_DIR = {
-        {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {3, 4}};
+        static class Outer extends Cell {
+        }
 
-    static final boolean[][] LINK_DIR_BOOLEAN = {
-        {true, true, false, false},
-        {true, false, true, false},
-        {true, false, false, true},
-        {false, true, true, false},
-        {false, true, false, true},
-        {false, false, true, true},
-    };
+        static abstract class Inner extends Cell {
+            final int row, col;
+            final Cell[] adjacents = new Cell[4];
+            final boolean[] links = new boolean[4];
 
-    static int link(int dir1, int dir2) {
-        int link = DIR_DIR[dir1][dir2];
-        if (link < 0)
-            throw new IllegalArgumentException("dir1, dir2");
-        return link;
+            Inner(int row, int col) {
+                this.row = row;
+                this.col = col;
+            }
+        }
+
+        static class Number extends Inner {
+            final int number;
+
+            Number(int row, int col, int number) {
+                super(row, col);
+                this.number = number;
+            }
+            
+            @Override
+            public String toString() {
+                return "" + number;
+            }
+        }
+
+        static class Path extends Inner {
+            Path(int row, int col) {
+                super(row, col);
+            }
+            
+            @Override
+            public String toString() {
+                return "-";
+            }
+        }
+
+        @Test
+        public void test() {
+            fail("Not yet implemented");
+        }
+        
+        final Cell[][] matrix;
+        
+        NumberLink(String[] lines) {
+            matrix = IntStream.range(0, lines.length)
+                .mapToObj(row -> {
+                    String[] cells = lines[row].trim().split("\\s+");
+                    return IntStream.range(0, cells.length)
+                        .mapToObj(col -> cells[col].matches("\\d+")
+                            ? new Number(row, col, Integer.parseInt(cells[col]))
+                            : new Path(row, col))
+                        .toArray(Cell[]::new);
+                })
+                .toArray(Cell[][]::new);
+        }
+        
+        @Override
+        public String toString() {
+            return Stream.of(matrix)
+                .map(row -> Stream.of(row)
+                    .map(Cell::toString)
+                    .collect(Collectors.joining(" ")))
+                .collect(Collectors.joining(System.lineSeparator()));
+        }
     }
     
-    static int[] dirs(int link) {
-        return LINK_DIR[link];
-    }
-
-    static boolean dir(int link, int dir) {
-        return LINK_DIR_BOOLEAN[link][dir];
-    }
-
-    static boolean top(int link) {
-        return switch (link) {
-            case 0, 1, 2 -> true;
-            default -> false;
-        };
-    }
-
-    static boolean right(int link) {
-        return switch (link) {
-            case 0, 3, 4 -> true;
-            default -> false;
-        };
-    }
-
-    static boolean bottom(int link) {
-        return switch (link) {
-            case 1, 3, 5 -> true;
-            default -> false;
-        };
-    }
-
-    static boolean left(int link) {
-        return switch (link) {
-            case 2, 4, 5 -> true;
-            default -> false;
-        };
-    }
-
     @Test
-    public void test() {
-        fail("Not yet implemented");
+    public void testNumberLink() {
+        String[] simple = {
+            "- - - - 3 2 1",
+            "- - - - 1 - -",
+            "- - - - - - -",
+            "- - 2 - - - -",
+            "- - - - - - -",
+            "- 3 5 - - 4 -",
+            "4 - - - - - 5",
+        };
+        NumberLink n = new NumberLink(simple);
+        System.out.println(n);
     }
 
 }

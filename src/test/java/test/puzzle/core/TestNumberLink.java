@@ -2,6 +2,7 @@ package test.puzzle.core;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -16,6 +17,8 @@ public class TestNumberLink {
 
         static class Outer extends Cell {
         }
+
+        static final Outer OUTER = new Outer();
 
         static abstract class Inner extends Cell {
             final int row, col;
@@ -58,6 +61,7 @@ public class TestNumberLink {
             fail("Not yet implemented");
         }
         
+        final int height, width;
         final Cell[][] matrix;
         
         NumberLink(String[] lines) {
@@ -71,6 +75,17 @@ public class TestNumberLink {
                         .toArray(Cell[]::new);
                 })
                 .toArray(Cell[][]::new);
+            makeLink();
+            this.height = matrix.length;
+            this.width = matrix[0].length;
+            for (Cell[] row : matrix)
+                if (row.length != width)
+                    throw new IllegalArgumentException(
+                        "illgal width: " + Arrays.toString(row));
+        }
+        
+        void makeLink() {
+            
         }
         
         @Override

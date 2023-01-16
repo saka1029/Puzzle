@@ -15,15 +15,13 @@ public class TestNumberLink {
         static abstract class Cell {
         }
 
-        static class Outer extends Cell {
-        }
+        static final Cell OUTER = new Cell() {};
 
-        static final Outer OUTER = new Outer();
-
-        static abstract class Inner extends Cell {
+        abstract class Inner extends Cell {
             final int row, col;
             final Cell[] adjacents = new Cell[4];
             final boolean[] links = new boolean[4];
+            int pathCount;
 
             Inner(int row, int col) {
                 this.row = row;
@@ -31,7 +29,7 @@ public class TestNumberLink {
             }
         }
 
-        static class Number extends Inner {
+        class Number extends Inner {
             final int number;
 
             Number(int row, int col, int number) {
@@ -45,7 +43,7 @@ public class TestNumberLink {
             }
         }
 
-        static class Path extends Inner {
+        class Path extends Inner {
             Path(int row, int col) {
                 super(row, col);
             }
@@ -62,7 +60,7 @@ public class TestNumberLink {
         }
         
         final int height, width;
-        final Cell[][] matrix;
+        final Inner[][] matrix;
         
         NumberLink(String[] lines) {
             matrix = IntStream.range(0, lines.length)
@@ -72,22 +70,26 @@ public class TestNumberLink {
                         .mapToObj(col -> cells[col].matches("\\d+")
                             ? new Number(row, col, Integer.parseInt(cells[col]))
                             : new Path(row, col))
-                        .toArray(Cell[]::new);
+                        .toArray(Inner[]::new);
                 })
-                .toArray(Cell[][]::new);
+                .toArray(Inner[][]::new);
             this.height = matrix.length;
             this.width = matrix[0].length;
-            for (Cell[] row : matrix)
-                if (row.length != width)
-                    throw new IllegalArgumentException("illgal width: " + Arrays.toString(row));
+            for (int r = 0; r < height; ++r)
+                if (matrix[r].length != width)
+                    throw new IllegalArgumentException("illgal width at row: " + r);
             // adjacentsの設定
             for (int r = 0; r < height; ++r)
                 for (int c = 0; c < width; ++c) {
-                    Inner inner = (Inner)matrix[r][c];
+                    Inner inner = matrix[r][c];
                     inner.adjacents[0] = r > 0 ?  matrix[r - 1][c] : OUTER;
                     inner.adjacents[1] = c < width - 1 ?  matrix[r][c + 1] : OUTER;
                     inner.adjacents[2] = r < height - 1 ?  matrix[r + 1][c] : OUTER;
                     inner.adjacents[3] = c > 0 ?  matrix[r][c - 1] : OUTER;
+                    inner.pathCount = 0;
+                    for (Cell adj : inner.adjacents)
+                        if (adj instanceof Path)
+                            inner.pathCount++;
                 }
         }
         
@@ -102,7 +104,7 @@ public class TestNumberLink {
     }
     
     @Test
-    public void testNumberLink() {
+    public void testPathCount() {
         String[] simple = {
             "- - - - 3 2 1",
             "- - - - 1 - -",
@@ -114,6 +116,20 @@ public class TestNumberLink {
         };
         NumberLink n = new NumberLink(simple);
         System.out.println(n);
+        assertEquals(NumberLink.Path.class, n.matrix[0][0].getClass());
+        assertEquals(2, n.matrix[0][0].pathCount);
+        assertEquals(NumberLink.Path.class, n.matrix[1][1].getClass());
+        assertEquals(4, n.matrix[1][1].pathCount);
+        assertEquals(NumberLink.Number.class, n.matrix[0][4].getClass());
+        assertEquals(1, n.matrix[0][4].pathCount);
+        assertEquals(NumberLink.Number.class, n.matrix[0][5].getClass());
+        assertEquals(1, n.matrix[0][5].pathCount);
+        assertEquals(NumberLink.Number.class, n.matrix[0][6].getClass());
+        assertEquals(1, n.matrix[0][6].pathCount);
+        assertEquals(NumberLink.Number.class, n.matrix[3][2].getClass());
+        assertEquals(4, n.matrix[3][2].pathCount);
+        assertEquals(NumberLink.Number.class, n.matrix[6][6].getClass());
+        assertEquals(2, n.matrix[6][6].pathCount);
     }
 
 }

@@ -75,17 +75,20 @@ public class TestNumberLink {
                         .toArray(Cell[]::new);
                 })
                 .toArray(Cell[][]::new);
-            makeLink();
             this.height = matrix.length;
             this.width = matrix[0].length;
             for (Cell[] row : matrix)
                 if (row.length != width)
-                    throw new IllegalArgumentException(
-                        "illgal width: " + Arrays.toString(row));
-        }
-        
-        void makeLink() {
-            
+                    throw new IllegalArgumentException("illgal width: " + Arrays.toString(row));
+            // adjacentsの設定
+            for (int r = 0; r < height; ++r)
+                for (int c = 0; c < width; ++c) {
+                    Inner inner = (Inner)matrix[r][c];
+                    inner.adjacents[0] = r > 0 ?  matrix[r - 1][c] : OUTER;
+                    inner.adjacents[1] = c < width - 1 ?  matrix[r][c + 1] : OUTER;
+                    inner.adjacents[2] = r < height - 1 ?  matrix[r + 1][c] : OUTER;
+                    inner.adjacents[3] = c > 0 ?  matrix[r][c - 1] : OUTER;
+                }
         }
         
         @Override

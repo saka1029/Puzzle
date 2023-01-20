@@ -1,8 +1,9 @@
 package test.puzzle.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -12,38 +13,44 @@ import org.junit.Test;
 public class TestNumberLink {
 
     public static class NumberLink {
-        static abstract class Cell {
+        
+        enum Direction {
+            UP, DOWN, LEFT, RIGHT;
         }
 
-        static final Cell OUTER = new Cell() {};
+        static class Link {
+            final Direction direction;
+            boolean connected;
+            Link(Direction direction) {
+                this.direction = direction;
+            }
+        }
 
-        abstract class Inner extends Cell {
+        abstract class Cell {
             final int row, col;
-            final Cell[] adjacents = new Cell[4];
-            final boolean[] links = new boolean[4];
-            int pathCount;
+            final Map<Cell, Link> neighbors = new HashMap<>();
 
-            Inner(int row, int col) {
+            Cell(int row, int col) {
                 this.row = row;
                 this.col = col;
             }
         }
-
-        class Number extends Inner {
+        
+        class Number extends Cell {
             final int number;
-
+            
             Number(int row, int col, int number) {
                 super(row, col);
                 this.number = number;
             }
-            
+
             @Override
             public String toString() {
                 return "" + number;
             }
         }
-
-        class Path extends Inner {
+        
+        class Path extends Cell {
             Path(int row, int col) {
                 super(row, col);
             }
@@ -53,49 +60,41 @@ public class TestNumberLink {
                 return "-";
             }
         }
-
-        @Test
-        public void test() {
-            fail("Not yet implemented");
-        }
         
         final int height, width;
-        final Inner[][] matrix;
+        final Cell[][] board;
         
-        NumberLink(String[] lines) {
-            matrix = IntStream.range(0, lines.length)
+        NumberLink(String problem) {
+            String[] lines = problem.split("\\R");
+            board = IntStream.range(0, lines.length)
                 .mapToObj(row -> {
-                    String[] cells = lines[row].trim().split("\\s+");
+                    String[] cells = lines[row].trim().split("\\s");
                     return IntStream.range(0, cells.length)
                         .mapToObj(col -> cells[col].matches("\\d+")
                             ? new Number(row, col, Integer.parseInt(cells[col]))
                             : new Path(row, col))
-                        .toArray(Inner[]::new);
+                        .toArray(Cell[]::new);
                 })
-                .toArray(Inner[][]::new);
-            this.height = matrix.length;
-            this.width = matrix[0].length;
-            for (int r = 0; r < height; ++r)
-                if (matrix[r].length != width)
-                    throw new IllegalArgumentException("illgal width at row: " + r);
-            // adjacentsの設定
-            for (int r = 0; r < height; ++r)
-                for (int c = 0; c < width; ++c) {
-                    Inner inner = matrix[r][c];
-                    inner.adjacents[0] = r > 0 ?  matrix[r - 1][c] : OUTER;
-                    inner.adjacents[1] = c < width - 1 ?  matrix[r][c + 1] : OUTER;
-                    inner.adjacents[2] = r < height - 1 ?  matrix[r + 1][c] : OUTER;
-                    inner.adjacents[3] = c > 0 ?  matrix[r][c - 1] : OUTER;
-                    inner.pathCount = 0;
-                    for (Cell adj : inner.adjacents)
-                        if (adj instanceof Path)
-                            inner.pathCount++;
+                .toArray(Cell[][]::new);
+            this.height = board.length;
+            this.width = board[0].length;
+            for (int row = 0; row < height; ++row)
+                for (int col = 0; col < width; ++col) {
+                    Cell cell = board[row][col];
+                    if (row > 0)
+                        cell.neighbors.put(board[row - 1][col], new Link(Direction.UP));
+                    if (row < height - 1)
+                        cell.neighbors.put(board[row + 1][col], new Link(Direction.DOWN));
+                    if (col > 0)
+                        cell.neighbors.put(board[row][col - 1], new Link(Direction.LEFT));
+                    if (col < width - 1)
+                        cell.neighbors.put(board[row][col + 1], new Link(Direction.RIGHT));
                 }
         }
         
         @Override
         public String toString() {
-            return Stream.of(matrix)
+            return Stream.of(board)
                 .map(row -> Stream.of(row)
                     .map(Cell::toString)
                     .collect(Collectors.joining(" ")))
@@ -105,31 +104,23 @@ public class TestNumberLink {
     
     @Test
     public void testPathCount() {
-        String[] simple = {
-            "- - - - 3 2 1",
-            "- - - - 1 - -",
-            "- - - - - - -",
-            "- - 2 - - - -",
-            "- - - - - - -",
-            "- 3 5 - - 4 -",
-            "4 - - - - - 5",
-        };
-        NumberLink n = new NumberLink(simple);
+        String problem = 
+            "- - - - 3 2 1\r\n"
+            + "- - - - 1 - -\r\n"
+            + "- - - - - - -\r\n"
+            + "- - 2 - - - -\r\n"
+            + "- - - - - - -\r\n"
+            + "- 3 5 - - 4 -\r\n"
+            + "4 - - - - - 5\r\n";
+        NumberLink n = new NumberLink(problem);
         System.out.println(n);
-        assertEquals(NumberLink.Path.class, n.matrix[0][0].getClass());
-        assertEquals(2, n.matrix[0][0].pathCount);
-        assertEquals(NumberLink.Path.class, n.matrix[1][1].getClass());
-        assertEquals(4, n.matrix[1][1].pathCount);
-        assertEquals(NumberLink.Number.class, n.matrix[0][4].getClass());
-        assertEquals(1, n.matrix[0][4].pathCount);
-        assertEquals(NumberLink.Number.class, n.matrix[0][5].getClass());
-        assertEquals(1, n.matrix[0][5].pathCount);
-        assertEquals(NumberLink.Number.class, n.matrix[0][6].getClass());
-        assertEquals(1, n.matrix[0][6].pathCount);
-        assertEquals(NumberLink.Number.class, n.matrix[3][2].getClass());
-        assertEquals(4, n.matrix[3][2].pathCount);
-        assertEquals(NumberLink.Number.class, n.matrix[6][6].getClass());
-        assertEquals(2, n.matrix[6][6].pathCount);
+        assertEquals(NumberLink.Path.class, n.board[0][0].getClass());
+        assertEquals(NumberLink.Path.class, n.board[1][1].getClass());
+        assertEquals(NumberLink.Number.class, n.board[0][4].getClass());
+        assertEquals(NumberLink.Number.class, n.board[0][5].getClass());
+        assertEquals(NumberLink.Number.class, n.board[0][6].getClass());
+        assertEquals(NumberLink.Number.class, n.board[3][2].getClass());
+        assertEquals(NumberLink.Number.class, n.board[6][6].getClass());
     }
 
 }

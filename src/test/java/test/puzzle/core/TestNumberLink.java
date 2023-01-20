@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -115,12 +116,17 @@ public class TestNumberLink {
         NumberLink n = new NumberLink(problem);
         System.out.println(n);
         assertEquals(NumberLink.Path.class, n.board[0][0].getClass());
+        assertEquals(Set.of(n.board[1][0], n.board[0][1]), n.board[0][0].neighbors.keySet());
         assertEquals(NumberLink.Path.class, n.board[1][1].getClass());
+        assertEquals(Set.of(n.board[1][0], n.board[0][1], n.board[2][1], n.board[1][2]), n.board[1][1].neighbors.keySet());
         assertEquals(NumberLink.Number.class, n.board[0][4].getClass());
+        assertEquals(Set.of(n.board[0][3], n.board[0][5], n.board[1][4]), n.board[0][4].neighbors.keySet());
         assertEquals(NumberLink.Number.class, n.board[0][5].getClass());
         assertEquals(NumberLink.Number.class, n.board[0][6].getClass());
+        assertEquals(Set.of(n.board[0][5], n.board[1][6]), n.board[0][6].neighbors.keySet());
         assertEquals(NumberLink.Number.class, n.board[3][2].getClass());
         assertEquals(NumberLink.Number.class, n.board[6][6].getClass());
+        assertEquals(Set.of(n.board[6][5], n.board[5][6]), n.board[6][6].neighbors.keySet());
     }
 
 }

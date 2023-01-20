@@ -1,6 +1,7 @@
 package test.puzzle.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -104,7 +105,7 @@ public class TestNumberLink {
     }
     
     @Test
-    public void testPathCount() {
+    public void testNumberLinkConstructor() {
         String problem = 
             "- - - - 3 2 1\r\n"
             + "- - - - 1 - -\r\n"
@@ -117,16 +118,32 @@ public class TestNumberLink {
         System.out.println(n);
         assertEquals(NumberLink.Path.class, n.board[0][0].getClass());
         assertEquals(Set.of(n.board[1][0], n.board[0][1]), n.board[0][0].neighbors.keySet());
+        assertEquals(Set.of(NumberLink.Direction.RIGHT, NumberLink.Direction.DOWN),
+            n.board[0][0].neighbors.values().stream().map(c -> c.direction).collect(Collectors.toSet()));
+
         assertEquals(NumberLink.Path.class, n.board[1][1].getClass());
         assertEquals(Set.of(n.board[1][0], n.board[0][1], n.board[2][1], n.board[1][2]), n.board[1][1].neighbors.keySet());
+        assertEquals(Set.of(NumberLink.Direction.values()),
+            n.board[1][1].neighbors.values().stream().map(c -> c.direction).collect(Collectors.toSet()));
+
         assertEquals(NumberLink.Number.class, n.board[0][4].getClass());
         assertEquals(Set.of(n.board[0][3], n.board[0][5], n.board[1][4]), n.board[0][4].neighbors.keySet());
+        assertEquals(Set.of(NumberLink.Direction.DOWN, NumberLink.Direction.LEFT, NumberLink.Direction.RIGHT),
+            n.board[0][4].neighbors.values().stream().map(c -> c.direction).collect(Collectors.toSet()));
+
         assertEquals(NumberLink.Number.class, n.board[0][5].getClass());
+
         assertEquals(NumberLink.Number.class, n.board[0][6].getClass());
         assertEquals(Set.of(n.board[0][5], n.board[1][6]), n.board[0][6].neighbors.keySet());
+
         assertEquals(NumberLink.Number.class, n.board[3][2].getClass());
+
         assertEquals(NumberLink.Number.class, n.board[6][6].getClass());
         assertEquals(Set.of(n.board[6][5], n.board[5][6]), n.board[6][6].neighbors.keySet());
+        assertEquals(Set.of(NumberLink.Direction.UP, NumberLink.Direction.LEFT),
+            n.board[6][6].neighbors.values().stream().map(c -> c.direction).collect(Collectors.toSet()));
+
+        // neighbors.size()が2,3,4のいずれかであり、それぞれの総数が正しいこと。
         assertEquals(
             Map.of(
                 2, 4L,
@@ -136,6 +153,13 @@ public class TestNumberLink {
                 .flatMap(row -> Stream.of(row))
                 .map(cell -> cell.neighbors.size())
                 .collect(Collectors.groupingBy(size -> size, Collectors.counting())));
+        
+        // すべてのLink.connectedがfalseであること。
+        assertTrue(Stream.of(n.board)
+                .flatMap(row -> Stream.of(row))
+                .flatMap(cell -> cell.neighbors.values().stream())
+                .map(link -> link.connected)
+                .allMatch(c -> !c));
     }
 
 }

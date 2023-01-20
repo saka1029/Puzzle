@@ -127,6 +127,15 @@ public class TestNumberLink {
         assertEquals(NumberLink.Number.class, n.board[3][2].getClass());
         assertEquals(NumberLink.Number.class, n.board[6][6].getClass());
         assertEquals(Set.of(n.board[6][5], n.board[5][6]), n.board[6][6].neighbors.keySet());
+        assertEquals(
+            Map.of(
+                2, 4L,
+                3, (long)((n.height - 2 + n.width - 2) * 2),
+                4, (long)((n.height - 2) * (n.width - 2))),
+            Stream.of(n.board)
+                .flatMap(row -> Stream.of(row))
+                .map(cell -> cell.neighbors.size())
+                .collect(Collectors.groupingBy(size -> size, Collectors.counting())));
     }
 
 }

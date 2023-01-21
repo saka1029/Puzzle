@@ -42,7 +42,7 @@ public class TestNumberLink {
             
             @Override
             public String toString() {
-                return "%d@%d:".formatted(row, col) + neighbors.values().stream()
+                return "%d@%d".formatted(row, col) + neighbors.values().stream()
                     .filter(link -> link.linked)
                     .map(link -> link.direction.toString().substring(0, 1))
                     .sorted()
@@ -80,7 +80,7 @@ public class TestNumberLink {
 
             @Override
             public String toString() {
-                return "%s(%d)".formatted(super.toString(), number);
+                return "%s[%d]".formatted(super.toString(), number);
             }
         }
         
@@ -214,11 +214,5 @@ public class TestNumberLink {
         System.out.println(n);
         assertTrue(n.board[0][1].connected(n.board[3][0]));
         assertFalse(n.board[0][1].connected(n.board[0][3]));
-    }
-    
-    @Test
-    public void testEncode() {
-        printTestCaseName();
-        System.out.println("漢字");
     }
 }

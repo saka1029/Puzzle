@@ -1,10 +1,13 @@
 package test.puzzle.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -22,7 +25,7 @@ public class TestNumberLink {
 
         static class Link {
             final Direction direction;
-            boolean connected;
+            boolean linked;
             Link(Direction direction) {
                 this.direction = direction;
             }
@@ -36,6 +39,35 @@ public class TestNumberLink {
                 this.row = row;
                 this.col = col;
             }
+            
+            @Override
+            public String toString() {
+                return "%d@%d:".formatted(row, col) + neighbors.values().stream()
+                    .filter(link -> link.linked)
+                    .map(link -> link.direction.toString().substring(0, 1))
+                    .sorted()
+                    .collect(Collectors.joining());
+            }
+            
+            void link(Cell other, boolean linked) {
+                this.neighbors.get(other).linked = other.neighbors.get(this).linked = linked;
+            }
+            
+            boolean connected(Cell other) {
+                Set<Cell> done = new HashSet<>();
+                boolean result = new Object() {
+                    boolean test(Cell c) {
+                        if (c.equals(other))
+                            return true;
+                        else if (done.add(c))
+                            for (Entry<Cell, Link> e : c.neighbors.entrySet())
+                                if (e.getValue().linked && test(e.getKey()))
+                                    return true;
+                        return false;
+                    }
+                }.test(this);
+                return result;
+            }
         }
         
         class Number extends Cell {
@@ -48,18 +80,13 @@ public class TestNumberLink {
 
             @Override
             public String toString() {
-                return "" + number;
+                return "%s(%d)".formatted(super.toString(), number);
             }
         }
         
         class Path extends Cell {
             Path(int row, int col) {
                 super(row, col);
-            }
-            
-            @Override
-            public String toString() {
-                return "-";
             }
         }
         
@@ -104,8 +131,13 @@ public class TestNumberLink {
         }
     }
     
+    static void printTestCaseName() {
+        System.out.println("*** " + Thread.currentThread().getStackTrace()[2].getMethodName());
+    }
+    
     @Test
     public void testNumberLinkConstructor() {
+        printTestCaseName();
         String problem = 
             "- - - - 3 2 1\r\n"
             + "- - - - 1 - -\r\n"
@@ -158,8 +190,35 @@ public class TestNumberLink {
         assertTrue(Stream.of(n.board)
                 .flatMap(row -> Stream.of(row))
                 .flatMap(cell -> cell.neighbors.values().stream())
-                .map(link -> link.connected)
+                .map(link -> link.linked)
                 .allMatch(c -> !c));
     }
-
+    
+    @Test
+    public void testNumberLinkConnected() {
+        printTestCaseName();
+        String problem = 
+            "- - - - 3 2 1\r\n"
+            + "- - - - 1 - -\r\n"
+            + "- - - - - - -\r\n"
+            + "- - 2 - - - -\r\n"
+            + "- - - - - - -\r\n"
+            + "- 3 5 - - 4 -\r\n"
+            + "4 - - - - - 5\r\n";
+        NumberLink n = new NumberLink(problem);
+        n.board[0][0].link(n.board[0][1], true);
+        n.board[0][0].link(n.board[1][0], true);
+        n.board[1][0].link(n.board[2][0], true);
+        n.board[2][0].link(n.board[3][0], true);
+        n.board[0][6].link(n.board[1][6], true);
+        System.out.println(n);
+        assertTrue(n.board[0][1].connected(n.board[3][0]));
+        assertFalse(n.board[0][1].connected(n.board[0][3]));
+    }
+    
+    @Test
+    public void testEncode() {
+        printTestCaseName();
+        System.out.println("漢字");
+    }
 }

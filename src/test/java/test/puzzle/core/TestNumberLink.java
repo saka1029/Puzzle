@@ -4,8 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -53,7 +55,7 @@ public class TestNumberLink {
                 this.neighbors.get(other).linked = other.neighbors.get(this).linked = linked;
             }
             
-            boolean connected(Cell other) {
+            boolean connected0(Cell other) {
                 Set<Cell> done = new HashSet<>();
                 boolean result = new Object() {
                     boolean test(Cell c) {
@@ -67,6 +69,22 @@ public class TestNumberLink {
                     }
                 }.test(this);
                 return result;
+            }
+            
+            boolean connected(Cell other) {
+                Set<Cell> done = new HashSet<>();
+                Deque<Cell> que = new LinkedList<>();
+                que.add(this);
+                done.add(this);
+                while (!que.isEmpty()) {
+                    Cell c = que.remove();
+                    if (c.equals(other))
+                        return true;
+                    for (var e : c.neighbors.entrySet())
+                        if (e.getValue().linked && done.add(e.getKey()))
+                            que.add(e.getKey());
+                }
+                return false;
             }
         }
         

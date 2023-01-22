@@ -51,37 +51,27 @@ public class TestNumberLink {
                     .collect(Collectors.joining());
             }
             
-            void link(Cell other, boolean linked) {
-                this.neighbors.get(other).linked = other.neighbors.get(this).linked = linked;
+            int linkCount() {
+                return (int)neighbors.values().stream()
+                    .filter(link -> link.linked).count();
             }
             
-            boolean connected0(Cell other) {
-                Set<Cell> done = new HashSet<>();
-                boolean result = new Object() {
-                    boolean test(Cell c) {
-                        if (c.equals(other))
-                            return true;
-                        else if (done.add(c))
-                            for (Entry<Cell, Link> e : c.neighbors.entrySet())
-                                if (e.getValue().linked && test(e.getKey()))
-                                    return true;
-                        return false;
-                    }
-                }.test(this);
-                return result;
+            void link(Cell other, boolean linked) {
+                this.neighbors.get(other).linked
+                    = other.neighbors.get(this).linked = linked;
             }
             
             boolean connected(Cell other) {
-                Set<Cell> done = new HashSet<>();
+                Set<Cell> visited = new HashSet<>();
                 Deque<Cell> que = new LinkedList<>();
                 que.add(this);
-                done.add(this);
+                visited.add(this);
                 while (!que.isEmpty()) {
                     Cell c = que.remove();
                     if (c.equals(other))
                         return true;
                     for (var e : c.neighbors.entrySet())
-                        if (e.getValue().linked && done.add(e.getKey()))
+                        if (e.getValue().linked && visited.add(e.getKey()))
                             que.add(e.getKey());
                 }
                 return false;
@@ -230,6 +220,12 @@ public class TestNumberLink {
         n.board[2][0].link(n.board[3][0], true);
         n.board[0][6].link(n.board[1][6], true);
         System.out.println(n);
+        assertEquals(2, n.board[0][0].linkCount());
+        assertEquals(2, n.board[1][0].linkCount());
+        assertEquals(2, n.board[2][0].linkCount());
+        assertEquals(1, n.board[3][0].linkCount());
+        assertEquals(1, n.board[0][6].linkCount());
+        assertEquals(1, n.board[1][6].linkCount());
         assertTrue(n.board[0][1].connected(n.board[3][0]));
         assertFalse(n.board[0][1].connected(n.board[0][3]));
     }

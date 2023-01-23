@@ -76,6 +76,8 @@ public class TestNumberLink {
                 }
                 return false;
             }
+            
+            abstract void solve();
         }
         
         class Number extends Cell {
@@ -90,16 +92,24 @@ public class TestNumberLink {
             public String toString() {
                 return "%s[%d]".formatted(super.toString(), number);
             }
+
+            @Override
+            void solve() {
+            }
         }
         
         class Path extends Cell {
             Path(int row, int col) {
                 super(row, col);
             }
+
+            void solve() {
+            }
         }
         
         final int height, width;
         final Cell[][] board;
+        private final Deque<Cell> que = new LinkedList<>();
         
         NumberLink(String problem) {
             String[] lines = problem.split("\\R");
@@ -136,6 +146,20 @@ public class TestNumberLink {
                     .map(Cell::toString)
                     .collect(Collectors.joining(" ")))
                 .collect(Collectors.joining(System.lineSeparator()));
+        }
+        
+        void enque(Cell cell) {
+            if (!que.contains(cell))
+                que.add(cell);
+        }
+        
+        public void solve() {
+            que.clear();
+            for (var row : board)
+                for (var cell : row)
+                    que.add(cell);
+            while (!que.isEmpty())
+                que.remove().solve();
         }
     }
     

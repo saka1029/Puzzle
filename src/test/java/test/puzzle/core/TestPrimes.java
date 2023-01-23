@@ -104,6 +104,8 @@ public class TestPrimes {
 
     @Test
     public void testFactors() {
+        assertEquals(Set.of(1, 2, 3, 4, 6, 9, 12, 18, 36), factors(36));
+        assertEquals(Set.of(1, 7, 49), factors(49));
         assertEquals(
             Set.of(1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 18, 20, 24, 30, 36, 40, 45, 60, 72, 90, 120, 180, 360),
             factors(360));

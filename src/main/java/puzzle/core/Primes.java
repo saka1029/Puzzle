@@ -98,15 +98,7 @@ public class Primes {
         return (Set<Integer>) IntStream.rangeClosed(1, (int) Math.sqrt(n))
             .filter(i -> n % i == 0)
             .flatMap(i -> IntStream.of(i, n / i))
-            .boxed().collect(Collectors.toCollection(() -> new TreeSet<>()));
-//        Set<Integer> factors = new TreeSet<>();
-//        int max = (int) Math.sqrt(n);
-//        for (int i = 1; i <= max; ++i)
-//            if (n % i == 0) {
-//                factors.add(i);
-//                factors.add(n / i);
-//            }
-//        return factors;
+            .boxed().collect(Collectors.toCollection(TreeSet::new));
     }
 
     public static int sumOfFactors(int n) {
@@ -115,13 +107,5 @@ public class Primes {
             .filter(i -> n % i == 0)
             .map(i -> i + n / i)
             .sum() - (max * max == n ? max : 0);
-//        int sum = 0;
-//        int max = (int) Math.sqrt(n);
-//        if (max * max == n)
-//            sum -= max;
-//        for (int i = 1; i <= max; ++i)
-//            if (n % i == 0)
-//                sum += i + n / i;
-//        return sum;
     }
 }

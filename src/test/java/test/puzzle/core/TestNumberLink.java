@@ -253,4 +253,10 @@ public class TestNumberLink {
         assertTrue(n.board[0][1].connected(n.board[3][0]));
         assertFalse(n.board[0][1].connected(n.board[0][3]));
     }
+    
+    @Test
+    public void testKanji() {
+    	System.out.println("漢字");
+    	System.out.println("あいうえお");
+    }
 }

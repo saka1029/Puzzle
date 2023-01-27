@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -252,5 +251,10 @@ public class TestNumberLink {
         assertEquals(1, n.board[1][6].linkCount());
         assertTrue(n.board[0][1].connected(n.board[3][0]));
         assertFalse(n.board[0][1].connected(n.board[0][3]));
+    }
+    
+    @Test
+    public void testKanji() {
+        System.out.println("漢字𩸽");
     }
 }

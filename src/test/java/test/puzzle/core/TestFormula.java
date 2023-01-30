@@ -52,10 +52,10 @@ public class TestFormula {
         }
         
         boolean match(Formula other, Map<Variable, Formula> result) {
-            if (other instanceof Variable)
-                return other.match(this, result);
-            else if (other instanceof Cons c)
-                return car.match(c.car, result) && cdr.match(c.cdr, result);
+            if (other instanceof Variable var)
+                return var.match(this, result);
+            else if (other instanceof Cons cons)
+                return car.match(cons.car, result) && cdr.match(cons.cdr, result);
             else
                 return false;
         }
@@ -81,6 +81,14 @@ public class TestFormula {
         @Override
         public String toString() {
             return name;
+        }
+        
+        @Override
+        boolean match(Formula other, Map<Variable, Formula> result) {
+            Formula bound = result.get(this);
+            if (other instanceof Variable var) {
+                
+            }
         }
     }
     

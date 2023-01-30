@@ -10,6 +10,15 @@ import org.junit.Test;
 public class TestFormula {
 
     static abstract class Formula {
+
+        boolean match(Formula other, Map<Variable, Formula> result) {
+            return other instanceof Variable ? other.match(this, result) : equals(other);
+        }
+
+        public Map<Variable, Formula> match(Formula other) {
+            Map<Variable, Formula> result = new HashMap<>();
+            return match(other, result) ? result : null;
+        }
     }
     
     static class Cons extends Formula {
@@ -40,6 +49,15 @@ public class TestFormula {
                 sb.append(" . ").append(f);
             sb.append(")");
             return sb.toString();
+        }
+        
+        boolean match(Formula other, Map<Variable, Formula> result) {
+            if (other instanceof Variable)
+                return other.match(this, result);
+            else if (other instanceof Cons c)
+                return car.match(c.car, result) && cdr.match(c.cdr, result);
+            else
+                return false;
         }
     }
     

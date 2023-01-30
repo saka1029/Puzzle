@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.Test;
 
@@ -12,7 +13,7 @@ public class TestFormula {
     static abstract class Formula {
 
         boolean match(Formula other, Map<Variable, Formula> result) {
-            return other instanceof Variable ? other.match(this, result) : equals(other);
+            return equals(other);
         }
 
         public Map<Variable, Formula> match(Formula other) {
@@ -40,6 +41,21 @@ public class TestFormula {
         }
         
         @Override
+        public int hashCode() {
+            return Objects.hash(car, cdr);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            return obj instanceof Cons cons
+                && cons.car.equals(car) && cons.cdr.equals(cdr);
+        }
+
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("(");
             Formula f = this;
@@ -52,8 +68,8 @@ public class TestFormula {
         }
         
         boolean match(Formula other, Map<Variable, Formula> result) {
-            if (other instanceof Variable var)
-                return var.match(this, result);
+            if (equals(other))
+                return true;
             else if (other instanceof Cons cons)
                 return car.match(cons.car, result) && cdr.match(cons.cdr, result);
             else
@@ -86,9 +102,11 @@ public class TestFormula {
         @Override
         boolean match(Formula other, Map<Variable, Formula> result) {
             Formula bound = result.get(this);
-            if (other instanceof Variable var) {
-                
-            }
+            if (bound == null) {
+                result.put(this, other);
+                return true;
+            } else
+                return bound.match(other, result);
         }
     }
     
@@ -135,6 +153,25 @@ public class TestFormula {
     public void testList() {
         assertEquals("(a b)", list(sym("a"), sym("b")).toString());
         assertEquals("(a . b)", cons(sym("a"), sym("b")).toString());
+    }
+    
+    @Test
+    public void testMatch() {
+        Symbol a = sym("a"), b = sym("b"), c = sym("c");
+        Variable X = var("X"), Y = var("Y");
+        assertEquals(Map.of(), a.match(a));
+        assertEquals(null, a.match(b));
+        assertEquals(Map.of(), cons(a, b).match(cons(a, b)));
+        assertEquals(null, cons(a, b).match(cons(a, c)));
+        assertEquals(null, cons(a, b).match(cons(c, b)));
+        assertEquals(Map.of(), list(a, b).match(list(a, b)));
+        assertEquals(null, list(a, b).match(list(a, c)));
+        assertEquals(null, list(a, b).match(list(c, b)));
+        assertEquals(Map.of(X, b), X.match(b));
+        assertEquals(Map.of(X, a, Y, b), cons(X, Y).match(cons(a, b)));
+        assertEquals(Map.of(X, a, Y, b), list(X, Y).match(list(a, b)));
+        assertEquals(Map.of(X, a, Y, list(b, c)), cons(X, Y).match(list(a, b, c)));
+        assertEquals(Map.of(X, a, Y, cons(b, c)), list(X, Y).match(list(a, cons(b, c))));
     }
 
 }

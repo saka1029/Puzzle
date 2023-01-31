@@ -172,6 +172,10 @@ public class TestFormula {
         assertEquals(Map.of(X, a, Y, b), list(X, Y).match(list(a, b)));
         assertEquals(Map.of(X, a, Y, list(b, c)), cons(X, Y).match(list(a, b, c)));
         assertEquals(Map.of(X, a, Y, cons(b, c)), list(X, Y).match(list(a, cons(b, c))));
+        assertEquals(Map.of(X, a), list(X, X).match(list(a, a)));
+        assertEquals(Map.of(X, a), list(X, list(b, X)).match(list(a, list(b, a))));
+        assertEquals(Map.of(X, a), list(X, cons(b, X)).match(list(a, cons(b, a))));
+        assertEquals(null, list(X, list(b, X)).match(list(a, list(a, a))));
     }
 
 }

@@ -127,12 +127,46 @@ public class TestFormula {
         }
     }
     
+    static class Int extends Formula {
+        final int value;
+        private Int(int value) {
+            this.value = value;
+        }
+        
+        public static Int of(int value) {
+            return new Int(value);
+        }
+        
+        @Override
+        public int hashCode() {
+            return value;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            return obj instanceof Int i && i.value == value;
+        }
+
+        @Override
+        public String toString() {
+            return "" + value;
+        }
+    }
+    
     static Symbol sym(String name) {
         return Symbol.of(name);
     }
 
     static Variable var(String name) {
         return Variable.of(name);
+    }
+
+    static Int i(int value) {
+        return Int.of(value);
     }
 
     static Cons cons(Formula car, Formula cdr) {
@@ -178,5 +212,4 @@ public class TestFormula {
         assertEquals(null, list(X, list(b, X)).match(list(a, list(a, a))));
         assertEquals(Map.of(X, list(a, b)), list(X, list(b, X)).match(list(list(a, b), list(b, list(a, b)))));
     }
-
 }

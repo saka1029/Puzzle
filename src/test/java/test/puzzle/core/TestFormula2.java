@@ -48,31 +48,33 @@ public class TestFormula2 {
         }
     }
 
-    static final String PLUS = "+", MINUS = "-", MULT = "*", DIV = "/", POW = "^";
+    static final Symbol PLUS = Symbol.of("+"), MINUS = Symbol.of("-"),
+        MULT = Symbol.of("*"), DIV = Symbol.of("/"),
+        POW = Symbol.of("^");
 
     static class Func extends Formula {
-        final String operator;
+        final Symbol operator;
         final List<Formula> arguments = new ArrayList<>();
         
-        Func(String operator, Formula... arguments) {
+        Func(Symbol operator, Formula... arguments) {
             this.operator = operator;
             for (Formula a : arguments)
                 this.arguments.add(a);
         }
         
-        Func(String operator, List<Formula> arguments) {
+        Func(Symbol operator, List<Formula> arguments) {
             this.operator = operator;
             this.arguments.addAll(arguments);
         }
         
         @Override
         public String toString() {
-            return operator + arguments;
+            return "" + operator + arguments;
         }
         
         @Override
         public Formula expand() {
-            if (!operator.equals("*"))
+            if (!operator.equals(MULT))
                 return this;
             return null;
         }

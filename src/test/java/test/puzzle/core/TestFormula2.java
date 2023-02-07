@@ -47,46 +47,106 @@ public class TestFormula2 {
             return name;
         }
     }
+    
+    static class Unary extends Formula {
+        final Formula argument;
+        
+        Unary(Formula argument) {
+            this.argument = argument;
+        }
+    }
+    
+    static class Neg extends Unary {
+        Neg(Formula argument) {
+            super(argument);
+        }
+        
+        static Formula of(Formula argument) {
+            return new Neg(argument);
+        }
+    }
 
-    static final Symbol PLUS = Symbol.of("+"), MINUS = Symbol.of("-"),
-        MULT = Symbol.of("*"), DIV = Symbol.of("/"),
-        POW = Symbol.of("^");
+    static class Binary extends Formula {
+        final Formula[] arguments;
+        
+        Binary(Formula... arguments) {
+            this.arguments = arguments.clone();
+        }
+    }
+    
+    static class Add extends Binary {
+        Add(Formula... arguments) {
+            super(arguments);
+        }
 
-    static class Func extends Formula {
-        final Symbol operator;
-        final List<Formula> arguments = new ArrayList<>();
-        
-        Func(Symbol operator, Formula... arguments) {
-            this.operator = operator;
-            for (Formula a : arguments)
-                this.arguments.add(a);
+        static Formula of(Formula... arguments) {
+            return new Add(arguments);
         }
-        
-        Func(Symbol operator, List<Formula> arguments) {
-            this.operator = operator;
-            this.arguments.addAll(arguments);
+    }
+    
+    static class Mul extends Binary {
+        Mul(Formula... arguments) {
+            super(arguments);
         }
-        
-        @Override
-        public String toString() {
-            return "" + operator + arguments;
+
+        static Formula of(Formula... arguments) {
+            return new Mul(arguments);
         }
-        
-        @Override
-        public Formula expand() {
-            if (!operator.equals(MULT))
-                return this;
-            return null;
-        }
+    }
+    
+    public static Formula parse(String source) {
+        return new Object() {
+            int length = source.length(), index = 0, ch = get();
+            
+            int get() {
+                return ch = index < length ? source.charAt(index++) : -1;
+            }
+            
+            boolean eat(int expected) {
+                while (Character.isWhitespace(ch))
+                    get();
+                if (ch == expected) {
+                    get();
+                    return true;
+                }
+                return false;
+            }
+            
+            Formula factor() {
+
+            }
+
+            Formula power() {
+
+            }
+
+            Formula term() {
+                List<Formula> powers = new ArrayList<>();
+                powers.add(power());
+                while (true)
+                    if (eat('*'))
+                        powers.add(power());
+                    else
+                        break;
+                return Mul.of(powers.toArray(Formula[]::new));
+            }
+
+            Formula parse() {
+                List<Formula> terms = new ArrayList<>();
+                terms.add(term());
+                while (true)
+                    if (eat('+'))
+                        terms.add(term());
+                    else if (eat('-'))
+                        terms.add(Neg.of(term()));
+                    else
+                        break;
+                return Add.of(terms.toArray(Formula[]::new));
+            }
+        }.parse();
     }
 
     @Test
     public void test() {
-        double n = 10, r = n;
-        for (int i = 0; i < 100; ++i) {
-            System.out.println(r);
-            r = Math.sqrt(r) * 10;
-        }
     }
-
 }

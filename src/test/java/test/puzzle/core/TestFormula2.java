@@ -94,6 +94,16 @@ public class TestFormula2 {
         }
     }
     
+    static class Pow extends Binary {
+        Pow(Formula... arguments) {
+            super(arguments);
+        }
+
+        static Formula of(Formula... arguments) {
+            return new Pow(arguments);
+        }
+    }
+    
     public static Formula parse(String source) {
         return new Object() {
             int length = source.length(), index = 0, ch = get();
@@ -112,12 +122,24 @@ public class TestFormula2 {
                 return false;
             }
             
+            boolean isVariable(int ch) {
+                return ch >= 'a' && ch <= 'z'
+                    || ch >= 'A' && ch <= 'Z';
+            }
+            
             Formula factor() {
 
             }
 
             Formula power() {
-
+                List<Formula> factors = new ArrayList<>();
+                factors.add(factor());
+                while (true)
+                    if (eat('^'))
+                        factors.add(factor());
+                    else
+                        break;
+                return Pow.of(factors.toArray(Formula[]::new));
             }
 
             Formula term() {
@@ -125,6 +147,8 @@ public class TestFormula2 {
                 powers.add(power());
                 while (true)
                     if (eat('*'))
+                        powers.add(power());
+                    else if (isVariable(ch) || ch == '(')
                         powers.add(power());
                     else
                         break;

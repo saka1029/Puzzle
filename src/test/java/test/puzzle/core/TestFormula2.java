@@ -235,5 +235,6 @@ public class TestFormula2 {
     @Test
     public void test() {
         System.out.println(parse("x^2+2x+1"));
+        System.out.println(parse("x^2^3"));
     }
 }

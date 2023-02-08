@@ -1,11 +1,11 @@
 package test.puzzle.core;
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -17,11 +17,15 @@ public class TestFormula2 {
         }
     }
     
-    static class Int extends Formula {
+    static class Num extends Formula {
         final int value;
         
-        Int(int value) {
+        Num(int value) {
             this.value = value;
+        }
+        
+        public static Num of(int value) {
+            return new Num(value);
         }
         
         @Override
@@ -30,16 +34,16 @@ public class TestFormula2 {
         }
     }
     
-    static class Symbol extends Formula {
-        static final Map<String, Symbol> all = new HashMap<>();
+    static class Sym extends Formula {
+        static final Map<String, Sym> all = new HashMap<>();
         final String name;
         
-        Symbol(String name) {
+        Sym(String name) {
             this.name = name;
         }
         
-        public static Symbol of(String name) {
-            return all.computeIfAbsent(name, k -> new Symbol(k));
+        public static Sym of(String name) {
+            return all.computeIfAbsent(name, k -> new Sym(k));
         }
         
         @Override
@@ -54,6 +58,10 @@ public class TestFormula2 {
         Unary(Formula argument) {
             this.argument = argument;
         }
+        
+        String toString(String operator) {
+            return "%s(%s)".formatted(operator, argument);
+        }
     }
     
     static class Neg extends Unary {
@@ -64,6 +72,11 @@ public class TestFormula2 {
         static Formula of(Formula argument) {
             return new Neg(argument);
         }
+        
+        @Override
+        public String toString() {
+            return toString("-");
+        }
     }
 
     static class Binary extends Formula {
@@ -71,6 +84,12 @@ public class TestFormula2 {
         
         Binary(Formula... arguments) {
             this.arguments = arguments.clone();
+        }
+        
+        String toString(String operator) {
+            return Stream.of(arguments)
+                .map(f -> f.toString())
+                .collect(Collectors.joining(" ", operator + "(", ")"));
         }
     }
     
@@ -82,6 +101,11 @@ public class TestFormula2 {
         static Formula of(Formula... arguments) {
             return new Add(arguments);
         }
+        
+        @Override
+        public String toString() {
+            return toString("+");
+        }
     }
     
     static class Mul extends Binary {
@@ -92,6 +116,11 @@ public class TestFormula2 {
         static Formula of(Formula... arguments) {
             return new Mul(arguments);
         }
+        
+        @Override
+        public String toString() {
+            return toString("*");
+        }
     }
     
     static class Pow extends Binary {
@@ -101,6 +130,11 @@ public class TestFormula2 {
 
         static Formula of(Formula... arguments) {
             return new Pow(arguments);
+        }
+        
+        @Override
+        public String toString() {
+            return toString("^");
         }
     }
     
@@ -127,8 +161,32 @@ public class TestFormula2 {
                     || ch >= 'A' && ch <= 'Z';
             }
             
+            RuntimeException error(String format, Object... args) {
+                return new RuntimeException(format.formatted(args));
+            }
+            
             Formula factor() {
-
+                Formula factor;
+                boolean minus = eat('-');
+                if (eat('(')) {
+                    factor = expression();
+                    if (!eat(')'))
+                        throw error("')' expected");
+                } else if (Character.isDigit(ch)) {
+                    StringBuilder sb = new StringBuilder();
+                    do {
+                        sb.append((char)ch);
+                        get();
+                    } while (Character.isDigit(ch));
+                    factor = Num.of(Integer.parseInt(sb.toString()));
+                } else if (isVariable(ch)) {
+                    factor = Sym.of(Character.toString(ch));
+                    get();
+                } else
+                    throw error("unexpected character '%c'", (char)ch);
+                if (minus)
+                    factor = Neg.of(factor);
+                return factor;
             }
 
             Formula power() {
@@ -139,7 +197,7 @@ public class TestFormula2 {
                         factors.add(factor());
                     else
                         break;
-                return Pow.of(factors.toArray(Formula[]::new));
+                return factors.size() == 1 ? factors.get(0) : Pow.of(factors.toArray(Formula[]::new));
             }
 
             Formula term() {
@@ -152,10 +210,10 @@ public class TestFormula2 {
                         powers.add(power());
                     else
                         break;
-                return Mul.of(powers.toArray(Formula[]::new));
+                return powers.size() == 1 ? powers.get(0) : Mul.of(powers.toArray(Formula[]::new));
             }
 
-            Formula parse() {
+            Formula expression() {
                 List<Formula> terms = new ArrayList<>();
                 terms.add(term());
                 while (true)
@@ -165,12 +223,17 @@ public class TestFormula2 {
                         terms.add(Neg.of(term()));
                     else
                         break;
-                return Add.of(terms.toArray(Formula[]::new));
+                return terms.size() == 1 ? terms.get(0) : Add.of(terms.toArray(Formula[]::new));
+            }
+            
+            Formula parse() {
+                return expression();
             }
         }.parse();
     }
 
     @Test
     public void test() {
+        System.out.println(parse("x^2+2x+1"));
     }
 }

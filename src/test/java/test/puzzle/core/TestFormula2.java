@@ -12,6 +12,13 @@ import org.junit.Test;
 public class TestFormula2 {
 
     static abstract class Formula {
+
+        public abstract int preceedance();
+
+        public String string() {
+            return toString();
+        }
+
         public Formula expand() {
             return this;
         }
@@ -32,6 +39,11 @@ public class TestFormula2 {
         public String toString() {
             return "" + value;
         }
+        
+        @Override
+        public int preceedance() {
+            return 1;
+        }
     }
     
     static class Sym extends Formula {
@@ -50,9 +62,14 @@ public class TestFormula2 {
         public String toString() {
             return name;
         }
+        
+        @Override
+        public int preceedance() {
+            return 0;
+        }
     }
     
-    static class Unary extends Formula {
+    static abstract class Unary extends Formula {
         final Formula argument;
         
         Unary(Formula argument) {
@@ -77,19 +94,51 @@ public class TestFormula2 {
         public String toString() {
             return toString("-");
         }
+        
+        @Override
+        public int preceedance() {
+            return 10;
+        }
+        
+        @Override
+        public String string() {
+            String s = argument.string();
+            if (argument.preceedance() > preceedance())
+                s = "(" + s + ")";
+            return "-" + s;
+        }
     }
 
-    static class Binary extends Formula {
+    static abstract class Binary extends Formula {
         final Formula[] arguments;
         
         Binary(Formula... arguments) {
             this.arguments = arguments.clone();
         }
         
-        String toString(String operator) {
+        abstract String operator();
+        
+        public String toString() {
             return Stream.of(arguments)
                 .map(f -> f.toString())
-                .collect(Collectors.joining(" ", operator + "(", ")"));
+                .collect(Collectors.joining(" ", operator() + "(", ")"));
+        }
+        
+        @Override
+        public String string() {
+            StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            for (Formula e : arguments) {
+                String s = e.string();
+                if (e.preceedance() > preceedance())
+                    s = "(" + s + ")";
+                if (first)
+                    first = false;
+                else
+                    sb.append(operator());
+                sb.append(s);
+            }
+            return sb.toString();
         }
     }
     
@@ -103,8 +152,13 @@ public class TestFormula2 {
         }
         
         @Override
-        public String toString() {
-            return toString("+");
+        String operator() {
+            return "+";
+        }
+
+        @Override
+        public int preceedance() {
+            return 60;
         }
     }
     
@@ -118,8 +172,28 @@ public class TestFormula2 {
         }
         
         @Override
-        public String toString() {
-            return toString("*");
+        String operator() {
+            return "*";
+        }
+        
+        @Override
+        public int preceedance() {
+            return 40;
+        }
+        
+        @Override
+        public String string() {
+            StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            for (Formula e : arguments) {
+                String s = e.string();
+                if (e.preceedance() > preceedance() || !first && e instanceof Num)
+                    s = "(" + s + ")";
+                if (first)
+                    first = false;
+                sb.append(s);
+            }
+            return sb.toString();
         }
     }
     
@@ -133,8 +207,13 @@ public class TestFormula2 {
         }
         
         @Override
-        public String toString() {
-            return toString("^");
+        String operator() {
+            return "^";
+        }
+        
+        @Override
+        public int preceedance() {
+            return 20;
         }
     }
     
@@ -233,10 +312,20 @@ public class TestFormula2 {
     }
 
     @Test
-    public void test() {
+    public void testParse() {
         System.out.println(parse("x^2+2x+1"));
         System.out.println(parse("x^2^3"));
         System.out.println(parse("x(x + 1)(x + 2)"));
         System.out.println(parse("abc+ab+bc+ca"));
+    }
+
+    @Test
+    public void testString() {
+        System.out.println(parse("x^2+2x+1").string());
+        System.out.println(parse("x^2^3").string());
+        System.out.println(parse("x(x + 1)(x + 2)").string());
+        System.out.println(parse("abc+ab+bc+ca").string());
+        System.out.println(parse("2*3*4").string());
+        System.out.println(parse("-(x + 1)").string());
     }
 }

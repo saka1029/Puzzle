@@ -160,6 +160,26 @@ public class TestFormula2 {
         public int preceedance() {
             return 60;
         }
+        
+        @Override
+        public String string() {
+            StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            for (Formula e : arguments) {
+                if (e instanceof Neg n) {
+                    sb.append(n.string());
+                } else {
+                    String s = e.string();
+                    if (e.preceedance() > preceedance())
+                        s = "(" + s + ")";
+                    if (!first)
+                        sb.append("+");
+                    sb.append(s);
+                }
+                first = false;
+            }
+            return sb.toString();
+        }
     }
     
     static class Mul extends Binary {
@@ -327,5 +347,9 @@ public class TestFormula2 {
         System.out.println(parse("abc+ab+bc+ca").string());
         System.out.println(parse("2*3*4").string());
         System.out.println(parse("-(x + 1)").string());
+        System.out.println(parse("x^(y+2)^3").string());
+        System.out.println(parse("x^y+2^3").string());
+        System.out.println(parse("x^2-2x+1").string());
+        System.out.println(parse("x^2-(2+y)+1").string());
     }
 }

@@ -167,7 +167,11 @@ public class TestFormula2 {
             boolean first = true;
             for (Formula e : arguments) {
                 if (e instanceof Neg n) {
-                    sb.append(n.string());
+                    e = n.argument;
+                    String s = e.string();
+                    if (e.preceedance() >= preceedance())
+                        s = "(" + s + ")";
+                    sb.append("-").append(s);
                 } else {
                     String s = e.string();
                     if (e.preceedance() > preceedance())

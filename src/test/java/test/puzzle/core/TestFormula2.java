@@ -355,5 +355,6 @@ public class TestFormula2 {
         System.out.println(parse("x^y+2^3").string());
         System.out.println(parse("x^2-2x+1").string());
         System.out.println(parse("x^2-(2+y)+1").string());
+        System.out.println(parse("x^-2").string());
     }
 }

@@ -14,6 +14,8 @@ import static puzzle.core.Primes.sumOfFactors;
 import static puzzle.core.Primes.superscripts;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -129,5 +131,47 @@ public class TestPrimes {
         for ( ; i.remainder(n).equals(BigInteger.ZERO); i = i.divide(n))
             ++count;
         System.out.println(p + " = " + n + "^" + count + " remainder=" + i);
+    }
+    
+    /**
+     * サンダラムの篩
+     * Sieve of Sundaram - Wikipedia
+     * https://en.wikipedia.org/wiki/Sieve_of_Sundaram
+     * 
+     * <pre>
+     * def sieve_of_Sundaram(n):
+     * """The sieve of Sundaram is a simple deterministic algorithm for finding all the prime numbers up to a specified integer."""
+     * k = (n - 2) // 2
+     * integers_list = [True] * (k + 1)
+     * for i in range(1, k + 1):
+     *     j = i
+     *     while i + j + 2 * i * j <= k:
+     *         integers_list[i + j + 2 * i * j] = False
+     *         j += 1
+     * if n > 2:
+     *     print(2, end=' ')
+     * for i in range(1, k + 1):
+     *     if integers_list[i]:
+     *         print(2 * i + 1, end=' ')
+     * </pre>
+     */
+    static int[] sieveOfSundaram(int n) {
+        int k = (n - 2) / 2;
+        boolean[] integersList = new boolean[k + 1];
+        for (int i = 1; i < k + 1; ++i)
+            for (int j = i; i + j + 2 * i * j <= k; ++j)
+                integersList[i + j + 2 * i * j] = true;
+        List<Integer> primes = new ArrayList<>();
+        if (n > 2)
+            primes.add(2);
+        for (int i = 1; i < k + 1; ++i)
+            if (!integersList[i])
+                primes.add(2 * i + 1);
+        return primes.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    @Test
+    public void testSieveOfSundaram() {
+        assertArrayEquals(PRIMES1000, sieveOfSundaram(1000));
     }
 }

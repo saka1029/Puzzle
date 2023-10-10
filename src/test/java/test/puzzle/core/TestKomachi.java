@@ -300,17 +300,17 @@ public class TestKomachi {
         int[] terms = new int[size];
         List<int[]> result = new ArrayList<>();
         new Object() {
-            void komachi(int i, int sum, int term, int j) {
+            void solve(int i, int sum, int term, int j) {
                 if (i >= size) {
                     if (sum + (terms[j] = term) == 100 || sum + (terms[j] = -term) == 100)
                         result.add(Arrays.copyOf(terms, j + 1));
                 } else {
-                    komachi(i + 1, sum, term * 10 + digits[i], j);
-                    komachi(i + 1, sum + (terms[j] = term), digits[i], j + 1);
-                    komachi(i + 1, sum + (terms[j] = -term), digits[i], j + 1);
+                    solve(i + 1, sum, term * 10 + digits[i], j);
+                    solve(i + 1, sum + (terms[j] = term), digits[i], j + 1);
+                    solve(i + 1, sum + (terms[j] = -term), digits[i], j + 1);
                 }
             }
-        }.komachi(1, 0, digits[0], 0);
+        }.solve(1, 0, digits[0], 0);
         return result;
     }
     

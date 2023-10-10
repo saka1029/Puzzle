@@ -316,9 +316,13 @@ public class TestKomachi {
     
     @Test
     public void testKomachi2() {
-        List<int[]> r = komachi2(new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9});
-        assertEquals(ASC_EXPECTED.size(), r.size());
-        for (int[] e : r)
+        List<int[]> asc = komachi2(new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9});
+        assertEquals(ASC_EXPECTED.size(), asc.size());
+        for (int[] e : asc)
+            assertEquals(100, IntStream.of(e).sum());
+        List<int[]> desc = komachi2(new int[] {9, 8, 7, 6, 5, 4, 3, 2, 1});
+        assertEquals(DESC_EXPECTED.size(), desc.size());
+        for (int[] e : desc)
             assertEquals(100, IntStream.of(e).sum());
     }
 }

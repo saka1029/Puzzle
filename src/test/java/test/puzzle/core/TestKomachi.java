@@ -1,8 +1,10 @@
 package test.puzzle.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -197,10 +199,10 @@ public class TestKomachi {
         assertArrayEquals(new int[] {9, 8, 7, 6, 5, 4, 3, 2, 1}, descending);
         Rational goal = Rational.of(100);
         Consumer<String> check = s -> assertEquals(goal, calculate(s));
-        Consumer<String> printCheck = s -> {
-            System.out.println(s);
-            assertEquals(goal, calculate(s));
-        };
+//        Consumer<String> printCheck = s -> {
+//            System.out.println(s);
+//            assertEquals(goal, calculate(s));
+//        };
         assertEquals(12, komachi(100, ascending, check));
         assertEquals(18, komachi(100, descending, check));
     }
@@ -292,6 +294,31 @@ public class TestKomachi {
             assertEquals(100, sum);
         }
     }
-    
 
+    static List<int[]> komachi2(int[] digits) {
+        int size = digits.length;
+        int[] terms = new int[size];
+        List<int[]> result = new ArrayList<>();
+        new Object() {
+            void komachi(int i, int sum, int term, int j) {
+                if (i >= size) {
+                    if (sum + (terms[j] = term) == 100 || sum + (terms[j] = -term) == 100)
+                        result.add(Arrays.copyOf(terms, j + 1));
+                } else {
+                    komachi(i + 1, sum, term * 10 + digits[i], j);
+                    komachi(i + 1, sum + (terms[j] = term), digits[i], j + 1);
+                    komachi(i + 1, sum + (terms[j] = -term), digits[i], j + 1);
+                }
+            }
+        }.komachi(1, 0, digits[0], 0);
+        return result;
+    }
+    
+    @Test
+    public void testKomachi2() {
+        List<int[]> r = komachi2(new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9});
+        assertEquals(ASC_EXPECTED.size(), r.size());
+        for (int[] e : r)
+            assertEquals(100, IntStream.of(e).sum());
+    }
 }

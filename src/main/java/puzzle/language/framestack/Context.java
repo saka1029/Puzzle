@@ -60,7 +60,7 @@ public class Context {
     public String toString() {
         return IntStream.range(0, sp)
             .mapToObj(i -> stack[i].toString())
-            .collect(Collectors.joining(", ", "[", "]"));
+            .collect(Collectors.joining(" ", "[", "]"));
     }
     
     void add(String name, Executable value) {

@@ -14,8 +14,8 @@ public class TestLoad {
     public void testLoadStore() {
         Context context = Context.of(10, 10);
         List block = List.of(Int.ZERO, Int.ONE, Int.TWO,
-            Load.of(0, 1), Load.of(0, 2), STACK, Symbol.of("+"), STACK, Store.of(0, 0), STACK,
-            Load.of(0, 0), Return.ONE);
+            Load.L1, Load.L2, STACK, Symbol.of("+"), STACK, Store.S0, STACK,
+            Load.L0, Return.ONE);
         block.execute(context);
         assertEquals(1, context.sp);
         assertEquals(Int.THREE, context.pop());

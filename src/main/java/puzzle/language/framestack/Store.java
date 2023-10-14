@@ -2,6 +2,11 @@ package puzzle.language.framestack;
 
 public class Store implements Executable {
     
+    public static final Store S0 = Store.of(0, 0);
+    public static final Store S1 = Store.of(0, 1);
+    public static final Store S2 = Store.of(0, 2);
+    public static final Store S3 = Store.of(0, 3);
+
     public final int frameNo, index;
     
     Store(int frameNo, int index) {

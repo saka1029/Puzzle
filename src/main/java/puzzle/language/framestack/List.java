@@ -14,14 +14,23 @@ public class List implements Executable, Iterable<Executable> {
     }
 
     /**
-     * TODO: 値を返すブロックの場合はどうする？
+     * 値を返す場合はスタックトップにReturn(n)をプッシュする。
+     * フレームポインタを回復後、
+     * スタックトップにあったn個の要素を戻り値としてpush()する。
      */
     @Override
     public void execute(Context context) {
         context.fpush(context.sp);
         for (Executable e : this)
             e.execute(context);
-        context.sp = context.fpop();
+        if (context.peek(0) instanceof Return r) {
+            context.pop(); // remove Return
+            int end = context.sp, start = end - r.n;
+            context.sp = context.fpop();
+            for (int i = start; i < end; ++i)
+                context.push(context.stack[i]);
+        } else
+            context.sp = context.fpop();
     }
 
     @Override

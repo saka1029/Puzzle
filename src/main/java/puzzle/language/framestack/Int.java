@@ -7,6 +7,10 @@ public class Int implements Ordered {
     Int(int value) {
         this.value = value;
     }
+    
+    public static Int of(int value) {
+        return new Int(value);
+    }
 
     @Override
     public int hashCode() {

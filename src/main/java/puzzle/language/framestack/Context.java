@@ -9,34 +9,38 @@ public class Context {
     final Map<Symbol, Executable> globals = new HashMap<>();
     final Executable[] stack;
     final int[] frame;
-    int sp = 0, fp = 0;
+    public int sp = 0, fp = 0;
 
     Context(int stackSize, int frameSize) {
         this.stack = new Executable[stackSize];
         this.frame = new int[frameSize];
     }
+    
+    public static Context of(int stackSize, int frameSize) {
+        return new Context(stackSize, frameSize);
+    }
 
-    void push(Executable e) {
+    public void push(Executable e) {
         stack[sp++] = e;
     }
 
-    Executable pop() {
+    public Executable pop() {
         return stack[--sp];
     }
 
-    Executable peek(int index) {
+    public Executable peek(int index) {
         return stack[sp - index - 1];
     }
 
-    Executable set(int index, Executable e) {
+    public Executable set(int index, Executable e) {
         return stack[sp - index - 1] = e;
     }
 
-    void load(int frameNo, int index) {
+    public void load(int frameNo, int index) {
         push(peek(fpeek(frameNo) + index));
     }
 
-    void store(int frameNo, int index) {
+    public void store(int frameNo, int index) {
         set(fpeek(frameNo) + index, pop());
     }
 
@@ -57,5 +61,13 @@ public class Context {
         return IntStream.range(0, sp)
             .mapToObj(i -> stack[i].toString())
             .collect(Collectors.joining(", ", "[", "]"));
+    }
+    
+    void add(String name, Executable value) {
+        globals.put(Symbol.of(name), value);
+    }
+    
+    {
+        add("+", c -> c.push(Int.of(((Int)c.pop()).value + ((Int)c.pop()).value)));
     }
 }

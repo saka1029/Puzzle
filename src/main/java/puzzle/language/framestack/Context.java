@@ -32,17 +32,9 @@ public class Context {
         return stack[sp - index - 1];
     }
 
-    public Executable set(int index, Executable e) {
-        return stack[sp - index - 1] = e;
-    }
-
-    public void load(int frameNo, int index) {
-        push(peek(fpeek(frameNo) + index));
-    }
-
-    public void store(int frameNo, int index) {
-        set(fpeek(frameNo) + index, pop());
-    }
+//    public Executable set(int index, Executable e) {
+//        return stack[sp - index - 1] = e;
+//    }
 
     void fpush(int e) {
         frame[fp++] = e;
@@ -54,6 +46,14 @@ public class Context {
 
     int fpeek(int index) {
         return frame[fp - index - 1];
+    }
+
+    public void load(int frameNo, int index) {
+        push(stack[fpeek(frameNo) + index]);
+    }
+
+    public void store(int frameNo, int index) {
+        stack[fpeek(frameNo) + index] = pop();
     }
     
     @Override
@@ -69,5 +69,6 @@ public class Context {
     
     {
         add("+", c -> c.push(Int.of(((Int)c.pop()).value + ((Int)c.pop()).value)));
+        add("stack", c -> System.out.println(c));
     }
 }

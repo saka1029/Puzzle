@@ -12,6 +12,10 @@ public class List implements Executable, Iterable<Executable> {
         for (Executable e : elements)
             this.elements.add(e);
     }
+    
+    public static List of(Executable... elements) {
+        return new List(elements);
+    }
 
     /**
      * 値を返す場合はスタックトップにReturn(n)をプッシュする。
@@ -28,7 +32,7 @@ public class List implements Executable, Iterable<Executable> {
             int end = context.sp, start = end - r.n;
             context.sp = context.fpop();
             for (int i = start; i < end; ++i)
-                context.push(context.stack[i]);
+                context.push(context.stack[i]); // push return values
         } else
             context.sp = context.fpop();
     }

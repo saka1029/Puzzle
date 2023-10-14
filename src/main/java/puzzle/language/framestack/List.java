@@ -18,9 +18,9 @@ public class List implements Executable, Iterable<Executable> {
     }
 
     /**
-     * 値を返す場合はスタックトップにReturn(n)をプッシュする。
-     * フレームポインタを回復後、
-     * スタックトップにあったn個の要素を戻り値としてpush()する。
+     * 値を返す場合はスタックトップにReturn(args, returns)をプッシュする。
+     * args個の要素を除いてスタックポインタを回復後、
+     * スタックトップにあったreturns個の要素を戻り値としてpush()する。
      */
     @Override
     public void execute(Context context) {
@@ -29,8 +29,8 @@ public class List implements Executable, Iterable<Executable> {
             e.execute(context);
         if (context.peek(0) instanceof Return r) {
             context.pop(); // remove Return
-            int end = context.sp, start = end - r.n;
-            context.sp = context.fpop();
+            int end = context.sp, start = end - r.returns;
+            context.sp = context.fpop() - r.args;
             for (int i = start; i < end; ++i)
                 context.push(context.stack[i]); // push return values
         } else

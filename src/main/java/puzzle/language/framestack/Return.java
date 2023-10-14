@@ -2,19 +2,19 @@ package puzzle.language.framestack;
 
 public class Return implements Value {
 
-    public static Return ONE = of(1);
-    public final int n;
+    public final int args, returns;
     
-    Return(int n) {
-        this.n = n;
+    Return(int args, int returns) {
+        this.args = args;
+        this.returns = returns;
     }
 
-    public static Return of(int n) {
-        return new Return(n);
+    public static Return of(int args, int returns) {
+        return new Return(args, returns);
     }
 
     @Override
     public String toString() {
-        return "return(%d)".formatted(n);
+        return "return(%d, %d)".formatted(args, returns);
     }
 }

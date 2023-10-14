@@ -32,10 +32,6 @@ public class Context {
         return stack[sp - index - 1];
     }
 
-//    public Executable set(int index, Executable e) {
-//        return stack[sp - index - 1] = e;
-//    }
-
     void fpush(int e) {
         frame[fp++] = e;
     }
@@ -49,7 +45,6 @@ public class Context {
     }
 
     public void load(int frameNo, int index) {
-        System.out.printf("load %d %d : stack[%d]%n", frameNo, index, fpeek(frameNo) + index);
         push(stack[fpeek(frameNo) + index]);
     }
 

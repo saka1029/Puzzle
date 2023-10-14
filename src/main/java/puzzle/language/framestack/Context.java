@@ -49,6 +49,7 @@ public class Context {
     }
 
     public void load(int frameNo, int index) {
+        System.out.printf("load %d %d : stack[%d]%n", frameNo, index, fpeek(frameNo) + index);
         push(stack[fpeek(frameNo) + index]);
     }
 

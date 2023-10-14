@@ -21,4 +21,16 @@ public class TestLoad {
         assertEquals(Int.THREE, context.pop());
     }
 
+    @Test
+    public void testLoadArgs() {
+        Context context = Context.of(10, 10);
+        List block = List.of(Load.of(0, -2), Load.of(0, -1), STACK, Symbol.of("+"), STACK, Return.ONE, STACK);
+        System.out.println("block=" + block);
+        Int.ONE.execute(context);
+        Int.TWO.execute(context);
+        block.execute(context);
+        assertEquals(1, context.sp);
+        assertEquals(Int.THREE, context.pop());
+    }
+
 }

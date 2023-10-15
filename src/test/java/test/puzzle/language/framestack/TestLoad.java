@@ -13,7 +13,7 @@ public class TestLoad {
     @Test
     public void testLoadStore() {
         Context context = Context.of(10, 10);
-        List block = Block.of(0, 1, Int.ZERO, Int.ONE, Int.TWO,
+        List block = List.of(0, 1, Int.ZERO, Int.ONE, Int.TWO,
             Load.L1, Load.L2, STACK, Symbol.of("+"), STACK, Store.L0, STACK,
             Load.L0);
         System.out.println("block = " + block);
@@ -25,7 +25,7 @@ public class TestLoad {
     @Test
     public void testLoadArgs() {
         Context context = Context.of(10, 10);
-        List block = Block.of(2, 1, Load.A2, Load.A1, STACK, Symbol.of("+"), STACK);
+        List block = List.of(2, 1, Load.A2, Load.A1, STACK, Symbol.of("+"), STACK);
         System.out.println("block=" + block);
         Int.ONE.execute(context);
         Int.TWO.execute(context);

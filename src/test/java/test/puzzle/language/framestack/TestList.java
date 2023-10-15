@@ -11,7 +11,8 @@ public class TestList {
     @Test
     public void testExecute() {
         Context context = Context.of(10, 10);
-        List block = List.of(Int.of(1), Int.of(2), c -> c.push(Int.of(((Int)c.pop()).value + ((Int)c.pop()).value)));
+        List block = List.of(Int.of(1), Int.of(2), Symbol.of("+"));
+        System.out.println("block = " + block);
         block.execute(context);
         assertEquals(0, context.sp);
     }

@@ -12,10 +12,6 @@ public class Block extends List {
         this.returns = returns;
     }
     
-    public static Block of(int args, int returns, Executable... elements) {
-        return new Block(args, returns, elements);
-    }
-
     /**
      * args個の要素を除いてスタックポインタを回復後、
      * スタックトップにあったreturns個の要素を戻り値としてpush()する。
@@ -33,7 +29,7 @@ public class Block extends List {
 
     @Override
     public String toString() {
-        String head = "(@ %d %d : ".formatted(args, returns);
+        String head = "(%d %d : ".formatted(args, returns);
         return elements.stream()
             .map(Executable::toString)
             .collect(Collectors.joining(" ", head, ")"));

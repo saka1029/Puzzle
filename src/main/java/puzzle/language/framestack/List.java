@@ -16,6 +16,10 @@ public class List implements Executable, Iterable<Executable> {
     public static List of(Executable... elements) {
         return new List(elements);
     }
+    
+    public static List of(int args, int returns, Executable... elements) {
+        return new Block(args, returns, elements);
+    }
 
     /**
      * 値を返す場合はスタックトップにReturn(args, returns)をプッシュする。

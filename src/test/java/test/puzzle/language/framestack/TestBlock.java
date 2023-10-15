@@ -11,7 +11,7 @@ public class TestBlock {
     @Test
     public void testExecuteReturn() {
         Context context = Context.of(10, 10);
-        List block = Block.of(2, 1, Load.A2, Load.A1, Symbol.of("+"));
+        List block = List.of(2, 1, Load.A2, Load.A1, Symbol.of("+"));
         System.out.println("block = " + block);
         Int.ONE.execute(context);
         Int.TWO.execute(context);

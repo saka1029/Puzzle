@@ -16,12 +16,26 @@ public class Block extends List {
         return new Block(args, returns, elements);
     }
 
+    /**
+     * args個の要素を除いてスタックポインタを回復後、
+     * スタックトップにあったreturns個の要素を戻り値としてpush()する。
+     */
+    @Override
+    public void execute(Context context) {
+        context.fpush(context.sp);
+        for (Executable e : this)
+            e.execute(context);
+        int end = context.sp, start = end - returns;
+        context.sp = context.fpop() - args;
+        for (int i = start; i < end; ++i)
+            context.push(context.stack[i]); // push return values
+    }
 
     @Override
     public String toString() {
-        String head = "(@ %d %d ".formatted(args, returns);
+        String head = "(@ %d %d : ".formatted(args, returns);
         return elements.stream()
             .map(Executable::toString)
-            .collect(Collectors.joining(", ", head, ")"));
+            .collect(Collectors.joining(" ", head, ")"));
     }
 }

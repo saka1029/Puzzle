@@ -2,6 +2,10 @@ package puzzle.language.framestack;
 
 public class Load implements Executable {
     
+    public static final Load A1 = Load.of(0, -1);
+    public static final Load A2 = Load.of(0, -2);
+    public static final Load A3 = Load.of(0, -3);
+    public static final Load A4 = Load.of(0, -4);
     public static final Load L0 = Load.of(0, 0);
     public static final Load L1 = Load.of(0, 1);
     public static final Load L2 = Load.of(0, 2);

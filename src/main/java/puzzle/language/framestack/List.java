@@ -46,6 +46,6 @@ public class List implements Executable, Iterable<Executable> {
     public String toString() {
         return elements.stream()
             .map(Executable::toString)
-            .collect(Collectors.joining(", ", "(", ")"));
+            .collect(Collectors.joining(" ", "(", ")"));
     }
 }

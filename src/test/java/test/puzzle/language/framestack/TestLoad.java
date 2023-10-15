@@ -13,9 +13,10 @@ public class TestLoad {
     @Test
     public void testLoadStore() {
         Context context = Context.of(10, 10);
-        List block = List.of(Int.ZERO, Int.ONE, Int.TWO,
-            Load.L1, Load.L2, STACK, Symbol.of("+"), STACK, Store.S0, STACK,
-            Load.L0, Return.of(0, 1));
+        List block = Block.of(0, 1, Int.ZERO, Int.ONE, Int.TWO,
+            Load.L1, Load.L2, STACK, Symbol.of("+"), STACK, Store.L0, STACK,
+            Load.L0);
+        System.out.println("block = " + block);
         block.execute(context);
         assertEquals(1, context.sp);
         assertEquals(Int.THREE, context.pop());
@@ -24,8 +25,7 @@ public class TestLoad {
     @Test
     public void testLoadArgs() {
         Context context = Context.of(10, 10);
-        List block = List.of(Load.of(0, -2), Load.of(0, -1), STACK, Symbol.of("+"), STACK,
-            Return.of(2, 1), STACK);
+        List block = Block.of(2, 1, Load.A2, Load.A1, STACK, Symbol.of("+"), STACK);
         System.out.println("block=" + block);
         Int.ONE.execute(context);
         Int.TWO.execute(context);

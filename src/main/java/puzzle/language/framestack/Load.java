@@ -25,6 +25,7 @@ public class Load implements Executable {
  
     @Override
     public String toString() {
-        return "load(%d, %d)".formatted(frameNo, index);
+        String f = frameNo == 0 ? "" : Integer.toString(frameNo);
+        return "%d@%s".formatted(index, f);
     }
 }

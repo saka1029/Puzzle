@@ -99,5 +99,9 @@ public class TestContext {
         assertEquals(Symbol.of("foo"), c.eval("'foo"));             // Quote
         assertEquals(Int.of(6), c.eval("'(dup +) 'double0 define 3 double0"));       // list形式関数定義
         assertEquals(Int.of(6), c.eval("'(1 1 : A1 A1 +) 'double define 3 double"));       // block形式関数定義
+        assertEquals(Int.ONE, c.eval("true 1 2 if"));
+        assertEquals(Int.TWO, c.eval("false 1 2 if"));
+        assertEquals(Int.THREE, c.eval("1 2 true '+ '- if"));
+        assertEquals(Int.of(-1), c.eval("1 2 false '+ '- if"));
     }
 }

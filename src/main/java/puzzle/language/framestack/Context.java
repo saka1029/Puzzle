@@ -85,7 +85,10 @@ public class Context {
     
     {
         add("dup", c -> c.dup());
+        add("true", Bool.TRUE);
+        add("false", Bool.FALSE);
         add("+", c -> c.push(Int.of(((Int)c.pop()).value + ((Int)c.pop()).value)));
+        add("-", c -> c.push(Int.of(-((Int)c.pop()).value + ((Int)c.pop()).value)));
         add("*", c -> c.push(Int.of(((Int)c.pop()).value * ((Int)c.pop()).value)));
         add("==", c -> c.push(Bool.of(c.pop().equals(c.pop()))));
         add("<=", c -> c.push(Bool.of(((Ordered)c.pop()).compareTo((Ordered)c.pop()) >= 0)));

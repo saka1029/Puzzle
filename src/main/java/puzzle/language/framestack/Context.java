@@ -66,5 +66,12 @@ public class Context {
     {
         add("+", c -> c.push(Int.of(((Int)c.pop()).value + ((Int)c.pop()).value)));
         add("stack", c -> System.out.println(c));
+        add("if", c -> {
+            Executable otherwise = c.pop(), then = c.pop();
+            if (c.pop() != Bool.FALSE)
+                then.execute(c);
+            else
+                otherwise.execute(c);
+        });
     }
 }

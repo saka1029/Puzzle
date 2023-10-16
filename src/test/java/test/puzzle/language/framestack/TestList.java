@@ -11,10 +11,11 @@ public class TestList {
     @Test
     public void testExecute() {
         Context context = Context.of(10, 10);
-        List block = List.of(Int.of(1), Int.of(2), Symbol.of("+"));
+        List block = List.of(Int.ONE, Int.TWO, Symbol.of("+"));
         System.out.println("block = " + block);
         block.execute(context);
-        assertEquals(0, context.sp);
+        assertEquals(1, context.sp);
+        assertEquals(Int.THREE, context.pop());
     }
 
 }

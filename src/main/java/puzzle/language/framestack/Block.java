@@ -18,11 +18,11 @@ public class Block extends List {
      */
     @Override
     public void execute(Context context) {
-        context.fpush(context.sp);
+        context.fpush(context.sp);  // save frame
         for (Executable e : this)
             e.execute(context);
-        int end = context.sp, start = end - returns;
-        context.sp = context.fpop() - args;
+        int end = context.sp, start = end - returns; // 戻り値の先頭と末尾
+        context.sp = context.fpop() - args; // restore frame (unwind)
         for (int i = start; i < end; ++i)
             context.push(context.stack[i]); // push return values
     }

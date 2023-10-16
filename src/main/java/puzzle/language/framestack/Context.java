@@ -5,6 +5,23 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * スタックは以下の3つの領域から構成される。
+ * (1)引数領域、(2)ローカル変数領域、(3)評価スタック領域
+ * <pre>
+ * 評価スタック領域1  <- stack top:sp
+ * ローカル変数領域1  <- フレームポインタ:frame[fp - 1]
+ * 引数領域1
+ * 評価スタック領域0
+ * ローカル変数領域0  <- フレームポインタ:frame[fp - 2]
+ * 引数領域0
+ * </pre>
+ * フレームポインタはローカル変数領域の先頭を指している。
+ * ローカル変数はLoad(n, 0), Load(n, 1), ...でアクセスできる(nはフレーム番号)。
+ * 引数はローカル変数領域に隣接しているので、
+ * ... Load(n, -2), Load(n, -1)でアクセスできる(nはフレーム番号)。
+ * 最後の引数はLoad(n, -1)である点に注意する。
+ */
 public class Context {
     final Map<Symbol, Executable> globals = new HashMap<>();
     final Executable[] stack;

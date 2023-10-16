@@ -2,6 +2,8 @@ package puzzle.language.framestack;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 public class Reader {
     
@@ -38,17 +40,51 @@ public class Reader {
             get();
     }
     
-    List list() {
-        
+    Quote quote() {
+        get(); // skip '\''
+        return Quote.of(read());
     }
     
+    List list() {
+        get(); // skip '('
+        spaces();
+        ArrayList<Executable> list = new ArrayList<>();
+        while (ch != -1 && ch != ')') {
+            list.add(read());
+            spaces();
+        }
+        if (ch != ')')
+            throw error("')' expected");
+        return List.of(list);
+    }
+    
+    static boolean isWord(int ch) {
+        return switch (ch) {
+            case '(', ')', '\'', -1 -> false;
+            default -> !Character.isWhitespace(ch);
+        };
+    }
+
+    static Pattern INTPAT = Pattern.compile("[+-]?\\d+");
+
     Executable word() {
-        
+        StringBuilder sb = new StringBuilder();
+        while (isWord(ch)) {
+            sb.append((char)ch);
+            get();
+        }
+        String word = sb.toString();
+        if (INTPAT.matcher(word).matches())
+            return Int.of(Integer.parseInt(word));
+        else
+            return Symbol.of(word);
     }
 
     Executable read() {
         spaces();
         switch (ch) {
+            case '\'':
+                return quote();
             case '(':
                 return list();
             case ')':

@@ -31,6 +31,10 @@ public class Context {
     public Executable peek(int index) {
         return stack[sp - index - 1];
     }
+    
+    void dup() {
+        push(peek(0));
+    }
 
     void fpush(int e) {
         frame[fp++] = e;
@@ -64,6 +68,7 @@ public class Context {
     }
     
     {
+        add("dup", c -> c.dup());
         add("+", c -> c.push(Int.of(((Int)c.pop()).value + ((Int)c.pop()).value)));
         add("stack", c -> System.out.println(c));
         add("if", c -> {
@@ -73,5 +78,6 @@ public class Context {
             else
                 otherwise.execute(c);
         });
+        add("define", c -> { Symbol name = (Symbol)c.pop(); c.globals.put(name, c.pop()); });
     }
 }

@@ -8,6 +8,7 @@ import puzzle.language.framestack.Bool;
 import puzzle.language.framestack.Context;
 import puzzle.language.framestack.Int;
 import puzzle.language.framestack.List;
+import puzzle.language.framestack.Quote;
 import puzzle.language.framestack.Symbol;
 
 public class TestContext {
@@ -34,6 +35,31 @@ public class TestContext {
     public void testIfElse() {
         Context c = Context.of(10, 10);
         List.of(Bool.FALSE, Int.ONE, Int.TWO, Symbol.of("stack"), Symbol.of("if")).execute(c);
+        assertEquals(1, c.sp);
+        assertEquals(Int.TWO, c.pop());
+    }
+    
+    @Test
+    public void testDefineConstant() {
+        Context c = Context.of(10, 10);
+        Int.ONE.execute(c);
+        Quote.of(Symbol.of("one")).execute(c);
+        Symbol.of("define").execute(c);
+        assertEquals(0, c.sp);
+        Symbol.of("one").execute(c);
+        assertEquals(1, c.sp);
+        assertEquals(Int.ONE, c.pop());
+    }
+    
+    @Test
+    public void testDefineFunction() {
+        Context c = Context.of(10, 10);
+        Quote.of(List.of(Symbol.of("dup"), Symbol.of("+"))).execute(c);
+        Quote.of(Symbol.of("double")).execute(c);
+        Symbol.of("define").execute(c);
+        assertEquals(0, c.sp);
+        Int.ONE.execute(c);
+        Symbol.of("double").execute(c);
         assertEquals(1, c.sp);
         assertEquals(Int.TWO, c.pop());
     }

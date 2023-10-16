@@ -56,6 +56,10 @@ public class Context {
         stack[fpeek(frameNo) + index] = pop();
     }
     
+    public void run(String s) {
+        
+    }
+    
     @Override
     public String toString() {
         return IntStream.range(0, sp)

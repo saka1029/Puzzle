@@ -36,6 +36,10 @@ public class Context {
         push(peek(0));
     }
 
+    void drop() {
+        --sp;
+    }
+
     void fpush(int e) {
         frame[fp++] = e;
     }
@@ -85,6 +89,7 @@ public class Context {
     
     {
         add("dup", c -> c.dup());
+        add("drop", c -> c.drop());
         add("true", Bool.TRUE);
         add("false", Bool.FALSE);
         add("+", c -> c.push(Int.of(((Int)c.pop()).value + ((Int)c.pop()).value)));

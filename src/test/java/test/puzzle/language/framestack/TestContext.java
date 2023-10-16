@@ -80,7 +80,7 @@ public class TestContext {
     }
     
     @Test
-    public void testFactorial() {
+    public void testDouble() {
         Context c = Context.of(10, 10);
         Quote.of(List.of(Symbol.of("dup"), Symbol.of("+"))).execute(c);
         Quote.of(Symbol.of("double")).execute(c);
@@ -103,5 +103,29 @@ public class TestContext {
         assertEquals(Int.TWO, c.eval("false 1 2 if"));
         assertEquals(Int.THREE, c.eval("1 2 true '+ '- if"));
         assertEquals(Int.of(-1), c.eval("1 2 false '+ '- if"));
+    }
+    
+    @Test
+    public void testFactorialList() {
+        Context c = Context.of(10, 10);
+        c.run("'(dup 0 <= '(drop 1) '(dup 1 - ! *) if) '! define");
+        assertEquals(Int.of(1), c.eval("0 !"));
+        assertEquals(Int.of(1), c.eval("1 !"));
+        assertEquals(Int.of(2), c.eval("2 !"));
+        assertEquals(Int.of(6), c.eval("3 !"));
+        assertEquals(Int.of(24), c.eval("4 !"));
+        assertEquals(Int.of(120), c.eval("5 !"));
+    }
+    
+    @Test
+    public void testFactorialBlock() {
+        Context c = Context.of(10, 10);
+        c.run("'(1 1 : A1 0 <= '1 '(A1 1 - ! A1 *) if) '! define");
+        assertEquals(Int.of(1), c.eval("0 !"));
+        assertEquals(Int.of(1), c.eval("1 !"));
+        assertEquals(Int.of(2), c.eval("2 !"));
+        assertEquals(Int.of(6), c.eval("3 !"));
+        assertEquals(Int.of(24), c.eval("4 !"));
+        assertEquals(Int.of(120), c.eval("5 !"));
     }
 }

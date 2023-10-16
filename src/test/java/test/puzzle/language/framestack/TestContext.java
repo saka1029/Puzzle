@@ -96,6 +96,8 @@ public class TestContext {
         assertEquals(Int.THREE, c.eval("(1 2 +)"));
         assertEquals(Int.of(6), c.eval("3 (dup +)"));               // list形式
         assertEquals(Int.of(6), c.eval("3 (1 1 : A1 A1 +)"));       // block形式
-        assertEquals(Symbol.of("foo"), c.eval("'foo"));
+        assertEquals(Symbol.of("foo"), c.eval("'foo"));             // Quote
+        assertEquals(Int.of(6), c.eval("'(dup +) 'double0 define 3 double0"));       // list形式関数定義
+        assertEquals(Int.of(6), c.eval("'(1 1 : A1 A1 +) 'double define 3 double"));       // block形式関数定義
     }
 }

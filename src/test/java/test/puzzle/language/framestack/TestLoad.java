@@ -10,6 +10,15 @@ public class TestLoad {
 
     static final Symbol STACK = Symbol.of("stack");
 
+    /**
+     * add() {
+     *     L0 = 0;
+     *     L1 = 1;
+     *     L2 = 2;
+     *     L0 = L1 + l2;
+     *     return L0;
+     * }
+     */
     @Test
     public void testLoadStore() {
         Context context = Context.of(10, 10);
@@ -22,6 +31,12 @@ public class TestLoad {
         assertEquals(Int.THREE, context.pop());
     }
 
+    /**
+     * add(A2, A1) {
+     *     return A2 + A1;
+     * }
+     * add(1, 2)
+     */
     @Test
     public void testLoadArgs() {
         Context context = Context.of(10, 10);

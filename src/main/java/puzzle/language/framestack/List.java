@@ -3,7 +3,6 @@ package puzzle.language.framestack;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class List implements Executable, Iterable<Executable> {
 
@@ -22,17 +21,6 @@ public class List implements Executable, Iterable<Executable> {
         return new Block(args, returns, elements);
     }
     
-    public static List of(java.util.List<Executable> list) {
-        int size = list.size();
-        if (size >= 3
-            && list.get(0) instanceof Int args
-            && list.get(1) instanceof Int returns
-            && list.get(2).equals(Symbol.of(":"))) {
-            return of(args.value, returns.value, list.stream().skip(3).toArray(Executable[]::new));
-        } else
-            return of(list.stream().toArray(Executable[]::new));
-    }
-
     /**
      * 値を返す場合はスタックトップにReturn(args, returns)をプッシュする。
      * args個の要素を除いてスタックポインタを回復後、

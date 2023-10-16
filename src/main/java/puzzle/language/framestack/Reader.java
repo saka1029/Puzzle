@@ -55,7 +55,14 @@ public class Reader {
         }
         if (ch != ')')
             throw error("')' expected");
-        return List.of(list);
+        get(); // skip ')'
+        if (list.size() >= 3
+            && list.get(0) instanceof Int args
+            && list.get(1) instanceof Int returns
+            && list.get(2).equals(Symbol.of(":"))) {
+            return List.of(args.value, returns.value, list.stream().skip(3).toArray(Executable[]::new));
+        } else
+            return List.of(list.toArray(Executable[]::new));
     }
     
     static boolean isWord(int ch) {
@@ -83,6 +90,8 @@ public class Reader {
     Executable read() {
         spaces();
         switch (ch) {
+            case -1:
+                return null;
             case '\'':
                 return quote();
             case '(':

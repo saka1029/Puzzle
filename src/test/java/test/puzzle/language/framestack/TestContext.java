@@ -88,4 +88,14 @@ public class TestContext {
         
     }
 
+    @Test
+    public void testEval() {
+        Context c = Context.of(10, 10);
+        assertEquals(Int.ONE, c.eval("1"));
+        assertEquals(Int.THREE, c.eval(" 1 2 +"));
+        assertEquals(Int.THREE, c.eval("(1 2 +)"));
+        assertEquals(Int.of(6), c.eval("3 (dup +)"));               // list形式
+        assertEquals(Int.of(6), c.eval("3 (1 1 : A1 A1 +)"));       // block形式
+        assertEquals(Symbol.of("foo"), c.eval("'foo"));
+    }
 }

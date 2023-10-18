@@ -1,19 +1,12 @@
 package puzzle.language.framestack;
 
-public class Store implements Executable {
+public record Store(int frameNo, int index) implements Executable {
     
     public static final Store L0 = Store.of(0, 0);
     public static final Store L1 = Store.of(0, 1);
     public static final Store L2 = Store.of(0, 2);
     public static final Store L3 = Store.of(0, 3);
 
-    public final int frameNo, index;
-    
-    Store(int frameNo, int index) {
-        this.frameNo = frameNo;
-        this.index = index;
-    }
-    
     public static Store of(int frameNo, int index) {
         return new Store(frameNo, index);
     }

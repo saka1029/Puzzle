@@ -1,8 +1,7 @@
 package test.puzzle.core;
 
 import static org.junit.Assert.assertEquals;
-import static puzzle.sequence.Sequenciable.map;
-import static puzzle.sequence.Sequenciable.seq;
+import static puzzle.sequence.Sequenciable.*;
 
 import java.util.List;
 
@@ -19,6 +18,11 @@ public class TestSequenciable {
     @Test
     public void testMap() {
         assertEquals(seq(2, 4, 6), map(i -> i * 2, seq(1, 2, 3)));
+    }
+
+    @Test
+    public void testFilter() {
+        assertEquals(seq(2, 4, 6), filter((Integer i) -> i % 2 == 0, seq(1, 2, 3, 4, 5, 6)));
     }
 
 }

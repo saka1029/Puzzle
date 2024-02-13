@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import java.util.Spliterators;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -137,6 +138,32 @@ public abstract class Sequenciable<T> implements Iterable<T> {
                 return () -> {
                     T element = sequence.next();
                     return element == null ? null : function.apply(element);
+                };
+            }
+        };
+    }
+
+    public static <T> Sequenciable<T> filter(Predicate<T> predicate, Sequenciable<T> s) {
+        return new Sequenciable<>() {
+            @Override
+            public Sequence<T> sequence() {
+                Sequence<T> seq = s.sequence();
+                return new Sequence<T>() {
+                    T e;
+                    {
+                        advance();
+                    }
+                    void advance() {
+                        for (e = seq.next(); e != null && !predicate.test(e); e = seq.next())
+                            /* do nothing */;
+                        
+                    }
+                    @Override
+                    public T next() {
+                        T r = e;
+                        advance();
+                        return r;
+                    }
                 };
             }
         };

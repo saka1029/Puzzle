@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Spliterators;
 import java.util.function.IntFunction;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 
@@ -30,6 +33,11 @@ public class TestSequenciable {
 
         public T[] toArray(IntFunction<T[]> generator) {
             return toList().toArray(generator);
+        }
+        
+        public Stream<T> stream() {
+            return StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(iterator(), 0), false);
         }
 
         @Override

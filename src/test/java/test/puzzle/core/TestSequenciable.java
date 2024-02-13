@@ -22,7 +22,6 @@ public class TestSequenciable {
 
     @Test
     public void testFilter() {
-        assertEquals(seq(2, 4, 6), filter((Integer i) -> i % 2 == 0, seq(1, 2, 3, 4, 5, 6)));
+        assertEquals(seq(2, 4, 6), filter(i -> i % 2 == 0, seq(1, 2, 3, 4, 5, 6)));
     }
-
 }

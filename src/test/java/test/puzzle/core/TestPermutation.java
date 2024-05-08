@@ -281,25 +281,25 @@ public class TestPermutation {
             && num(a[0]) + num(a[1], a[2]) + num(a[3], a[4], a[5]) == num(a[6], a[7], a[8]);
     }
 
+    /**
+     * Can you solve this 2nd grade problem that has baffled adults? - YouTube
+     * https://www.youtube.com/watch?v=2hLqEEdK3a4
+     */
     @Test
     public void testAddEquation() {
         int[] a;
         a = new int[] {0,0,0,2,2,6,6,8,8};
         int count = 0;
         do {
-            if (checkAddEquation(a, false)) {
+            if (checkAddEquation(a, false))
                 ++count;
-                System.out.println(Arrays.toString(a));
-            }
         } while (Permutation.next(a));
         assertEquals(18, count);
         a = new int[] {0,0,0,2,2,6,6,8,8};
         count = 0;
         do {
-            if (checkAddEquation(a, true)) {
+            if (checkAddEquation(a, true))
                 ++count;
-                System.out.println(Arrays.toString(a));
-            }
         } while (Permutation.next(a));
         assertEquals(48, count);
     }

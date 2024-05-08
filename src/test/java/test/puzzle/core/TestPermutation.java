@@ -257,4 +257,50 @@ public class TestPermutation {
         String[] array4 = {"a", "a", "a"};
         assertFalse(Permutation.next(array4));
     }
+
+    static int num(int... a) {
+        return IntStream.of(a)
+            .reduce(0, (x, y) -> x * 10 + y);
+    }
+
+    @Test
+    public void testNum() {
+        assertEquals(123, num(1, 2, 3));
+    }
+
+    /**
+     * <pre>
+     *             a[0]
+     *        a[1] a[2]
+     * + a[3] a[4] a[5]
+     * ----------------
+     *   a[6] a[7] a[8]
+     */
+    static boolean checkAddEquation(int[] a, boolean leadingZero) {
+        return (leadingZero || a[1] != 0 && a[3] != 0 && a[6] != 0)
+            && num(a[0]) + num(a[1], a[2]) + num(a[3], a[4], a[5]) == num(a[6], a[7], a[8]);
+    }
+
+    @Test
+    public void testAddEquation() {
+        int[] a;
+        a = new int[] {0,0,0,2,2,6,6,8,8};
+        int count = 0;
+        do {
+            if (checkAddEquation(a, false)) {
+                ++count;
+                System.out.println(Arrays.toString(a));
+            }
+        } while (Permutation.next(a));
+        assertEquals(18, count);
+        a = new int[] {0,0,0,2,2,6,6,8,8};
+        count = 0;
+        do {
+            if (checkAddEquation(a, true)) {
+                ++count;
+                System.out.println(Arrays.toString(a));
+            }
+        } while (Permutation.next(a));
+        assertEquals(48, count);
+    }
 }

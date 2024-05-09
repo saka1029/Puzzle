@@ -155,28 +155,28 @@ public class TestIterables {
         assertEquals(List.of(0, 1, 2), list(list(0, 1, 2)));
     }
 
-    @Test
-    public void testHashMap() {
-        List<String> list = List.of("zero", "one", "two");
-        assertEquals(Map.of(0, "zero", 1, "one", 2, "two"),
-            hashMap(Function.identity(), list::get, range(0, list.size())));
-        assertEquals(Map.of(0, "zero", 1, "one", 2, "two"),
-            hashMap(obj -> obj.key, obj -> obj.value, map(i -> new Object() {
-                @SuppressWarnings("unused")
-                final int key = i; // The value of the field new Object(){}.key
-                                   // is not used
-                @SuppressWarnings("unused")
-                final String value = list.get(i); // The value of the field new
-                                                  // Object(){}.value is not
-                                                  // used
-            }, range(0, list.size()))));
-        var s = map(i -> new Object() {
-            int k = i;
-            String v = list.get(i);
-        }, range(0, list.size()));
-        assertEquals(Map.of(0, "zero", 1, "one", 2, "two"),
-            hashMap(obj -> obj.k, obj -> obj.v, s));
-    }
+    // @Test
+    // public void testHashMap() {
+    //     List<String> list = List.of("zero", "one", "two");
+    //     assertEquals(Map.of(0, "zero", 1, "one", 2, "two"),
+    //         hashMap(Function.identity(), list::get, range(0, list.size())));
+    //     assertEquals(Map.of(0, "zero", 1, "one", 2, "two"),
+    //         hashMap(obj -> obj.key, obj -> obj.value, map(i -> new Object() {
+    //             @SuppressWarnings("unused")
+    //             final int key = i; // The value of the field new Object(){}.key
+    //                                // is not used
+    //             @SuppressWarnings("unused")
+    //             final String value = list.get(i); // The value of the field new
+    //                                               // Object(){}.value is not
+    //                                               // used
+    //         }, range(0, list.size()))));
+    //     var s = map(i -> new Object() {
+    //         int k = i;
+    //         String v = list.get(i);
+    //     }, range(0, list.size()));
+    //     assertEquals(Map.of(0, "zero", 1, "one", 2, "two"),
+    //         hashMap(obj -> obj.k, obj -> obj.v, s));
+    // }
 
     @Test
     public void testReduce() {

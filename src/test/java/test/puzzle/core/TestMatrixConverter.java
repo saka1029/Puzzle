@@ -75,7 +75,7 @@ public class TestMatrixConverter {
         };
         assertArrayEquals(expected, dst);
         try {
-            int[][] error = MatrixConverter.of(src).subMatrix(2, 2, 3, 2);
+            MatrixConverter.of(src).subMatrix(2, 2, 3, 2);
             fail();
         } catch (IllegalArgumentException e) {
             assertEquals("rows", e.getMessage());

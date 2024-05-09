@@ -45,13 +45,13 @@ public class TestLambdaCalculusStatic {
     }
 
     public static Expression expandFull(Expression expression, Bind<BoundVariable, Expression> bind) {
-        if (expression instanceof Lambda lambda) {
+        if (expression instanceof Lambda) {
             return null;
-        } else if (expression instanceof BoundVariable boundVariable) {
+        } else if (expression instanceof BoundVariable) {
             return null;
-        } else if (expression instanceof FreeVariable freeVariable) {
+        } else if (expression instanceof FreeVariable) {
             return null;
-        } else if (expression instanceof Application application) {
+        } else if (expression instanceof Application) {
             return null;
         } else
             throw new RuntimeException("Unknown expression type:" + expression);

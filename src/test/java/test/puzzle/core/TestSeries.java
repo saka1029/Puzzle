@@ -75,6 +75,7 @@ public class TestSeries {
             return new ArraySeries<>(n);
         }
 
+        @SuppressWarnings("unchecked")
         static <E> Series<E> concat(List<E>... lists) {
             int length = Arrays.stream(lists).mapToInt(List::size).sum();
             Object[] n = new Object[length];

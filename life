@@ -1,0 +1,5 @@
+#!/bin/sh
+CP=target/classes:target/test-classes
+CLASS=test.puzzle.core.TestLifeGame
+echo CP=$CP
+java -cp $CP $CLASS

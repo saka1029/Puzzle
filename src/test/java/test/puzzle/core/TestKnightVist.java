@@ -146,7 +146,7 @@ public class TestKnightVist {
         int height = 6;
         int width = 6;
         try {
-            int count = 騎士巡歴(height, width, 0, 0, board -> print(board));
+            騎士巡歴(height, width, 0, 0, board -> print(board));
         } catch (RuntimeException e) {}
     }
 

@@ -74,6 +74,7 @@ public class TestForthBlock {
     }
 
     static final Executable PLUS = c -> c.stack.push((int)c.stack.pop() + (int)c.stack.pop());
+    @SuppressWarnings({"rawtypes", "unchecked"})
     static final Executable LE = c -> c.stack.push(((Comparable)c.stack.pop()).compareTo((Comparable)c.stack.pop()) >= 0);
     static final Executable EXEC = c -> ((Block)c.stack.pop()).run(c);
     static final Executable IF = c -> {

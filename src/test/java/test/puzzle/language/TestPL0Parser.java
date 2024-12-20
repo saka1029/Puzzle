@@ -1,7 +1,5 @@
 package test.puzzle.language;
 
-import static org.junit.Assert.*;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +113,7 @@ public class TestPL0Parser {
         new Object() {
             int length = source.length(), index = 0;
             Type type;
-            String nextToken, token;
+            String nextToken;
 
             RuntimeException error(String format, Object... args) {
                 return new RuntimeException(format.formatted(args));
@@ -197,7 +195,7 @@ public class TestPL0Parser {
             boolean eat(String... expects) {
                 for (String expect : expects)
                     if (nextToken.equalsIgnoreCase(expect)) {
-                        token = nextToken;
+                        // token = nextToken;
                         get();
                         return true;
                     }
@@ -206,7 +204,7 @@ public class TestPL0Parser {
 
             boolean eat(Type expect) {
                 if (expect == type) {
-                    token = nextToken;
+                    // token = nextToken;
                     get();
                     return true;
                 }
@@ -326,22 +324,23 @@ public class TestPL0Parser {
 
     @Test
     public void testParse() {
-        String source = "VAR x, squ;\r\n"
-            + "\r\n"
-            + "PROCEDURE square;\r\n"
-            + "BEGIN\r\n"
-            + "   squ := x * x\r\n"
-            + "END;\r\n"
-            + "\r\n"
-            + "BEGIN\r\n"
-            + "   x := 1;\r\n"
-            + "   WHILE x <= 10 DO\r\n"
-            + "   BEGIN\r\n"
-            + "      CALL square;\r\n"
-            + "      ! squ;\r\n"
-            + "      x := x + 1;\r\n"
-            + "   END\r\n"
-            + "END.";
+        String source = """
+            VAR x, squ;
+            
+            PROCEDURE square;
+            BEGIN
+               squ := x * x
+            END;
+            
+            BEGIN
+               x := 1;
+               WHILE x <= 10 DO
+               BEGIN
+                  CALL square;
+                  ! squ;
+                  x := x + 1;
+               END
+            END.""";
         parse(source);
     }
 

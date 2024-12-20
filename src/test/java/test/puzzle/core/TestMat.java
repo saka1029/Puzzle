@@ -12,6 +12,7 @@ public class TestMat {
         public final int width;
         public final int height;
 
+        @SuppressWarnings("unchecked")
         public Mat(int height, int width) {
             this.height = height;
             this.width = width;

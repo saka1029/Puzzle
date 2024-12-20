@@ -358,25 +358,16 @@ public class Compiler {
 
     static IllegalArgumentException usage() {
         System.err
-            .println("usage: java " + Compiler.class.getName() + " [-d DESTINATION] CSP_FILE");
+            .println("usage: java " + Compiler.class.getName() + " CSP_FILE");
         return new IllegalArgumentException();
     }
 
     public static void main(String[] args) throws IOException, IllegalAccessException,
         IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
         SecurityException, ClassNotFoundException, CompileError {
-        int i = 0;
-        L: for (int max = args.length; i < max; ++i)
-            switch (args[i]) {
-            default:
-                if (args[i].startsWith("-"))
-                    throw usage();
-                else
-                    break L;
-            }
-        if (i >= args.length)
+        if (args.length <= 0)
             throw usage();
-        String source = Files.readString(Path.of(args[i]));
+        String source = Files.readString(Path.of(args[0]));
         Problem problem = parse(source);
         problem.compileGo();
     }

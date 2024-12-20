@@ -19,6 +19,7 @@ public class TestSeries {
             return new ArraySeries<>(elements);
         }
 
+        @SuppressWarnings("unchecked")
         static <E> Series<E> of(List<E> list) {
             return ArraySeries.concat(list);
         }

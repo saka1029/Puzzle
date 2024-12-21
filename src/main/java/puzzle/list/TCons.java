@@ -34,7 +34,7 @@ public class TCons<T> implements TList<T> {
 
             @Override
             public boolean hasNext() {
-                return !list.isNil();
+                return !list.isEmpty();
             }
 
             @Override

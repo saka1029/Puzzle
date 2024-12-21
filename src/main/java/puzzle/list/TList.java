@@ -40,7 +40,7 @@ public interface TList<T> extends Iterable<T> {
         return (TList<T>)NIL;
     }
 
-    default boolean isNil() {
+    default boolean isEmpty() {
         return this == NIL;
     }
 

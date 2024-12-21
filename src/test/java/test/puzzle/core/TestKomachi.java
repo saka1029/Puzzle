@@ -331,14 +331,14 @@ public class TestKomachi {
         return new Object() {
             TList<TList<Integer>> result = TList.nil();
             TList<TList<Integer>> solve(TList<Integer> terms, TList<Integer> rest) {
-                if (rest.isNil()) {
+                if (rest.isEmpty()) {
                     if (terms.stream().mapToInt(Integer::intValue).sum() == 100)
-                        result = TList.cons(terms, result);
+                        result = TList.cons(terms.reverse(), result);
                 } else {
                     int h = rest.car(); TList<Integer> t = rest.cdr();
                     solve(TList.cons(h, terms), t);
                     solve(TList.cons(-h, terms), t);
-                    if (!terms.isNil()) {
+                    if (!terms.isEmpty()) {
                         int p = terms.car();
                         solve(TList.cons(10 * p + (p >= 0 ? h : -h), terms.cdr()), t);
                     }

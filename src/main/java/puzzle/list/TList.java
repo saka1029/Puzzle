@@ -1,12 +1,19 @@
 package puzzle.list;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public interface TList<T> extends Iterable<T> {
 
     static TList<?> NIL = new TList<>() {
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
         @Override
         public String toString() {
             return "()";
@@ -18,6 +25,13 @@ public interface TList<T> extends Iterable<T> {
         TList<T> result = TList.nil();
         for (int i = elements.length - 1; i >= 0; --i)
             result = TCons.of(elements[i], result);
+        return result;
+    }
+
+    public static <T> TList<T> of(List<T> elements) {
+        TList<T> result = TList.nil();
+        for (int i = elements.size() - 1; i >= 0; --i)
+            result = TCons.of(elements.get(i), result);
         return result;
     }
 

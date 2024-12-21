@@ -47,7 +47,20 @@ public class TCons<T> implements TList<T> {
             }
         };
     }
-    
+
+    @Override
+    public int hashCode() {
+        int h = 17;
+        for (T e : this)
+            h = h * 31 * (e == null ? 0 : e.hashCode());
+        return h;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof TCons t && t.car.equals(car) && t.cdr.equals(cdr);
+    }
+ 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("(");

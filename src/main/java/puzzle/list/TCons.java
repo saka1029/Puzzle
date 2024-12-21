@@ -1,5 +1,8 @@
 package puzzle.list;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 public class TCons<T> implements TList<T> {
 
     public final T car;
@@ -30,6 +33,27 @@ public class TCons<T> implements TList<T> {
     @Override
     public TList<T> cdr() {
         return cdr;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<>() {
+            TList<T> list = TCons.this;
+
+            @Override
+            public boolean hasNext() {
+                return !list.isNil();
+            }
+
+            @Override
+            public T next() {
+                if (!hasNext())
+                    throw new NoSuchElementException();
+                T result = list.car();
+                list = list.cdr();
+                return result;
+            }
+        };
     }
 
     @Override

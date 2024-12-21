@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -14,6 +15,8 @@ import java.util.stream.IntStream;
 import org.junit.Test;
 
 import puzzle.core.Rational;
+import puzzle.list.TList;
+import puzzle.list.TCons;
 
 public class TestKomachi {
 
@@ -316,6 +319,39 @@ public class TestKomachi {
     
     @Test
     public void testKomachi2() {
+        List<int[]> asc = komachi2(new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9});
+        assertEquals(ASC_EXPECTED.size(), asc.size());
+        for (int[] e : asc)
+            assertEquals(100, IntStream.of(e).sum());
+        List<int[]> desc = komachi2(new int[] {9, 8, 7, 6, 5, 4, 3, 2, 1});
+        assertEquals(DESC_EXPECTED.size(), desc.size());
+        for (int[] e : desc)
+            assertEquals(100, IntStream.of(e).sum());
+    }
+
+    static TList<TList<Integer>> komachi3(TList<Integer> digits) {
+        return new Object() {
+            TList<TList<Integer>> result = TList.nil();
+            TList<TList<Integer>> solve(TList<Integer> s, TList<Integer> d) {
+                if (d.isNil()) {
+                    int total = 0;
+                    for (int i : s)
+                        total += i;
+                    if (total == 100)
+                        result = TCons.of(s, result);
+                } else {
+                    int h = d.car(); TList<Integer> t = d.cdr();
+                    solve(TCons.of(h, s), t);
+                    if (!s.isNil())
+                        solve(TCons.of(10 * s.car() + h, s.cdr()), t);
+                }
+                return result;
+            }
+        }.solve(TList.nil(), digits);
+    }
+    
+    @Test
+    public void testKomachi3() {
         List<int[]> asc = komachi2(new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9});
         assertEquals(ASC_EXPECTED.size(), asc.size());
         for (int[] e : asc)

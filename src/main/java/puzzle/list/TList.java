@@ -1,6 +1,8 @@
 package puzzle.list;
 
 import java.util.Iterator;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public interface TList<T> extends Iterable<T> {
 
@@ -10,6 +12,14 @@ public interface TList<T> extends Iterable<T> {
             return "()";
         }
     };
+
+    @SuppressWarnings("unchecked")
+    public static <T> TList<T> of(T... elements) {
+        TList<T> result = TList.nil();
+        for (int i = elements.length - 1; i >= 0; --i)
+            result = TCons.of(elements[i], result);
+        return result;
+    }
 
     @SuppressWarnings("unchecked")
     public static <T> TList<T> nil() {
@@ -42,5 +52,27 @@ public interface TList<T> extends Iterable<T> {
                 throw new UnsupportedOperationException("Unimplemented method 'next'");
             }
         };
+    }
+
+    default Stream<T> stream() {
+        return StreamSupport.stream(this.spliterator(), false);
+    }
+
+    static <T> TCons<T> cons(T car, TList<T> cdr) {
+        return TCons.of(car, cdr);
+    }
+
+    default TList<T> reverse() {
+        TList<T> result = nil();
+        for (T e : this)
+            result = TCons.of(e, result);
+        return result;
+    }
+
+    default int size() {
+        int result = 0;
+        for (@SuppressWarnings("unused") T e : this)
+            ++result;
+        return result;
     }
 }

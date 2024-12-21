@@ -17,14 +17,6 @@ public class TCons<T> implements TList<T> {
         return new TCons<>(car, cdr);
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> TList<T> of(T... elements) {
-        TList<T> result = TList.nil();
-        for (int i = elements.length - 1; i >= 0; --i)
-            result = of(elements[i], result);
-        return result;
-    }
-
     @Override
     public T car() {
         return car;
@@ -55,7 +47,7 @@ public class TCons<T> implements TList<T> {
             }
         };
     }
-
+    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("(");

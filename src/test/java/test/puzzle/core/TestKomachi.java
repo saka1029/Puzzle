@@ -6,7 +6,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -16,7 +15,6 @@ import org.junit.Test;
 
 import puzzle.core.Rational;
 import puzzle.list.TList;
-import puzzle.list.TCons;
 
 public class TestKomachi {
 
@@ -332,18 +330,18 @@ public class TestKomachi {
     static TList<TList<Integer>> komachi3(TList<Integer> digits) {
         return new Object() {
             TList<TList<Integer>> result = TList.nil();
-            TList<TList<Integer>> solve(TList<Integer> s, TList<Integer> d) {
-                if (d.isNil()) {
-                    int total = 0;
-                    for (int i : s)
-                        total += i;
-                    if (total == 100)
-                        result = TCons.of(s, result);
+            TList<TList<Integer>> solve(TList<Integer> terms, TList<Integer> rest) {
+                if (rest.isNil()) {
+                    if (terms.stream().mapToInt(Integer::intValue).sum() == 100)
+                        result = TList.cons(terms, result);
                 } else {
-                    int h = d.car(); TList<Integer> t = d.cdr();
-                    solve(TCons.of(h, s), t);
-                    if (!s.isNil())
-                        solve(TCons.of(10 * s.car() + h, s.cdr()), t);
+                    int h = rest.car(); TList<Integer> t = rest.cdr();
+                    solve(TList.cons(h, terms), t);
+                    solve(TList.cons(-h, terms), t);
+                    if (!terms.isNil()) {
+                        int p = terms.car();
+                        solve(TList.cons(10 * p + (p >= 0 ? h : -h), terms.cdr()), t);
+                    }
                 }
                 return result;
             }
@@ -352,13 +350,13 @@ public class TestKomachi {
     
     @Test
     public void testKomachi3() {
-        List<int[]> asc = komachi2(new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9});
+        TList<TList<Integer>> asc = komachi3(TList.of(1, 2, 3, 4, 5, 6, 7, 8, 9));
         assertEquals(ASC_EXPECTED.size(), asc.size());
-        for (int[] e : asc)
-            assertEquals(100, IntStream.of(e).sum());
-        List<int[]> desc = komachi2(new int[] {9, 8, 7, 6, 5, 4, 3, 2, 1});
+        for (TList<Integer> e : asc)
+            assertEquals(100, e.stream().mapToInt(Integer::intValue).sum());
+        TList<TList<Integer>> desc = komachi3(TList.of(9, 8, 7, 6, 5, 4, 3, 2, 1));
         assertEquals(DESC_EXPECTED.size(), desc.size());
-        for (int[] e : desc)
-            assertEquals(100, IntStream.of(e).sum());
+        for (TList<Integer> e : desc)
+            assertEquals(100, e.stream().mapToInt(Integer::intValue).sum());
     }
 }

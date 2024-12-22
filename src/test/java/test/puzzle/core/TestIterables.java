@@ -564,17 +564,17 @@ public class TestIterables {
         List<Integer> keys = intList(1, 2, 3);
         List<String> values = list("one", "two", "three");
         Map<Integer, String> expected = Map.of(1, "one", 2, "two", 3, "three");
+        assertEquals(expected,
+            hashMap(Entry::getKey, Entry::getValue,
+                map(Map::entry, keys, values)));
         Map<Integer, String> map = new HashMap<>();
         for (var e : map((k, v) -> Map.entry(k, v), keys, values))
             map.put(e.getKey(), e.getValue());
         assertEquals(expected, map);
-        assertEquals(expected,
-            hashMap(Entry::getKey, Entry::getValue,
-                map(Map::entry, keys, values)));
     }
 
     @Test
-    public void testMakeMap() {
+    public void testMakeMapByZip() {
         Map<Integer, String> map = new HashMap<>();
         List<Integer> keys = intList(1, 2, 3);
         List<String> values = list("one", "two", "three");

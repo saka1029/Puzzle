@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -34,7 +35,7 @@ import java.util.stream.IntStream;
  * <ul>
  * <li>map()やfilter()などのStream操作メソッドはインスタンスメソッドになっており、容易に拡張することができません。</li>
  * <li>IntStreamはありますが、CharStreamやByteStreamはありません。</li>
- * <li>配列にするにはstream.toArray()でよいが、リストにするときはstream.collec(Collectors.toList())とする必要があります。</li>
+ * <li>配列にするにはstream.toArray()でよいが、リストにするときはstream.collect(Collectors.toList())とする必要があります。</li>
  * <li>String.chars()はStream&lt;Character&gt;ではなく、Stream&lt;Integer&gt;を返します。</li>
  * </ul>
  * 設計方針
@@ -863,6 +864,13 @@ public class Iterables {
     public static <T> void forEach(Consumer<T> body, Iterable<T> source) {
         for (T e : source)
             body.accept(e);
+    }
+
+    public static <T, U> void forEach(BiConsumer<T, U> body, Iterable<T> a, Iterable<U> b) {
+        Iterator<T> ai = a.iterator();
+        Iterator<U> bi = b.iterator();
+        while (ai.hasNext() && bi.hasNext())
+            body.accept(ai.next(), bi.next());
     }
 
     public static <T, K> Map<K, List<T>> grouping(Function<T, K> keyExtractor, Iterable<T> source) {

@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -556,4 +557,19 @@ public class TestIterables {
     //     assertEquals(6, trap(new int[] {0,1,0,2,1,0,1,3,2,1,2,1}));
     //     assertEquals(2, trap(new int[] {2,0,2}));
     // }
+
+    @Test
+    public void testMakeMapEntry() {
+        Map<Integer, String> map = new HashMap<>();
+        for (var e : map((k, v) -> Map.entry(k, v), intlist(1, 2, 3), list("one", "two", "three")))
+            map.put(e.getKey(), e.getValue());
+        assertEquals(Map.of(1, "one", 2, "two", 3, "three"), map);
+    }
+
+    @Test
+    public void testMakeMap() {
+        Map<Integer, String> map = new HashMap<>();
+        forEach((k, v) -> map.put(k, v), intlist(1, 2, 3), list("one", "two", "three"));
+        assertEquals(Map.of(1, "one", 2, "two", 3, "three"), map);
+    }
 }

@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 import org.junit.Test;
 
 import puzzle.core.Rational;
+import puzzle.list.TList;
 
 public class TestKomachi {
 
@@ -324,5 +325,38 @@ public class TestKomachi {
         assertEquals(DESC_EXPECTED.size(), desc.size());
         for (int[] e : desc)
             assertEquals(100, IntStream.of(e).sum());
+    }
+
+    static TList<TList<Integer>> komachi3(TList<Integer> digits) {
+        return new Object() {
+            TList<TList<Integer>> result = TList.nil();
+            TList<TList<Integer>> solve(TList<Integer> terms, TList<Integer> rest) {
+                if (rest.isEmpty()) {
+                    if (terms.stream().mapToInt(Integer::intValue).sum() == 100)
+                        result = TList.cons(terms.reverse(), result);
+                } else {
+                    int h = rest.car(); TList<Integer> t = rest.cdr();
+                    solve(TList.cons(h, terms), t);
+                    solve(TList.cons(-h, terms), t);
+                    if (!terms.isEmpty()) {
+                        int p = terms.car();
+                        solve(TList.cons(10 * p + (p >= 0 ? h : -h), terms.cdr()), t);
+                    }
+                }
+                return result;
+            }
+        }.solve(TList.nil(), digits);
+    }
+    
+    @Test
+    public void testKomachi3() {
+        TList<TList<Integer>> asc = komachi3(TList.of(1, 2, 3, 4, 5, 6, 7, 8, 9));
+        assertEquals(ASC_EXPECTED.size(), asc.size());
+        for (TList<Integer> e : asc)
+            assertEquals(100, e.stream().mapToInt(Integer::intValue).sum());
+        TList<TList<Integer>> desc = komachi3(TList.of(9, 8, 7, 6, 5, 4, 3, 2, 1));
+        assertEquals(DESC_EXPECTED.size(), desc.size());
+        for (TList<Integer> e : desc)
+            assertEquals(100, e.stream().mapToInt(Integer::intValue).sum());
     }
 }

@@ -117,7 +117,7 @@ public class TestLifeGame {
     }
 
     public static void main(String[] args) {
-        JFrame f = new JFrame() {
+        new JFrame() {
             final int CELL_SIZE = 4;
             final LifeGame game;
             {

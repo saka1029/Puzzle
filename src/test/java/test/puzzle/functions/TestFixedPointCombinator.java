@@ -33,8 +33,8 @@ public class TestFixedPointCombinator {
     interface RecursiveFunction<F> extends Function<RecursiveFunction<F>, F> {
     }
 
-    static <A, B> Function<A, B> Y(Function<Function<A, B>, Function<A, B>> f) {
-        RecursiveFunction<Function<A, B>> r = w -> f.apply(x -> w.apply(w).apply(x));
+    static <T, S> Function<T, S> Y(Function<Function<T, S>, Function<T, S>> f) {
+        RecursiveFunction<Function<T, S>> r = w -> f.apply(x -> w.apply(w).apply(x));
         return r.apply(r);
     }
 

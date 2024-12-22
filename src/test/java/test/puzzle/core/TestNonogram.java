@@ -314,7 +314,7 @@ public class TestNonogram {
         int[][][] rc = Nonogram.makeProblem(answer, "-");
         System.out.println("rows=" + Arrays.deepToString(rc[0]));
         System.out.println("cols=" + Arrays.deepToString(rc[1]));
-        JFrame frame = new JFrame("Nonogram") {
+        new JFrame("Nonogram") {
             private static final long serialVersionUID = 1L;
             byte[][] board;
             JPanel panel = new JPanel() {

@@ -37,7 +37,8 @@ public class Triex<K, V> {
         return nodes.get(new NodeKey<>(node, key));
     }
     
-    public V get(@SuppressWarnings("unchecked") K... keys) {
+    @SuppressWarnings("unchecked")
+    public V get(K... keys) {
         Node<K, V> node = root;
         for (K key : keys)
 //            if ((node = node.get(key)) == null)

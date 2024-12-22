@@ -561,7 +561,7 @@ public class TestIterables {
     @Test
     public void testMakeMapEntry() {
         Map<Integer, String> map = new HashMap<>();
-        for (var e : map((k, v) -> Map.entry(k, v), intlist(1, 2, 3), list("one", "two", "three")))
+        for (var e : map((k, v) -> Map.entry(k, v), intList(1, 2, 3), list("one", "two", "three")))
             map.put(e.getKey(), e.getValue());
         assertEquals(Map.of(1, "one", 2, "two", 3, "three"), map);
     }
@@ -569,7 +569,11 @@ public class TestIterables {
     @Test
     public void testMakeMap() {
         Map<Integer, String> map = new HashMap<>();
-        forEach((k, v) -> map.put(k, v), intlist(1, 2, 3), list("one", "two", "three"));
+        List<Integer> keys = intList(1, 2, 3);
+        List<String> values = list("one", "two", "three");
+        forEach((k, v) -> map.put(k, v), keys, values);
         assertEquals(Map.of(1, "one", 2, "two", 3, "three"), map);
+        assertEquals(Map.of(1, "one", 2, "two", 3, "three"), hashMap(keys, values));
+        assertEquals(Map.of(1, "one", 2, "two", 3, "three"), linkedHashMap(keys, values));
     }
 }

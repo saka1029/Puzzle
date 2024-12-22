@@ -778,7 +778,7 @@ public class Iterables {
         return List.of(elements);
     }
 
-    public static List<Integer> intlist(int... elements) {
+    public static List<Integer> intList(int... elements) {
         return new AbstractList<Integer>() {
 
             final int[] copy = elements.clone();
@@ -841,16 +841,33 @@ public class Iterables {
         return result;
     }
 
+    static <K, V> Map<K, V> map(Supplier<Map<K, V>> supplier, Iterable<K> keys, Iterable<V> values) {
+        Iterator<K> ki = keys.iterator();
+        Iterator<V> vi = values.iterator();
+        Map<K, V> result = supplier.get();
+        while (ki.hasNext() && vi.hasNext())
+            result.put(ki.next(), vi.next());
+        return result;
+    }
+
     public static <T, K, V> HashMap<K, V> hashMap(Function<T, K> keyExtractor,
         Function<T, V> valueExtractor, Iterable<T> source) {
         return (HashMap<K, V>) map(() -> new HashMap<>(), keyExtractor,
             valueExtractor, source);
     }
 
+    public static <K, V> Map<K, V> hashMap(Iterable<K> keys, Iterable<V> values) {
+        return map(() -> new HashMap<K, V>(), keys, values);
+    }
+
     public static <T, K, V> LinkedHashMap<K, V> linkedHashMap(Function<T, K> keyExtractor,
         Function<T, V> valueExtractor, Iterable<T> source) {
         return (LinkedHashMap<K, V>) map(() -> new LinkedHashMap<>(),
             keyExtractor, valueExtractor, source);
+    }
+
+    public static <K, V> Map<K, V> linkedHashMap(Iterable<K> keys, Iterable<V> values) {
+        return map(() -> new LinkedHashMap<K, V>(), keys, values);
     }
 
     // public static <K, V> LinkedHashMap<K, V> linkedHashMap(Iterable<Entry<K,

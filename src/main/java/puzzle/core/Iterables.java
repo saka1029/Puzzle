@@ -336,6 +336,10 @@ public class Iterables {
         return () -> new IntRangeIterator(from, to + 1);
     }
 
+    public static Iterable<Integer> rangeClosed(int from, int to, int step) {
+        return () -> new IntRangeIterator(from, to + step, step);
+    }
+
     public static Iterable<int[]> combination(int n, int r) {
         return () -> new CombinationIndexIterator(n, r);
     }

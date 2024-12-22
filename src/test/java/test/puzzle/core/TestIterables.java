@@ -41,6 +41,7 @@ public class TestIterables {
         assertEquals(list(100, 120, 140),
             list(map(i -> i * 10, filter(i -> i % 2 == 0, list(10, 11, 12, 13, 14, 15)))));
         assertEquals(list(10, 8, 6, 4, 2), list(range(10, 0, -2)));
+        assertEquals(list(10, 8, 6, 4, 2, 0), list(rangeClosed(10, 0, -2)));
         assertEquals(list(10, 8, 6, 4, 2, 0), list(range(10, -1, -2)));
     }
 

@@ -568,7 +568,7 @@ public class TestIterables {
             hashMap(Entry::getKey, Entry::getValue,
                 map(Map::entry, keys, values)));
         Map<Integer, String> map = new HashMap<>();
-        for (var e : map((k, v) -> Map.entry(k, v), keys, values))
+        for (var e : map(Map::entry, keys, values))
             map.put(e.getKey(), e.getValue());
         assertEquals(expected, map);
     }

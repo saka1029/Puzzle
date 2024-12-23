@@ -261,7 +261,6 @@ public class TestIterables {
             List.of("c", "d")), list(combination(2, list("a", "b", "c", "d"))));
     }
 
-    @Ignore
     @Test
     public void testPermutation() {
         List<List<String>> expected3 = list(
@@ -289,7 +288,7 @@ public class TestIterables {
             {2, 1}
         };
         assertArrayEquals(expected0, array(int[][]::new, permutation(3, 2)));
-        assertEquals(expected2, list(map(intArray -> list(intArray), permutation(3, 2))));
+        assertEquals(expected2, list(map(intArray -> intList(intArray), permutation(3, 2))));
     }
 
     static int number(int... digits) {

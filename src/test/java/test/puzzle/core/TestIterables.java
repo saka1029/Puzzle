@@ -65,6 +65,10 @@ public class TestIterables {
             list(
                 flatMap(i -> i / 10 % 2 != 0 ? empty() : range(i, i + 3),
                     list(0, 10, 20, 30, 40))));
+        assertEquals(list(1, 2, 3, 4, 5),
+            list(flatMap(identity(), list(list(1, 2, 3), list(4, 5)))));
+        assertEquals(list(1, 2, 3, 4, 5),
+            list(concat(list(1, 2, 3), list(4, 5))));
     }
 
     @Test
@@ -201,9 +205,10 @@ public class TestIterables {
         assertEquals(-2, (int)min(null, list(3, 2, -1, -2, 0)));
         assertEquals(3, (int)min(null, list(3)));
         assertNull(min(null, range(0, 0)));
-        assertEquals(-2, (int)min(null, (a, b) -> Integer.compare(a, b), list(3, 2, -1, -2, 0)));
-        assertEquals(3, (int)min(null, (a, b) -> Integer.compare(a, b), list(3)));
-        assertNull(min(null, (a, b) -> Integer.compare(a, b), range(0, 0)));
+        assertEquals(-2, (int)min(null, Integer::compare, list(3, 2, -1, -2, 0)));
+        assertEquals(-2, (int)min(null, Integer::compare, list(3, 2, -1, -2, 0)));
+        assertEquals(3, (int)min(null, Integer::compare, list(3)));
+        assertNull(min(null, Integer::compare, range(0, 0)));
     }
 
     @Test
@@ -211,9 +216,9 @@ public class TestIterables {
         assertEquals(3, (int)max(null, list(3, 2, -1, -2, 0)));
         assertEquals(3, (int)max(null, list(3)));
         assertNull(max(null, range(0, 0)));
-        assertEquals(3, (int)max(null, (a, b) -> Integer.compare(a, b), list(3, 2, -1, -2, 0)));
-        assertEquals(3, (int)max(null, (a, b) -> Integer.compare(a, b), list(3)));
-        assertNull(max(null, (a, b) -> Integer.compare(a, b), range(0, 0)));
+        assertEquals(3, (int)max(null, Integer::compare, list(3, 2, -1, -2, 0)));
+        assertEquals(3, (int)max(null, Integer::compare, list(3)));
+        assertNull(max(null, Integer::compare, range(0, 0)));
     }
 
     @Test
@@ -226,15 +231,17 @@ public class TestIterables {
     @Test
     public void testPeek() {
         List<String> list = new ArrayList<>();
-        List<String> result = list(peek(e -> list.add(e),
-            filter(e -> !e.equals("b"),
-                list("a", "b", "c"))));
+        List<String> result = list(
+            peek(e -> list.add(e),
+                filter(e -> !e.equals("b"),
+                    list("a", "b", "c"))));
         assertEquals(list("a", "c"), list);
         assertEquals(list("a", "c"), result);
         List<String> doubleList = new ArrayList<>();
-        list(peek(e -> doubleList.add(e),
+        list(
             peek(e -> doubleList.add(e),
-                list("p", "q", "r"))));
+                peek(e -> doubleList.add(e),
+                    list("p", "q", "r"))));
         assertEquals(list("p", "p", "q", "q", "r", "r"), doubleList);
         Iterable<String> inter;
         list(inter = peek(x -> {

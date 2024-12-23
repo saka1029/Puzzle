@@ -138,6 +138,7 @@ public class TestIterables {
         // list(int...)
         assertEquals(List.of(0, 1, 2), list(0, 1, 2));
         assertEquals(List.of(0, 1, 2), intList(0, 1, 2));
+        assertEquals(List.of(0, 1, 2), intList(new int[] {0, 1, 2}));
         assertEquals(List.of(0, 1, 2),
             list(Integer.valueOf(0), Integer.valueOf(1), Integer.valueOf(2)));
         // list(T...)

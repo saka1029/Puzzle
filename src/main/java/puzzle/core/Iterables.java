@@ -27,6 +27,7 @@ import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 /**
  * Iterableを使用したStreamライクな関数群です。
@@ -811,16 +812,16 @@ public class Iterables {
         return result;
     }
 
-    public static <T> Set<T> hashSet(Iterable<T> source) {
-        return set(HashSet::new, source);
+    public static <T> HashSet<T> hashSet(Iterable<T> source) {
+        return (HashSet<T>)set(HashSet::new, source);
     }
 
-    public static <T> Set<T> linkedHashSet(Iterable<T> source) {
-        return set(LinkedHashSet::new, source);
+    public static <T> LinkedHashSet<T> linkedHashSet(Iterable<T> source) {
+        return (LinkedHashSet<T>)set(LinkedHashSet::new, source);
     }
 
-    public static <T> Set<T> treeSet(Iterable<T> source) {
-        return set(TreeSet::new, source);
+    public static <T> TreeSet<T> treeSet(Iterable<T> source) {
+        return (TreeSet<T>)set(TreeSet::new, source);
     }
 
     public static <T> T[] array(IntFunction<T[]> supplier, Iterable<T> source) {
@@ -828,13 +829,14 @@ public class Iterables {
     }
 
     public static <T> int[] array(Iterable<Integer> source) {
-        // サイズがわからないので一度リストにしてから配列にする必要があります。
-        List<Integer> list = arrayList(source);
-        int size = list.size();
-        int[] result = new int[size];
-        for (int i = 0; i < size; ++i)
-            result[i] = list.get(i);
-        return result;
+        return StreamSupport.stream(source.spliterator(), false).mapToInt(i -> i).toArray();
+        // // サイズがわからないので一度リストにしてから配列にする必要があります。
+        // List<Integer> list = arrayList(source);
+        // int size = list.size();
+        // int[] result = new int[size];
+        // for (int i = 0; i < size; ++i)
+        //     result[i] = list.get(i);
+        // return result;
     }
 
     static <T, K, V> Map<K, V> map(Supplier<Map<K, V>> supplier, Function<T, K> keyExtractor,
@@ -860,8 +862,8 @@ public class Iterables {
             valueExtractor, source);
     }
 
-    public static <K, V> Map<K, V> hashMap(Iterable<K> keys, Iterable<V> values) {
-        return map(() -> new HashMap<K, V>(), keys, values);
+    public static <K, V> HashMap<K, V> hashMap(Iterable<K> keys, Iterable<V> values) {
+        return (HashMap<K, V>)map(() -> new HashMap<K, V>(), keys, values);
     }
 
     public static <T, K, V> LinkedHashMap<K, V> linkedHashMap(Function<T, K> keyExtractor,
@@ -870,8 +872,8 @@ public class Iterables {
             keyExtractor, valueExtractor, source);
     }
 
-    public static <K, V> Map<K, V> linkedHashMap(Iterable<K> keys, Iterable<V> values) {
-        return map(() -> new LinkedHashMap<K, V>(), keys, values);
+    public static <K, V> LinkedHashMap<K, V> linkedHashMap(Iterable<K> keys, Iterable<V> values) {
+        return (LinkedHashMap<K, V>)map(() -> new LinkedHashMap<K, V>(), keys, values);
     }
 
     // public static <K, V> LinkedHashMap<K, V> linkedHashMap(Iterable<Entry<K,
@@ -881,6 +883,18 @@ public class Iterables {
     // result.put(e.getKey(), e.getValue());
     // return result;
     // }
+
+    public static <T, K extends Comparable<K>, V> TreeMap<K, V> treeMap(
+        Function<T, K> keyExtractor, Function<T, V> valueExtractor,
+        Iterable<T> source) {
+        return (TreeMap<K, V>) map(() -> new TreeMap<>(), keyExtractor,
+            valueExtractor, source);
+    }
+
+    public static <K extends Comparable<K>, V> TreeMap<K, V> treeMap(
+        Iterable<K> keys, Iterable<V> values) {
+        return (TreeMap<K, V>)map(() -> new TreeMap<K, V>(), keys, values);
+    }
 
     public static <T> void forEach(Consumer<T> body, Iterable<T> source) {
         for (T e : source)
@@ -906,13 +920,6 @@ public class Iterables {
         return linkedHashMap(Entry::getKey,
             e -> aggregator.apply(e.getValue()),
             grouping(keyExtractor, source).entrySet());
-    }
-
-    public static <T, K extends Comparable<K>, V> TreeMap<K, V> treeMap(
-        Function<T, K> keyExtractor, Function<T, V> valueExtractor,
-        Iterable<T> source) {
-        return (TreeMap<K, V>) map(() -> new TreeMap<>(), keyExtractor,
-            valueExtractor, source);
     }
 
     public static <T, U> U reduce(U unit, BiFunction<U, T, U> reducer, Iterable<T> source) {

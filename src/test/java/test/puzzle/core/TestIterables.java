@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import puzzle.core.Common;
@@ -134,12 +133,11 @@ public class TestIterables {
         assertEquals(2880, primeDiff);
     }
 
-    @Ignore
     @Test
     public void testList() {
         // list(int...)
-        assertEquals(List.of(0, 1, 2), list((int)0, 1, 2));
-        assertEquals(List.of(0, 1, 2), list(new int[] {0, 1, 2}));
+        assertEquals(List.of(0, 1, 2), list(0, 1, 2));
+        assertEquals(List.of(0, 1, 2), intList(0, 1, 2));
         assertEquals(List.of(0, 1, 2),
             list(Integer.valueOf(0), Integer.valueOf(1), Integer.valueOf(2)));
         // list(T...)
@@ -316,6 +314,17 @@ public class TestIterables {
                 map((s, i) -> s + "=" + i,
                     list(variables),
                     answers.get(0))));
+    }
+
+    @Test
+    public void testSendMoreMoneyIntArray() {
+        List<int[]> answers =
+            list(
+                filter(
+                    a -> checkSendMoreMoney(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]),
+                    permutation(10, 8)));
+        assertEquals(1, answers.size());
+        assertArrayEquals(new int[] {9, 5, 6, 7, 1, 0, 8, 2}, answers.get(0));
     }
 
     @Test

@@ -2,7 +2,7 @@ package test.puzzle.core;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-
+import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -358,5 +358,37 @@ public class TestKomachi {
         assertEquals(DESC_EXPECTED.size(), desc.size());
         for (TList<Integer> e : desc)
             assertEquals(100, e.stream().mapToInt(Integer::intValue).sum());
+    }
+
+    static List<String> komachi4(String digits) {
+        return new Object() {
+            int size = digits.length();
+            List<String> result = new ArrayList<>();
+            List<String> solve(int i, int total, String terms) {
+                if (i >= size) {
+                    if (total == 100)
+                        result.add(terms);
+                } else {
+                    for (int j = i + 1; j <= size; ++j) {
+                        int term = Integer.parseInt(digits.substring(i, j));
+                        solve(j, total + term, terms + "+" + term);
+                        solve(j, total - term, terms + "-" + term);
+                    }
+                }
+                return result;
+            }
+        }.solve(0, 0, "");
+    }
+    
+    @Test
+    public void testKomachi4() {
+        List<String> asc = komachi4("123456789");
+        assertEquals(ASC_EXPECTED.size(), asc.size());
+        for (String e : asc)
+            assertEquals(Rational.of(100), calculate(e));
+        List<String> desc = komachi4("987654321");
+        assertEquals(DESC_EXPECTED.size(), desc.size());
+        for (String e : desc)
+            assertEquals(Rational.of(100), calculate(e));
     }
 }

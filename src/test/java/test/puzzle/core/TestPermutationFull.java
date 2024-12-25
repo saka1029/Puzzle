@@ -13,8 +13,11 @@ import org.junit.Test;
 public class TestPermutationFull {
 
     /*
-     *
-     * n P r = n! / (n - k)!
+     * n P k = n! / (n - k)!
+     * 1 P 1 = 1! / (1 - 1)! = 1! / 0! = 1
+     * 3 P 0 = 3! / (3 - 0)! = 3! / 3! = 1
+     * 3 P 1 = 3! / (3 - 1)! = 3! / 2! = 3
+     * 3 P 3 = 3! / (3 - 3)! = 3! / 0! = 6
      */
     static final List<List<Integer>> EXPECTED_1_1 = List.of(List.of(0));
 

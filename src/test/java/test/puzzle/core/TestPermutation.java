@@ -60,6 +60,15 @@ public class TestPermutation {
     }
 
     @Test
+    public void testIteratorInt_4_0() {
+        List<List<Integer>> actual = new ArrayList<>();
+        for (Iterator<int[]> i = Permutation.iterator(4, 0); i.hasNext();)
+            actual.add(IntStream.of(i.next()).boxed().toList());
+        assertEquals(Permutation.count(4, 0), actual.size());
+        assertEquals(List.of(List.of()), actual);
+    }
+
+    @Test
     public void testIterableInt_N_R() {
         List<List<Integer>> actual = new ArrayList<>();
         for (int[] a : Permutation.iterable(4, 2))

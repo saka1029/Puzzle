@@ -3,6 +3,7 @@ package test.puzzle.core;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
@@ -48,5 +49,23 @@ public class TestPermutationFull {
         permutation(3, 3,
             a -> all.add(IntStream.of(a).mapToObj(i -> i).toList()));
         assertEquals(EXPECTED, all);
+    }
+
+    Iterator<int[]> permutationIterator(int n, int r) {
+        return new Iterator<>() {
+
+            @Override
+            public boolean hasNext() {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'hasNext'");
+            }
+
+            @Override
+            public int[] next() {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'next'");
+            }
+
+        };
     }
 }

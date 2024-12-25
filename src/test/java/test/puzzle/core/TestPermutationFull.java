@@ -12,28 +12,39 @@ import org.junit.Test;
 
 public class TestPermutationFull {
 
-    static final List<List<Integer>> EXPECTED = List.of(
+    /*
+     *
+     * n P r = n! / (n - k)!
+     */
+    static final List<List<Integer>> EXPECTED_1_1 = List.of(List.of(0));
+
+    static final List<List<Integer>> EXPECTED_3_0 = List.of(List.of());
+
+    static final List<List<Integer>> EXPECTED_3_1 = List.of(List.of(0), List.of(1), List.of(2));
+
+    static final List<List<Integer>> EXPECTED_3_3 = List.of(
         List.of(0, 1, 2),
         List.of(0, 2, 1),
         List.of(1, 0, 2),
         List.of(1, 2, 0),
         List.of(2, 0, 1),
-        List.of(2, 1, 0)
-    );
+        List.of(2, 1, 0));
 
-    static void permutation(int n, int r, Consumer<int[]> callback) {
+    static final List<List<Integer>> EXPECTED_3_4 = List.of();
+
+    static void permutationRecursive(int n, int r, Consumer<int[]> callback) {
         new Object() {
             boolean[] used = new boolean[n];
-            int[] result = new int[r];
+            int[] selected = new int[r];
 
             void solve(int i) {
                 if (i >= r)
-                    callback.accept(result);
+                    callback.accept(selected);
                 else {
                     for (int j = 0; j < n; ++j) {
                         if (used[j])
                             continue;
-                        result[i] = j;
+                        selected[i] = j;
                         used[j] = true;
                         solve(i + 1);
                         used[j] = false;
@@ -43,29 +54,84 @@ public class TestPermutationFull {
         }.solve(0);
     }
 
-    @Test
-    public void testSlowPermutation() {
+    List<List<Integer>> permutationRecursive(int n, int r) {
         List<List<Integer>> all = new ArrayList<>();
-        permutation(3, 3,
-            a -> all.add(IntStream.of(a).mapToObj(i -> i).toList()));
-        assertEquals(EXPECTED, all);
+        permutationRecursive(n, r, a -> all.add(IntStream.of(a).mapToObj(i -> i).toList()));
+        return all;
+    }
+
+    @Test
+    public void testPermutationRecursive() {
+        assertEquals(EXPECTED_1_1, permutationRecursive(1, 1));
+        assertEquals(EXPECTED_3_0, permutationRecursive(3, 0));
+        assertEquals(EXPECTED_3_1, permutationRecursive(3, 1));
+        assertEquals(EXPECTED_3_3, permutationRecursive(3, 3));
+        assertEquals(EXPECTED_3_4, permutationRecursive(3, 4));
     }
 
     Iterator<int[]> permutationIterator(int n, int r) {
         return new Iterator<>() {
 
+            int[] selected = new int[r];
+            boolean[] used = new boolean[n];
+            int i = 0, j = 0;
+            boolean hasNext = advance();
+
+            private boolean advance() {
+                if (i >= r) {                   // ２回目以降は最後のjをやり直す。
+                    if (--i < 0)                // ひとつ前からやり直し。
+                        return false;           // 先頭以前のやり直しはできないので終了する。
+                    j = selected[i];            // jを復元する。
+                    used[j] = false;            // jの使用取り消し。
+                    ++j;                        // 次のjを試す。
+                }
+                while (true) {
+                    for (; j < n; ++j)          // 次のjを探す。
+                        if (!used[j])
+                            break;
+                    if (j < n) {                // 見つかった
+                        selected[i] = j;        // 結果を格納する。
+                        used[j] = true;         // jを使用済みにする。
+                        if (++i >= r)           // 最後だったら結果を返す。
+                            return true;
+                        j = 0;                  // 次に進むときjはゼロからスタートする。
+                    } else {                    // 見つからないときは前に戻ってやり直す。
+                        if (--i < 0)            // ひとつ前からやり直し。
+                            return false;       // 先頭以前のやり直しはできないので終了する。
+                        j = selected[i];        // jを復元する。
+                        used[j] = false;        // jの使用取り消し。
+                        ++j;                    // 次のjを試す。
+                    }
+                }
+            }
+
             @Override
             public boolean hasNext() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'hasNext'");
+                return hasNext;
             }
 
             @Override
             public int[] next() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'next'");
+                int[] r = selected.clone();
+                hasNext = advance();
+                return r;
             }
-
         };
+    }
+
+    List<List<Integer>> permutationIteratorList(int n, int r) {
+        List<List<Integer>> all = new ArrayList<>();
+        for (int[] e : (Iterable<int[]>) () -> permutationIterator(n, r))
+            all.add(IntStream.of(e).mapToObj(k -> k).toList());
+        return all;
+    }
+
+    @Test
+    public void testPermutationIterator() {
+        assertEquals(EXPECTED_1_1, permutationIteratorList(1, 1));
+        assertEquals(EXPECTED_3_0, permutationIteratorList(3, 0));
+        assertEquals(EXPECTED_3_1, permutationIteratorList(3, 1));
+        assertEquals(EXPECTED_3_3, permutationIteratorList(3, 3));
+        assertEquals(EXPECTED_3_4, permutationIteratorList(3, 4));
     }
 }

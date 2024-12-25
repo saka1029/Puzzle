@@ -72,7 +72,7 @@ public class TestPermutationFull {
         assertEquals(EXPECTED_3_4, permutationRecursive(3, 4));
     }
 
-    Iterator<int[]> permutationIterator(int n, int r) {
+    Iterator<int[]> permutationIterator1(int n, int r) {
         return new Iterator<>() {
 
             int[] selected = new int[r];
@@ -122,19 +122,85 @@ public class TestPermutationFull {
         };
     }
 
-    List<List<Integer>> permutationIteratorList(int n, int r) {
+    List<List<Integer>> permutationIterator1List(int n, int r) {
         List<List<Integer>> all = new ArrayList<>();
-        for (int[] e : (Iterable<int[]>) () -> permutationIterator(n, r))
+        for (int[] e : (Iterable<int[]>) () -> permutationIterator1(n, r))
             all.add(IntStream.of(e).mapToObj(k -> k).toList());
         return all;
     }
 
     @Test
-    public void testPermutationIterator() {
-        assertEquals(EXPECTED_1_1, permutationIteratorList(1, 1));
-        assertEquals(EXPECTED_3_0, permutationIteratorList(3, 0));
-        assertEquals(EXPECTED_3_1, permutationIteratorList(3, 1));
-        assertEquals(EXPECTED_3_3, permutationIteratorList(3, 3));
-        assertEquals(EXPECTED_3_4, permutationIteratorList(3, 4));
+    public void testPermutationIterator1() {
+        assertEquals(EXPECTED_1_1, permutationIterator1List(1, 1));
+        assertEquals(EXPECTED_3_0, permutationIterator1List(3, 0));
+        assertEquals(EXPECTED_3_1, permutationIterator1List(3, 1));
+        assertEquals(EXPECTED_3_3, permutationIterator1List(3, 3));
+        assertEquals(EXPECTED_3_4, permutationIterator1List(3, 4));
+    }
+
+    Iterator<int[]> permutationIterator2(int n, int r) {
+        return new Iterator<>() {
+
+            int[] selected = new int[r];
+            boolean[] used = new boolean[n];
+            int i = 0, j = 0;
+            boolean hasNext = advance();
+
+            private boolean advance() {
+                if (i >= r) {                   // ２回目以降は最後のjをやり直す。
+                    if (--i < 0)                // ひとつ前からやり直し。
+                        return false;           // 先頭以前のやり直しはできないので終了する。
+                    j = selected[i];            // jを復元する。
+                    used[j] = false;            // jの使用取り消し。
+                    ++j;                        // 次のjを試す。
+                }
+                while (true) {
+                    for (; j < n; ++j)          // 次のjを探す。
+                        if (!used[j])
+                            break;
+                    if (j < n) {                // 見つかった
+                        selected[i] = j;        // 結果を格納する。
+                        used[j] = true;         // jを使用済みにする。
+                        if (++i >= r)           // 最後だったら結果を返す。
+                            return true;
+                        j = 0;                  // 次に進むときjはゼロからスタートする。
+                    } else {                    // 見つからないときは前に戻ってやり直す。
+                        if (--i < 0)            // ひとつ前からやり直し。
+                            return false;       // 先頭以前のやり直しはできないので終了する。
+                        j = selected[i];        // jを復元する。
+                        used[j] = false;        // jの使用取り消し。
+                        ++j;                    // 次のjを試す。
+                    }
+                }
+            }
+
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public int[] next() {
+                int[] r = selected.clone();
+                hasNext = advance();
+                return r;
+            }
+        };
+    }
+
+    List<List<Integer>> permutationIterator2List(int n, int r) {
+        List<List<Integer>> all = new ArrayList<>();
+        for (int[] e : (Iterable<int[]>) () -> permutationIterator1(n, r))
+            all.add(IntStream.of(e).mapToObj(k -> k).toList());
+        return all;
+    }
+
+    @Test
+    public void testPermutationIterator2() {
+        assertEquals(EXPECTED_1_1, permutationIterator2List(1, 1));
+        assertEquals(EXPECTED_3_0, permutationIterator2List(3, 0));
+        assertEquals(EXPECTED_3_1, permutationIterator2List(3, 1));
+        assertEquals(EXPECTED_3_3, permutationIterator2List(3, 3));
+        assertEquals(EXPECTED_3_4, permutationIterator2List(3, 4));
     }
 }

@@ -175,9 +175,10 @@ public class Permutation {
     }
 
     public static Iterator<int[]> iterator(int n, int r) {
-        return n <= Integer.SIZE ?  iterator32(n, r)
-            : n <= Long.SIZE ? iterator64(n, r)
-            : iteratorFull(n, r);
+        // return n <= Integer.SIZE ?  iterator32(n, r)
+        //     : n <= Long.SIZE ? iterator64(n, r)
+        //     : iteratorFull(n, r);
+        return iteratorFull(n, r);
     }
 
     public static Iterable<int[]> iterable(int n, int r) {

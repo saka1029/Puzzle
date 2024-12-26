@@ -25,123 +25,159 @@ public class Permutation {
         return permutation;
     }
 
-    static class PermutationIterator32 implements Iterator<int[]> {
-
-        final int n, r;
-        final int[] available, rest;
-        final int[] selected;
-        boolean hasNext;
-
-        PermutationIterator32(int n, int r) {
-            if (n < 0) throw new IllegalArgumentException("n must be >= 0");
-            if (r < 0) throw new IllegalArgumentException("r must be >= 0");
-            if (r > n) throw new IllegalArgumentException("r must be <= n");
-            if (n > Integer.SIZE) throw new IllegalArgumentException("n must be <= " + Integer.SIZE);
-            this.n = n;
-            this.r = r;
-            this.available = new int[r];
-            this.rest = new int[r];
-            this.selected = new int[r];
+    public static Iterator<int[]> iterator32(int n, int r) {
+        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+        if (r < 0) throw new IllegalArgumentException("r must be >= 0");
+        if (n > Integer.SIZE) throw new IllegalArgumentException("n must be <= " + Integer.SIZE);
+        return new Iterator<>() {
+            int[] available = new int[r];
+            int[] rest = new int[r];
+            int[] selected = new int[r];
             int allOne = n == Integer.SIZE ? -1 : (1 << n) - 1;
-            if (r == 0)
-                hasNext = true;
-            else {
-                available[0] = rest[0] = allOne;
-                hasNext = advance(0);
-            }
-        }
-
-        boolean advance(int i) {
-            while (i >= 0) {
-                int resti = rest[i];
-                if (resti == 0)
-                    --i;
+            boolean hasNext;
+            {
+                if (r == 0)
+                    hasNext = true;
                 else {
-                    int bit = resti & -resti;
-                    rest[i] ^= bit;
-                    selected[i] = Integer.numberOfTrailingZeros(bit);
-                    if (++i >= r) return true;
-                    available[i] = rest[i] = available[i - 1] ^ bit;
+                    available[0] = rest[0] = allOne;
+                    hasNext = advance(0);
                 }
             }
-            return false;
-        }
 
-        @Override
-        public boolean hasNext() {
-            return hasNext;
-        }
+            private boolean advance(int i) {
+                while (i >= 0) {
+                    int resti = rest[i];
+                    if (resti == 0)
+                        --i;
+                    else {
+                        int bit = resti & -resti;
+                        rest[i] ^= bit;
+                        selected[i] = Integer.numberOfTrailingZeros(bit);
+                        if (++i >= r) return true;
+                        available[i] = rest[i] = available[i - 1] ^ bit;
+                    }
+                }
+                return false;
+            }
 
-        @Override
-        public int[] next() {
-            int[] result = selected.clone();
-            hasNext = advance(r - 1);
-            return result;
-        }
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public int[] next() {
+                int[] result = selected.clone();
+                hasNext = advance(r - 1);
+                return result;
+            }
+        };
     }
 
-    static class PermutationIterator64 implements Iterator<int[]> {
-
-        final int n, r;
-        final long[] available, rest;
-        final int[] selected;
-        boolean hasNext;
-
-        PermutationIterator64(int n, int r) {
-            if (n < 0) throw new IllegalArgumentException("n must be >= 0");
-            if (r < 0) throw new IllegalArgumentException("r must be >= 0");
-            if (r > n) throw new IllegalArgumentException("r must be <= n");
-            if (n > Long.SIZE) throw new IllegalArgumentException("n must be <= " + Long.SIZE);
-            this.n = n;
-            this.r = r;
-            this.available = new long[r];
-            this.rest = new long[r];
-            this.selected = new int[r];
+    public static Iterator<int[]> iterator64(int n, int r) {
+        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+        if (r < 0) throw new IllegalArgumentException("r must be >= 0");
+        if (n > Long.SIZE) throw new IllegalArgumentException("n must be <= " + Long.SIZE);
+        return new Iterator<>() {
+            long[] available = new long[r];
+            long[] rest = new long[r];
+            int[] selected = new int[r];
             long allOne = n == Long.SIZE ? -1L : (1L << n) - 1L;
-            if (r == 0)
-                hasNext = true;
-            else {
-                available[0] = rest[0] = allOne;
-                hasNext = advance(0);
-            }
-        }
-
-        boolean advance(int i) {
-            while (i >= 0) {
-                long resti = rest[i];
-                if (resti == 0)
-                    --i;
+            boolean hasNext;
+            {
+                if (r == 0)
+                    hasNext = true;
                 else {
-                    long bit = resti & -resti;   // bit = Long.lowestOneBit(resti);
-                    rest[i] ^= bit;
-                    selected[i] = Long.numberOfTrailingZeros(bit);
-                    if (++i >= r) return true;
-                    available[i] = rest[i] = available[i - 1] ^ bit;
+                    available[0] = rest[0] = allOne;
+                    hasNext = advance(0);
                 }
             }
-            return false;
-        }
 
-        @Override
-        public boolean hasNext() {
-            return hasNext;
-        }
+            private boolean advance(int i) {
+                while (i >= 0) {
+                    long resti = rest[i];
+                    if (resti == 0)
+                        --i;
+                    else {
+                        long bit = resti & -resti;   // bit = Long.lowestOneBit(resti);
+                        rest[i] ^= bit;
+                        selected[i] = Long.numberOfTrailingZeros(bit);
+                        if (++i >= r) return true;
+                        available[i] = rest[i] = available[i - 1] ^ bit;
+                    }
+                }
+                return false;
+            }
 
-        @Override
-        public int[] next() {
-            int[] result = selected.clone();
-            hasNext = advance(r - 1);
-            return result;
-        }
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public int[] next() {
+                int[] result = selected.clone();
+                hasNext = advance(r - 1);
+                return result;
+            }
+        };
+    }
+
+    public static Iterator<int[]> iteratorFull(int n, int r) {
+        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+        if (r < 0) throw new IllegalArgumentException("r must be >= 0");
+        return new Iterator<>() {
+            int[] selected = new int[r];        // 選択された数
+            boolean[] used = new boolean[n];    // 使用済みの数
+            int i = 0;                          // 次に選択するselected上の位置
+            int j = 0;                          // 次に試す数
+            boolean hasNext = advance();
+
+            private boolean advance() {
+                while (true) {
+                    if (i < 0)                      // すべての組み合わせを試し終わった。
+                        return false;
+                    if (i >= r) {                   // すべての数を格納した。
+                        i = r - 1;                  // 次回やり直す位置
+                        if (i >= 0)
+                            j = selected[i] + 1;    // 次回やり直す数
+                        return true;                // 結果を返す。
+                    }                               // 格納途中
+                    if (j > 0)                      // 次回試す数がゼロ以外なら
+                        used[selected[i]] = false;  // 前回の数を未使用にする。
+                    for (;j < n; ++j)               // 未使用の数を探す。
+                        if (!used[j])               // 見つかったら、
+                            break;                  // ループを抜ける
+                    if (j < n) {                    // 未使用の数が見つかった。(次に進む)
+                        selected[i] = j;            // 見つかった数を格納する。
+                        used[j] = true;             // 使用済みにする。
+                        j = 0;                      // 次の位置はゼロから探す。
+                        ++i;                        // 次の位置へ
+                    } else {                        // 未使用の数が見つからなかった。(前に戻る)
+                        if (--i >= 0)               // 前に戻る。
+                            j = selected[i] + 1;    // 次に試す数
+                    }
+                }
+            }
+
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public int[] next() {
+                int[] r = selected.clone();
+                hasNext = advance();
+                return r;
+            }
+        };
     }
 
     public static Iterator<int[]> iterator(int n, int r) {
-        if (n <= Integer.SIZE)
-            return new PermutationIterator32(n, r);
-        else if (n <= Long.SIZE)
-            return new PermutationIterator64(n, r);
-        else
-            throw new IllegalArgumentException("n must b <= " + Long.SIZE);
+        return n <= Integer.SIZE ?  iterator32(n, r)
+            : n <= Long.SIZE ? iterator64(n, r)
+            : iteratorFull(n, r);
     }
 
     public static Iterable<int[]> iterable(int n, int r) {

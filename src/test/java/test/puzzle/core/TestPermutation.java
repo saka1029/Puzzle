@@ -25,15 +25,19 @@ public class TestPermutation {
 
     @Test
     public void testCount() {
+        assertEquals(1, Permutation.count(0, 0));
+        assertEquals(0, Permutation.count(0, 1));
         assertEquals(1, Permutation.count(3, 0));
         assertEquals(3, Permutation.count(3, 1));
         assertEquals(6, Permutation.count(3, 2));
         assertEquals(6, Permutation.count(3, 3));
+        assertEquals(0, Permutation.count(3, 4));
         assertEquals(1, Permutation.count(4, 0));
         assertEquals(4, Permutation.count(4, 1));
         assertEquals(12, Permutation.count(4, 2));
         assertEquals(24, Permutation.count(4, 3));
         assertEquals(24, Permutation.count(4, 4));
+        assertEquals(0, Permutation.count(4, 5));
     }
 
     static final List<List<Integer>> EXPECTED_4_2 = List.of(
@@ -184,13 +188,15 @@ public class TestPermutation {
 
     @Test
     public void testStream_65_5() {
-        try {
-            @SuppressWarnings("unused")
-            Stream<int[]> stream = Permutation.stream(65, 5);
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertEquals("n must b <= 64", e.getMessage());
-        }
+        List<List<Integer>> actual = Permutation.stream(65, 2)
+            .limit(64)
+            .map(a -> IntStream.of(a).boxed().toList())
+            .toList();
+        assertEquals(64, actual.size());
+        List<List<Integer>> expected = IntStream.range(1, 65)
+            .mapToObj(i -> List.of(0, i))
+            .toList();
+        assertEquals(expected, actual);
     }
 
     @Test

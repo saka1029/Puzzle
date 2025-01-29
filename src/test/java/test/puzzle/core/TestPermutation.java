@@ -3,7 +3,6 @@ package test.puzzle.core;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,7 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.junit.Test;
 

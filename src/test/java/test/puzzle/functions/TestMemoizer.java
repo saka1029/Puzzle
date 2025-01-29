@@ -22,13 +22,49 @@ import puzzle.functions.Memoizer;
 
 public class TestMemoizer {
 
+    static int fibonacci(int n) {
+        return n == 0 ? 0
+             : n == 1 ? 1
+             : fibonacci(n - 1) + fibonacci(n - 2);
+    }
+
     @Test
     public void testFibonacci() {
+        assertEquals(0, fibonacci(0));
+        assertEquals(1, fibonacci(1));
+        assertEquals(1, fibonacci(2));
+        assertEquals(2, fibonacci(3));
+        assertEquals(3, fibonacci(4));
+        assertEquals(5, fibonacci(5));
+        assertEquals(8, fibonacci(6));
+        assertEquals(13, fibonacci(7));
+        assertEquals(21, fibonacci(8));
+        assertEquals(34, fibonacci(9));
+        assertEquals(55, fibonacci(10));
+    }
+
+    static int fibonacciCount;
+
+    static int fibonacciWithCount(int n) {
+        ++fibonacciCount;
+        return n == 0 ? 0
+             : n == 1 ? 1
+             : fibonacciWithCount(n - 1) + fibonacciWithCount(n - 2);
+    }
+
+    @Test
+    public void testFibonacciWithCount() {
+        fibonacciCount = 0;
+        assertEquals(55, fibonacciWithCount(10));
+        assertEquals(177, fibonacciCount);
+    }
+
+    @Test
+    public void testMemoizedFibonacci() {
         Memoizer<Integer, Integer> fibonacci =
-            memoize(self -> n ->
-                n == 0 ? 0 :
-                n == 1 ? 1 :
-                self.apply(n - 1) + self.apply(n - 2));
+            memoize(self -> n -> n == 0 ? 0
+                : n == 1 ? 1
+                : self.apply(n - 1) + self.apply(n - 2));
         assertEquals(0, (int)fibonacci.apply(0));
         assertEquals(1, (int)fibonacci.apply(1));
         assertEquals(1, (int)fibonacci.apply(2));
@@ -39,20 +75,21 @@ public class TestMemoizer {
         assertEquals(13, (int)fibonacci.apply(7));
         assertEquals(21, (int)fibonacci.apply(8));
         assertEquals(34, (int)fibonacci.apply(9));
-        System.out.println(fibonacci);
-        assertEquals(Map.of(
-            0, 0,
-            1, 1,
-            2, 1,
-            3, 2,
-            4, 3,
-            5, 5,
-            6, 8,
-            7, 13,
-            8, 21,
-            9, 34), fibonacci.cache());
-        for (int i = 0; i < 1000; ++i)
-            fibonacci.apply(i);
+        assertEquals(55, (int)fibonacci.apply(10));
+    }
+
+    @Test
+    public void testMemoizedFibonacciWithCount() {
+        int[] count = {0};
+        Memoizer<Integer, Integer> fibonacci =
+            memoize(self -> n -> {
+                ++count[0];
+                return n == 0 ? 0
+                     : n == 1 ? 1
+                     : self.apply(n - 1) + self.apply(n - 2);
+            });
+        assertEquals(55, (int)fibonacci.apply(10));
+        System.out.println(count[0]);
     }
 
     @Test
@@ -88,12 +125,43 @@ public class TestMemoizer {
             fibonacci.apply(valueOf(i));
     }
 
+    /**
+     * 竹内関数 - Wikipedia
+     * https://ja.wikipedia.org/wiki/%E7%AB%B9%E5%86%85%E9%96%A2%E6%95%B0
+     * 
+     * <pre>
+     * <code>
+     * Tarai(x, y, z) = y                       {if x &lt;= y}
+     * Tarai(x, y, z) = Tarai(
+     *                      Tarai(x - 1, y, z),
+     *                      Tarai(y - 1, z, x),
+     *                      Tarai(z - 1, x, y)) {otherwise}
+     * </code>
+     * </pre>
+     */
+    static int taraiCount;
+
+    static int tarai(int x, int y, int z) {
+        ++taraiCount;
+        return x <= y ? y
+            : tarai(tarai(x - 1, y, z),
+                    tarai(y - 1, z, x),
+                    tarai(z - 1, x, y));
+    }
+
     @Test
-    public void testNestedMemoize() {
+    public void testTarai() {
+        taraiCount = 0;
+        assertEquals(6, tarai(6, 4, 0));
+        assertEquals(889, taraiCount);
+    }
+
+    @Test
+    public void testMemoizedTarai() {
         Memoizer<Integer, Memoizer<Integer, Memoizer<Integer, Integer>>> tarai =
             memoize(self -> x ->
-                memoize(selfY -> y ->
-                    memoize(selfZ -> z -> x <= y ? y
+                memoize(self1 -> y ->
+                    memoize(self2 -> z -> x <= y ? y
                         : self.apply(self.apply(x - 1).apply(y).apply(z))
                               .apply(self.apply(y - 1).apply(z).apply(x))
                               .apply(self.apply(z - 1).apply(x).apply(y)))));
@@ -139,14 +207,27 @@ public class TestMemoizer {
         assertEquals(expected, xmap2);
     }
 
+    @Test
+    public void testMemoizedTaraiCount() {
+        int[] count = {0};
+        Memoizer<Integer, Memoizer<Integer, Memoizer<Integer, Integer>>> tarai =
+            memoize(self -> x ->
+                memoize(self1 -> y ->
+                    memoize(self2 -> z -> {
+                        ++count[0];
+                        return x <= y ? y
+                        : self.apply(self.apply(x - 1).apply(y).apply(z))
+                              .apply(self.apply(y - 1).apply(z).apply(x))
+                              .apply(self.apply(z - 1).apply(x).apply(y));
+                    })));
+        assertEquals(6, (int)tarai.apply(6).apply(4).apply(0));
+        assertEquals(60, count[0]);
+    }
+
     /*
      * recordを使ってメモ化します。 recordを使うと、複数の引数を単一の引数に置き換えることができます。
      */
     record Args(int x, int y, int z) { }
-
-    static Integer call(Function<Args, Integer> self, int x, int y, int z) {
-        return self.apply(new Args(x, y, z));
-    }
 
     @Test
     public void testRecordMemoize() {
@@ -156,12 +237,8 @@ public class TestMemoizer {
                     self.apply(new Args(args.x - 1, args.y, args.z)),
                     self.apply(new Args(args.y - 1, args.z, args.x)),
                     self.apply(new Args(args.z - 1, args.x, args.y)))));
-        // Memoizer<Args, Integer> tarai2 =
-        //     memoize(self -> args -> args.x <= args.y ? args.y
-        //         : call(self, call(self, args.x - 1, args.y, args.z),
-        //           call(self, args.y - 1, args.z, args.x),
-        //           call(self, args.z - 1, args.x, args.y)));
         assertEquals(3, (int)tarai.apply(new Args(3, 2, 1)));
+        System.out.println(tarai);
         for (Entry<Args, Integer> e : tarai.cache().entrySet())
             System.out.println(e);
         Map<Args, Integer> expected = Map.of(

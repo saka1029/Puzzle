@@ -144,5 +144,22 @@ public class TestContinuation {
             assertEquals(direct, contin.value);
         }
     }
+
+    static void factorial3(int n, ContinueInt c) {
+        if (n == 0)
+            c.apply(1);
+        else
+            factorial3(n - 1, result -> c.apply(n * result));
+    }
+
+    @Test
+    public void testFactorial3() {
+        for (int i = 0; i < 20; ++i) {
+            int direct = factorial(i);
+            var contin = new Object() { int value; };
+            factorial3(i, c -> contin.value = c);
+            assertEquals(direct, contin.value);
+        }
+    }
 }
 

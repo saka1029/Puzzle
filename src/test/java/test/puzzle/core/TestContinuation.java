@@ -161,5 +161,15 @@ public class TestContinuation {
             assertEquals(direct, contin.value);
         }
     }
+
+    static void generator(ContinueInt c) {
+        c.apply(0);
+        c.apply(1);
+    }
+
+    @Test
+    public void testCallback() {
+        generator(x -> System.out.println(x));
+    }
 }
 

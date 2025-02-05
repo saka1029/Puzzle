@@ -21,12 +21,12 @@ public class TestContinuation {
         return Math.sqrt(x * x + y * y);
     }
 
-    interface ContinueDouble { void apply(double value); }
-    static void add(double x, double y, ContinueDouble k) { k.apply(x + y); }
-    static void multiply(double x, double y, ContinueDouble k) { k.apply(x * y); }
-    static void sqrt(double x, ContinueDouble k) { k.apply(Math.sqrt(x)); }
+    interface ContinuationDouble { void apply(double value); }
+    static void add(double x, double y, ContinuationDouble k) { k.apply(x + y); }
+    static void multiply(double x, double y, ContinuationDouble k) { k.apply(x * y); }
+    static void sqrt(double x, ContinuationDouble k) { k.apply(Math.sqrt(x)); }
 
-    static void pyth(double x, double y, ContinueDouble k) {
+    static void pyth(double x, double y, ContinuationDouble k) {
         multiply(x, x, x2 ->
             multiply(y, y, y2 ->
                 add(x2, y2, x2py2 ->
@@ -65,14 +65,14 @@ public class TestContinuation {
         return n == 0 ? 1 : n * factorial(n - 1);
     }
 
-    interface ContinueInt { void apply(int value); }
-    interface ContinueBool { void apply(boolean value); }
-    static void equals(int x, int y, ContinueBool k) { k.apply(x == y); }
-    static void add(int x, int y, ContinueInt k) { k.apply(x + y); }
-    static void subtract(int x, int y, ContinueInt k) { k.apply(x - y); }
-    static void multiply(int x, int y, ContinueInt k) { k.apply(x * y); }
+    interface ContinuationInt { void apply(int value); }
+    interface ContinuationBool { void apply(boolean value); }
+    static void equals(int x, int y, ContinuationBool k) { k.apply(x == y); }
+    static void add(int x, int y, ContinuationInt k) { k.apply(x + y); }
+    static void subtract(int x, int y, ContinuationInt k) { k.apply(x - y); }
+    static void multiply(int x, int y, ContinuationInt k) { k.apply(x * y); }
 
-    static void factorial(int n, ContinueInt k) {
+    static void factorial(int n, ContinuationInt k) {
         equals(n, 0, b -> {
             if (b)
                 k.apply(1);
@@ -120,17 +120,17 @@ public class TestContinuation {
         return n == 0 ? a : f_aux(n - 1, n * a);
     }
 
-    static void factorial2(int n, ContinueInt k) {
+    static void factorial2(int n, ContinuationInt k) {
         f_aux(n, 1, k);
     }
     
-    static void f_aux(int n, int a, ContinueInt k) {
+    static void f_aux(int n, int a, ContinuationInt k) {
         equals(n, 0, b -> {
             if (b)
                 k.apply(a);
             else
                 subtract(n, 1, nm1 ->
-                    multiply(n, a, (ContinueInt) nta ->
+                    multiply(n, a, (ContinuationInt) nta ->
                         f_aux(nm1, nta, k)));
         });
     }
@@ -145,7 +145,7 @@ public class TestContinuation {
         }
     }
 
-    static void factorial3(int n, ContinueInt c) {
+    static void factorial3(int n, ContinuationInt c) {
         if (n == 0)
             c.apply(1);
         else
@@ -162,7 +162,7 @@ public class TestContinuation {
         }
     }
 
-    static void generator(ContinueInt c) {
+    static void generator(ContinuationInt c) {
         c.apply(0);
         c.apply(1);
     }
@@ -171,5 +171,66 @@ public class TestContinuation {
     public void testCallback() {
         generator(x -> System.out.println(x));
     }
+
+    /*
+     * CPS(継続渡しスタイル)のプログラミングに入門する
+     * https://qiita.com/Kai101/items/eae3a00fcd1fc87e25fb
+     * 
+     * def inc_c(cont, x):
+     *     cont(x+1)
+     * 
+     * def add_c(cont, x, y):
+     *     cont(x+y)
+     * 
+     * def execute():
+     *     add_c(
+     *         lambda v1: add_c(
+     *             lambda v2: inc_c(
+     *                 lambda v3: print(v3)
+     *             , v2)
+     *         , v1, 5), 
+     *     1, 3)
+     *     
+     * execute()
+     */
+
+     static void inc_c(ContinuationInt cont, int x) {
+        cont.apply(x + 1);
+     }
+
+     static void add_c(ContinuationInt cont, int x, int y) {
+        cont.apply(x + y);
+     }
+
+     @Test
+     public void testAddCIncC() {
+        var result = new Object() { int value; };
+        add_c(
+            v1 -> add_c(
+                v2 -> inc_c(
+                    v3 -> result.value = v3,
+                    v2),
+                v1, 5),
+            1, 3);
+        assertEquals(10, result.value);
+     }
+
+     static void inc_cr(int x, ContinuationInt cont) {
+        cont.apply(x + 1);
+     }
+
+     static void add_cr(int x, int y, ContinuationInt cont) {
+        cont.apply(x + y);
+     }
+
+     @Test
+     public void testAddCRIncCR() {
+        var result = new Object() { int value; };
+        add_cr(1, 3,
+            v1 -> add_cr(v1, 5,
+                v2 -> inc_cr(v2,
+                    v3 -> result.value = v3)));
+        assertEquals(10, result.value);
+     }
 }
 

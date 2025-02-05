@@ -232,5 +232,39 @@ public class TestContinuation {
                     v3 -> result.value = v3)));
         assertEquals(10, result.value);
      }
+
+     /*
+      * CPSで書かれたプログラムであれば、どのような言語でもcall/ccを簡単に
+      * 実装することが出来ます。
+      * call/ccのCPSのスタイルでのPythonでの実装は以下になります。
+      * 
+      * hoge.py
+      * def callcc(cont, f):
+      *     f(cont, lambda _c, v: cont(v))
+      * 
+      * callcc関数は、第2引数に呼び出す関数fをとり、
+      * その関数fの第2引数に現在の継続を表すlambdaを渡して呼び出すという動作をします。
+      * callccに渡って来る関数fもCPSな関数なので、
+      * 当然、fの第1引数には継続contが入ります。そのため、
+      * 「これだけで現在の継続が渡せているじゃないか？」という気分になりますが、
+      * CPSでの第1引数の継続はCPSのコンテクストとしての裏方に徹するべきなので、
+      * 第2引数で明示的にcontを渡します。
+      * この際、CPSの「第1引数に継続をとる」というルールに沿うために、
+      * 「第1引数に継続を取り、それを無視するlambda」にラップされて渡されています。
+      * このlambdaをcallccの呼び出し先の関数から呼ぶと、callccの呼び出し元に帰ることが出来ます。
+      */
+
+    interface ContinuationContinuationInt {
+        void apply(ContinuationInt cont, int value);
+    }
+
+    interface ContinuationFunctionInt {
+        void apply(ContinuationInt cont, ContinuationContinuationInt x);
+    }
+
+    static void callcc(ContinuationInt cont, ContinuationFunctionInt f) {
+        f.apply(cont, (c, v) -> cont.apply(v));
+    }
+
 }
 

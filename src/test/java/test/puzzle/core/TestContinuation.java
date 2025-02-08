@@ -44,6 +44,68 @@ public class TestContinuation {
         assertEquals(direct, contin.value, 1e-5);
     }
 
+    static void pyth2(double x, double y, ContinuationDouble k) {
+        multiply(x, x, new ContinuationDouble() {
+            @Override
+            public void apply(double x2) {
+                multiply(y, y, new ContinuationDouble() {
+                    @Override
+                    public void apply(double y2) {
+                        add(x2, y2, new ContinuationDouble() {
+                            @Override
+                            public void apply(double x2py2) {
+                                sqrt(x2py2, k);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+    }
+
+    @Test
+    public void testPyth2() {
+        double x = 1.0, y = 1.0;
+        double direct = pyth(x, y);
+        var contin = new Object() { double value; };
+        pyth2(x, y, c -> contin.value = c);
+        System.out.printf("direct=%f%n", direct);
+        System.out.printf("contin=%f%n", contin.value);
+        assertEquals(direct, contin.value, 1e-5);
+    }
+
+    interface DDCont {
+        void apply(double x, double y, ContinuationDouble k);
+    }
+
+    @Test
+    public void testPyth3() {
+        var contin = new Object() { double value; };
+        ContinuationDouble[] mid = {null};
+        DDCont pyth = (x, y, k) ->
+            multiply(x, x, new ContinuationDouble() {
+                @Override
+                public void apply(double x2) {
+                    mid[0] = this;
+                    multiply(y, y, y2 ->
+                        add(x2, y2, x2py2 ->
+                            sqrt(x2py2, k)));
+                }
+            });
+        pyth.apply(1, 1, v -> contin.value = v);
+        assertEquals(pyth(1, 1), contin.value, 1e-5);
+        // pyth(10, 1) = sqrt(10 * 10 + 1 * 1)
+        // 「10 * 10」の結果を100に置換する。
+        // pyth(10, 1) = sqrt(100 + 1 * 1)
+        mid[0].apply(100);
+        assertEquals(pyth(10, 1), contin.value, 1e-5);
+        // pyth(sqrt(8), 1) = sqrt(8 + 1 * 1) = 3
+        mid[0].apply(8);
+        System.out.printf("result=%f%n", contin.value);
+        assertEquals(pyth(Math.sqrt(8), 1), contin.value, 1e-5);
+    }
+
     /*
      * 【直接スタイル】
      * (define (factorial n)
@@ -254,16 +316,40 @@ public class TestContinuation {
       * このlambdaをcallccの呼び出し先の関数から呼ぶと、callccの呼び出し元に帰ることが出来ます。
       */
 
-    interface ContinuationContinuationInt {
+    interface ContinuationContinuationInt extends ContinuationInt {
         void apply(ContinuationInt cont, int value);
+        default void apply(int value) {
+            apply(this, value);
+        }
     }
 
     interface ContinuationFunctionInt {
-        void apply(ContinuationInt cont, ContinuationContinuationInt x);
+        void apply(ContinuationInt cont, ContinuationInt x);
     }
 
     static void callcc(ContinuationInt cont, ContinuationFunctionInt f) {
-        f.apply(cont, (c, v) -> cont.apply(v));
+        f.apply(cont, (ContinuationContinuationInt)(c, v) -> cont.apply(v));
+    }
+
+    /*
+     * callccの使用例
+     * callccを呼び出す側と呼び出される側を見てみます。
+     * callccを呼び出す側については、CPSな関数であれば特に制約はありません。
+     * 
+     * 呼び出す側
+     * def execute(cont, x):
+     *     def k1(v):
+     *         def k2(v):
+     *             print_c(cont, v)
+     *         callcc(k2, func)
+     *     print_c(k1, x)
+     * callccにより関数funcを呼び出ししています。
+     */
+    static void print_c(ContinuationInt cont, int x) {
+        System.out.println(x);
+    }
+
+    static void execute(ContinuationInt cont, int x) {
     }
 
 }

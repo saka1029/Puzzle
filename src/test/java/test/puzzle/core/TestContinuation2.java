@@ -25,9 +25,9 @@ public class TestContinuation2 {
         var result = new Object() { double value; };
         List<Continuation<Double>> conts = new ArrayList<>();
         DDC func = (x, y, c) ->
-            multiply(x, x, save(p -> conts.add(p), x2 ->
-                multiply(y, y, save(q -> conts.add(q), y2 ->
-                    add(x2, y2, save(r -> conts.add(r), x2py2 ->
+            multiply(x, x, save(conts::add, x2 ->
+                multiply(y, y, save(conts::add, y2 ->
+                    add(x2, y2, save(conts::add, x2py2 ->
                         sqrt(x2py2, c)))))));
         // sqrt(3 * 3 + 4 * 4)
         func.apply(3, 4, r -> result.value = r);

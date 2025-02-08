@@ -9,16 +9,76 @@ import org.junit.Test;
 public class TestContinuation2 {
 
     interface Continuation<T> { void apply(T value); }
+
+    static void multiply(double x, double y, Continuation<Double> c) { c.apply(x * y); }
+    static void add(double x, double y, Continuation<Double> c) { c.apply(x + y); }
+    static void sqrt(double x, Continuation<Double> c) { c.apply(Math.sqrt(x)); }
+
+    static void pyth(double x, double y, Continuation<Double> k) {
+        multiply(x, x, x2 ->
+            multiply(y, y, y2 ->
+                add(x2, y2, x2py2 ->
+                    sqrt(x2py2, k))));
+    }
+
+    @Test
+    public void testPyth() {
+        var result = new Object() { double value; };
+        pyth(1, 1, v -> result.value = v);
+        assertEquals(Math.sqrt(2), result.value, 1e-5);
+    }
+
+    static void equals(int x, int y, Continuation<Boolean> k) { k.apply(x == y); }
+    static void add(int x, int y, Continuation<Integer> k) { k.apply(x + y); }
+    static void subtract(int x, int y, Continuation<Integer> k) { k.apply(x - y); }
+    static void multiply(int x, int y, Continuation<Integer> k) { k.apply(x * y); }
+
+    static void factorial(int n, Continuation<Integer> k) {
+        equals(n, 0, b -> {
+            if (b)
+                k.apply(1);
+            else
+                subtract(n, 1, nm1 ->
+                    factorial(nm1, f ->
+                        multiply(n, f, k)));
+        });
+    }
+
+    @Test
+    public void testFactorial() {
+        var result = new Object() { int value; };
+        factorial(6, v -> result.value = v);
+        assertEquals(720, result.value);
+    }
+
+    static void factorialTailRecursion(int n, Continuation<Integer> k) {
+        f_aux(n, 1, k);
+    }
+
+    static void f_aux(int n, int a, Continuation<Integer> k) {
+        equals(n, 0, b -> {
+            if (b)
+                k.apply(a);
+            else
+                subtract(n, 1, nm1 ->
+                    multiply(n, a, (Integer nta) ->     // 単に「multiply(n, a, nta -> 」とするとコンパイルエラー
+                        f_aux(nm1, nta, k)));
+        });
+    }
+
+    @Test
+    public void testFactorialTailRecursion() {
+        var result = new Object() { int value; };
+        factorialTailRecursion(6, v -> result.value = v);
+        assertEquals(720, result.value);
+    }
+
     interface DDC { void apply(double x, double y, Continuation<Double> c); }
 
     static <T> Continuation<T> save(Consumer<Continuation<T>> setter, Continuation<T> c) {
         setter.accept(c);
         return c;
     }
-
-    static void multiply(double x, double y, Continuation<Double> c) { c.apply(x * y); }
-    static void add(double x, double y, Continuation<Double> c) { c.apply(x + y); }
-    static void sqrt(double x, Continuation<Double> c) { c.apply(Math.sqrt(x)); }
 
     @Test
     public void testSetter() {

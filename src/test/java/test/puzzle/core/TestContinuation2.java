@@ -1,8 +1,6 @@
 package test.puzzle.core;
 
 import static org.junit.Assert.assertEquals;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 import org.junit.Test;
 
@@ -82,26 +80,32 @@ public class TestContinuation2 {
 
     @Test
     public void testSetter() {
+        // 結果保存領域
         var result = new Object() { double value; };
-        List<Continuation<Double>> conts = new ArrayList<>();
+        // 途中のContinuation保存領域
+        var continuations = new Object() { Continuation<Double> x2, y2, x2py2; };
+        // pyth定義(Continuation版)
         DoubleDoubleContinuation pyth = (x, y, c) ->
-            multiply(x, x, save(conts::add, x2 ->
-                multiply(y, y, save(conts::add, y2 ->
-                    add(x2, y2, save(conts::add, x2py2 ->
+            multiply(x, x, save(x2c -> continuations.x2 = x2c, x2 ->
+                multiply(y, y, save(y2c -> continuations.y2 = y2c, y2 ->
+                    add(x2, y2, save(x2py2c -> continuations.x2py2 = x2py2c, x2py2 ->
                         sqrt(x2py2, c)))))));
         // sqrt(3 * 3 + 4 * 4)
         pyth.apply(3, 4, r -> result.value = r);
-        assertEquals(5D, result.value, 1e-5);
+        assertEquals(5.0, result.value, 1e-5);
         // sqrt(3 * 3 + 4 * 4) -> sqrt(9)
-        conts.get(2).apply(9D);
-        assertEquals(3D, result.value, 1e-5);
+        continuations.x2py2.apply(9.0);
+        assertEquals(3.0, result.value, 1e-5);
         // sqrt(3 * 3 + 4 * 4) -> sqrt(3 * 3 + 4)
-        conts.get(1).apply(4D);
+        continuations.y2.apply(4.0);
         assertEquals(Math.sqrt(13), result.value, 1e-5);
         // sqrt(3 * 3 + 4 * 4) -> sqrt(1 + 4 * 4)
-        conts.get(0).apply(1D);
+        continuations.x2.apply(1.0);
         assertEquals(Math.sqrt(17), result.value, 1e-5);
-        assertEquals(6, conts.size());
+        // sqrt(1 + 16) -> sqrt(1 + 24)
+        // x * x は既に 1 に置き換えられている点に注意する。
+        continuations.y2.apply(24.0);
+        // assertEquals(5D, result.value, 1e-5);
+        assertEquals(5.0, result.value, 1e-5);
     }
-
 }

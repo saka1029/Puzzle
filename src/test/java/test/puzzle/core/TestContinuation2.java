@@ -27,18 +27,18 @@ public class TestContinuation2 {
     }
 
     static void equals(int x, int y, Continuation<Boolean> k) { k.apply(x == y); }
-    static void add(int x, int y, Continuation<Integer> k) { k.apply(x + y); }
-    static void subtract(int x, int y, Continuation<Integer> k) { k.apply(x - y); }
-    static void multiply(int x, int y, Continuation<Integer> k) { k.apply(x * y); }
+    static void addInt(int x, int y, Continuation<Integer> k) { k.apply(x + y); }
+    static void subtractInt(int x, int y, Continuation<Integer> k) { k.apply(x - y); }
+    static void multiplyInt(int x, int y, Continuation<Integer> k) { k.apply(x * y); }
 
     static void factorial(int n, Continuation<Integer> k) {
         equals(n, 0, b -> {
             if (b)
                 k.apply(1);
             else
-                subtract(n, 1, nm1 ->
+                subtractInt(n, 1, nm1 ->
                     factorial(nm1, f ->
-                        multiply(n, f, k)));
+                        multiplyInt(n, f, k)));
         });
     }
 
@@ -58,8 +58,8 @@ public class TestContinuation2 {
             if (b)
                 k.apply(a);
             else
-                subtract(n, 1, nm1 ->
-                    multiply(n, a, (Integer nta) ->     // 単に「multiply(n, a, nta -> 」とするとコンパイルエラー
+                subtractInt(n, 1, nm1 ->
+                    multiplyInt(n, a, nta ->
                         f_aux(nm1, nta, k)));
         });
     }

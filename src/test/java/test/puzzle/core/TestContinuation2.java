@@ -73,7 +73,7 @@ public class TestContinuation2 {
         assertEquals(720, result.value);
     }
 
-    interface DDC { void apply(double x, double y, Continuation<Double> c); }
+    interface DoubleDoubleContinuation { void apply(double x, double y, Continuation<Double> c); }
 
     static <T> Continuation<T> save(Consumer<Continuation<T>> setter, Continuation<T> c) {
         setter.accept(c);
@@ -84,13 +84,13 @@ public class TestContinuation2 {
     public void testSetter() {
         var result = new Object() { double value; };
         List<Continuation<Double>> conts = new ArrayList<>();
-        DDC func = (x, y, c) ->
+        DoubleDoubleContinuation pyth = (x, y, c) ->
             multiply(x, x, save(conts::add, x2 ->
                 multiply(y, y, save(conts::add, y2 ->
                     add(x2, y2, save(conts::add, x2py2 ->
                         sqrt(x2py2, c)))))));
         // sqrt(3 * 3 + 4 * 4)
-        func.apply(3, 4, r -> result.value = r);
+        pyth.apply(3, 4, r -> result.value = r);
         assertEquals(5D, result.value, 1e-5);
         // sqrt(3 * 3 + 4 * 4) -> sqrt(9)
         conts.get(2).apply(9D);

@@ -6,11 +6,21 @@ import org.junit.Test;
 
 public class TestContinuation2 {
 
-    interface Continuation<T> { void apply(T value); }
+    interface Continuation<T> {
+        void apply(T value);
+    }
 
-    static void multiply(double x, double y, Continuation<Double> c) { c.apply(x * y); }
-    static void add(double x, double y, Continuation<Double> c) { c.apply(x + y); }
-    static void sqrt(double x, Continuation<Double> c) { c.apply(Math.sqrt(x)); }
+    static void multiply(double x, double y, Continuation<Double> c) {
+        c.apply(x * y);
+    }
+
+    static void add(double x, double y, Continuation<Double> c) {
+        c.apply(x + y);
+    }
+
+    static void sqrt(double x, Continuation<Double> c) {
+        c.apply(Math.sqrt(x));
+    }
 
     static void pyth(double x, double y, Continuation<Double> k) {
         multiply(x, x, x2 ->
@@ -21,15 +31,28 @@ public class TestContinuation2 {
 
     @Test
     public void testPyth() {
-        var result = new Object() { double value; };
+        var result = new Object() {
+            double value;
+        };
         pyth(1, 1, v -> result.value = v);
         assertEquals(Math.sqrt(2), result.value, 1e-5);
     }
 
-    static void equals(int x, int y, Continuation<Boolean> k) { k.apply(x == y); }
-    static void addInt(int x, int y, Continuation<Integer> k) { k.apply(x + y); }
-    static void subtractInt(int x, int y, Continuation<Integer> k) { k.apply(x - y); }
-    static void multiplyInt(int x, int y, Continuation<Integer> k) { k.apply(x * y); }
+    static void equals(int x, int y, Continuation<Boolean> k) {
+        k.apply(x == y);
+    }
+
+    static void addInt(int x, int y, Continuation<Integer> k) {
+        k.apply(x + y);
+    }
+
+    static void subtractInt(int x, int y, Continuation<Integer> k) {
+        k.apply(x - y);
+    }
+
+    static void multiplyInt(int x, int y, Continuation<Integer> k) {
+        k.apply(x * y);
+    }
 
     static void factorial(int n, Continuation<Integer> k) {
         equals(n, 0, b -> {
@@ -44,7 +67,9 @@ public class TestContinuation2 {
 
     @Test
     public void testFactorial() {
-        var result = new Object() { int value; };
+        var result = new Object() {
+            int value;
+        };
         factorial(6, v -> result.value = v);
         assertEquals(720, result.value);
     }
@@ -58,20 +83,22 @@ public class TestContinuation2 {
             if (b)
                 k.apply(a);
             else
-                subtractInt(n, 1, nm1 ->
-                    multiplyInt(n, a, nta ->
-                        f_aux(nm1, nta, k)));
+                subtractInt(n, 1, nm1 -> multiplyInt(n, a, nta -> f_aux(nm1, nta, k)));
         });
     }
 
     @Test
     public void testFactorialTailRecursion() {
-        var result = new Object() { int value; };
+        var result = new Object() {
+            int value;
+        };
         factorialTailRecursion(6, v -> result.value = v);
         assertEquals(720, result.value);
     }
 
-    interface DoubleDoubleContinuation { void apply(double x, double y, Continuation<Double> c); }
+    interface DoubleDoubleContinuation {
+        void apply(double x, double y, Continuation<Double> c);
+    }
 
     static <T> Continuation<T> save(Consumer<Continuation<T>> setter, Continuation<T> c) {
         setter.accept(c);
@@ -81,9 +108,13 @@ public class TestContinuation2 {
     @Test
     public void testSetter() {
         // 結果保存領域
-        var result = new Object() { double value; };
+        var result = new Object() {
+            double value;
+        };
         // 途中のContinuation保存領域
-        var continuations = new Object() { Continuation<Double> x2, y2, x2py2; };
+        var continuations = new Object() {
+            Continuation<Double> x2, y2, x2py2;
+        };
         // pyth定義(Continuation版)
         DoubleDoubleContinuation pyth = (x, y, c) ->
             multiply(x, x, save(x2c -> continuations.x2 = x2c, x2 ->

@@ -150,20 +150,18 @@ public class TestContinuation2 {
                 producer.apply(null);
             };
             this.producer = c -> {
-                this.value = c;
                 consumer.apply(value);
             };
         }
 
         void put(T value) {
             System.out.println("put " + value);
-            producer.apply(value);
+            this.value = value;
         }
 
         T get() {
             T r = value;
             System.out.println("get " + r);
-            consumer.apply(null);
             return r;
         }
     }

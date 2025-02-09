@@ -83,7 +83,9 @@ public class TestContinuation2 {
             if (b)
                 k.apply(a);
             else
-                subtractInt(n, 1, nm1 -> multiplyInt(n, a, nta -> f_aux(nm1, nta, k)));
+                subtractInt(n, 1, nm1 ->
+                    multiplyInt(n, a, nta ->
+                        f_aux(nm1, nta, k)));
         });
     }
 
@@ -138,5 +140,53 @@ public class TestContinuation2 {
         continuations.y2.apply(24.0);
         // assertEquals(5D, result.value, 1e-5);
         assertEquals(5.0, result.value, 1e-5);
+    }
+
+    static class Bridge<T> {
+        T value;
+        Continuation<T> producer = null, consumer;
+        Bridge() {
+            this.consumer = c -> {
+                producer.apply(null);
+            };
+            this.producer = c -> {
+                this.value = c;
+                consumer.apply(value);
+            };
+        }
+
+        void put(T value) {
+            System.out.println("put " + value);
+            producer.apply(value);
+        }
+
+        T get() {
+            T r = value;
+            System.out.println("get " + r);
+            consumer.apply(null);
+            return r;
+        }
+    }
+
+    static void producer(int max, Bridge<Integer> b) {
+        for (int i = 0; i < max; ++i)
+            b.put(i);
+        b.put(null);
+    }
+
+    static void consumer(Bridge<Integer> b) {
+        while (true) {
+            Integer e = b.get();
+            if (e == null)
+                break;
+            System.out.println(e);
+        }
+    }
+
+    @Test
+    public void testLoop() {
+        Bridge<Integer> b = new Bridge<>();
+        producer(10, b);
+        consumer(b);
     }
 }

@@ -291,22 +291,31 @@ public class TestSudoku {
      */
     static List<int[][]> solveBitmapFast(int[][] a) {
         List<int[][]> result = new ArrayList<>();
+        int size = 9, mask = 0b111_111_111_0;
+        int[] rowSet = new int[size], colSet = new int[size], boxSet = new int[size];
         new Object() {
-            int size = 9, mask = 0b111_111_111_0;
-            int[] rowSet = new int[size], colSet = new int[size], boxSet = new int[size];
             {
-                // Object初期化：既に確定している番号をbitmapにセットする。
+                // 配列a初期化：既に確定している番号をbitmapにセットする。
                 for (int r = 0; r < size; ++r)
                     for (int c = 0; c < size; ++c) {
                         int n = a[r][c];
-                        if (n != 0) {
-                            int bit = 1 << n;
-                            int b = b(r, c);
-                            rowSet[r] |= bit;
-                            colSet[c] |= bit;
-                            boxSet[b] |= bit;
-                        }
+                        if (n != 0)
+                            set(r, c, 1 << n);
                     }
+            }
+
+            void set(int r, int c, int bit) {
+                rowSet[r] |= bit;
+                colSet[c] |= bit;
+                boxSet[box(r, c)] |= bit;
+                a[r][c] = Integer.numberOfTrailingZeros(bit);
+            }
+
+            void unset(int r, int c, int bit) {
+                rowSet[r] ^= bit;
+                colSet[c] ^= bit;
+                boxSet[box(r, c)] ^= bit;
+                a[r][c] = 0;
             }
 
             void answer() {
@@ -331,35 +340,25 @@ public class TestSudoku {
              * 8 | 6 6 6 7 7 7 8 8 8 
              * </pre>
              */
-            int b(int r, int c) {
+            int box(int r, int c) {
                 return r - r % 3 + c / 3;
             }
 
             void solve(int i) {
-                int r = i / size, c = i % size, b = b(r, c);
+                int r = i / size, c = i % size, b = box(r, c);
                 if (r >= size)
                     answer();
                 else if (a[r][c] != 0)
                     solve(i + 1); // 既に番号が付与されている場合は次へ
                 else
-                    // vは適用可能な番号のbitmap、v ^= bitは処理済のbitをvから除外する。
+                    // r行c列で配置可能な番号について配置を試みる。
+                    // vは適用可能な番号のbit値、v ^= bitは処理済のbitをvから除外する。
                     for (int v = mask & ~(rowSet[r] | colSet[c] | boxSet[b]), bit = 0; v != 0; v ^= bit) {
                         // 適用可能な番号のbitmapから右端(最小)のビットを取り出す。
                         bit = Integer.lowestOneBit(v); // or -v & v
-                        // 使用済み番号をbitmapに追加する。
-                        rowSet[r] |= bit;
-                        colSet[c] |= bit;
-                        boxSet[b] |= bit;
-                        // 使用済み番号を配列に格納する。
-                        // bitを数字(1-9)に変換
-                        a[r][c] = Integer.numberOfTrailingZeros(bit);
-                        solve(i + 1);
-                        // 使用済み番号をbitmapから削除する。
-                        rowSet[r] ^= bit;
-                        colSet[c] ^= bit;
-                        boxSet[b] ^= bit;
-                        // 使用済み番号を配列から取り除く。
-                        a[r][c] = 0;
+                        set(r, c, bit);     // 配置する。
+                        solve(i + 1);       // 次へ進む。
+                        unset(r, c, bit);   // もとに戻す。
                     }
             }
         }.solve(0);

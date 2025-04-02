@@ -1,8 +1,6 @@
 package test.puzzle.core;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import org.junit.Test;
@@ -12,8 +10,7 @@ public class TestNumberLink2 {
     static class NumberLink {
         final int rows, cols;
         final int[][] board;
-        record End(int name, int r0, int c0, int r1, int c1) {}
-        final End[] ends;
+        final int[][] ends;
 
         NumberLink(int[][] board) {
             this.rows = board.length;
@@ -29,32 +26,33 @@ public class TestNumberLink2 {
                         continue;
                     int[] e = map.get(name);
                     if (e == null)
-                        map.put(name, e = new int[] {r, c, -1, -1});
-                    else if (e[2] != -1)
+                        map.put(name, e = new int[] {name, r, c, -1, -1});
+                    else if (e[3] != -1)
                         throw new RuntimeException("'%d' duplicate".formatted(name));
                     else {
-                        e[2] = r;
-                        e[3] = c;
+                        e[3] = r;
+                        e[4] = c;
                     }
                 }
-            ends = map.entrySet().stream()
-                .map(x -> {
-                    int name = x.getKey();
-                    int[] e = x.getValue();
-                    if (e[2] < 0)
-                        throw new RuntimeException("'%d' appears only one time".formatted(name));
-                    return new End(name, e[0], e[1], e[2], e[3]);
+            ends = map.values().stream()
+                .peek(e -> {
+                    if (e[3] == -1)
+                        throw new RuntimeException(
+                            "Single end %s".formatted(Arrays.toString(e)));
                 })
-                .toArray(End[]::new);
+                .toArray(int[][]::new);
         }
 
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             for (int[] row : board)
-                sb.append(Arrays.toString(row)).append(System.lineSeparator());
-            for (End e : ends)
-                sb.append(e).append(System.lineSeparator());
+                sb.append(Arrays.toString(row))
+                    .append(System.lineSeparator());
+            for (int[] e : ends)
+                sb.append("end")
+                    .append(Arrays.toString(e))
+                    .append(System.lineSeparator());
             return sb.toString();
         }
 

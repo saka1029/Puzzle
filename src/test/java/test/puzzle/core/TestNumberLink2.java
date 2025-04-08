@@ -3,14 +3,22 @@ package test.puzzle.core;
 import java.util.Arrays;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.logging.Logger;
+
 import org.junit.Test;
 
+import puzzle.core.Common;
+
 public class TestNumberLink2 {
+
+    static final Logger logger = Common.getLogger(TestNumberLink2.class);
 
     static class NumberLink {
         final int rows, cols;
         final int[][] board;
         final int[][] ends;
+        static final int[][] DIR = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+        static final int DIR_SIZE = DIR.length;
 
         NumberLink(int[][] board) {
             this.rows = board.length;
@@ -56,19 +64,70 @@ public class TestNumberLink2 {
             return sb.toString();
         }
 
+        void print(String header) {
+            System.out.println(header);
+            System.out.println(toString());
+        }
+
+        void answer() {
+            print("anser:");
+        }
+
+        boolean canGo(int r, int c) {
+            return r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] == 0;
+        }
+
+        void walk(int i, int r, int c) {
+            int[] e = ends[i];
+            if (r == e[3] && c == e[4]) {
+                print("path of %d:".formatted(e[0]));
+                solve(i + 1);
+            } else {
+                int count = 0;
+                for (int j = 0; j < DIR_SIZE; ++j) {
+                    int rr = r + DIR[i][0], cc = c + DIR[i][1];
+                    if (canGo(rr, cc)) {
+                        ++count;
+                        board[rr][cc] = e[0];
+                        walk(i, rr, cc);
+                        board[rr][cc] = 0;
+                    }
+                }
+                if (count == 0)
+                    print("stuck at %d,%d:".formatted(r, c));
+            }
+        }
+
+        void solve(int i) {
+            if (i >= ends.length)
+                answer();
+            else
+                walk(i, ends[i][1], ends[i][2]);
+        }
+
+        void solve() {
+            solve(0);
+        }
     }
+
+    static final int[][] B7x7 = new int[][] {
+        {0, 0, 0, 0, 3, 2, 1},
+        {0, 0, 0, 0, 1, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 2, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0},
+        {0, 3, 5, 0, 0, 4, 0},
+        {4, 0, 0, 0, 0, 0, 5}};
 
     @Test
     public void testNumberLink() {
-        int[][] board = new int[][] {
-            {0, 0, 0, 0, 3, 2, 1},
-            {0, 0, 0, 0, 1, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 2, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0},
-            {0, 3, 5, 0, 0, 4, 0},
-            {4, 0, 0, 0, 0, 0, 5}};
-        NumberLink problem = new NumberLink(board);
+        NumberLink problem = new NumberLink(B7x7);
         System.out.println(problem);
+    }
+
+    @Test
+    public void testSolve() {
+        NumberLink problem = new NumberLink(B7x7);
+        problem.solve();
     }
 }

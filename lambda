@@ -1,0 +1,3 @@
+#!/bin/sh
+CP=~/git/Puzzle/target/classes
+java -cp $CP puzzle.language.LambdaCalculus2 $@

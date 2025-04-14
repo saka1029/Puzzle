@@ -57,12 +57,12 @@ public class TestTrie {
         assertEquals(10, trie.size());
     }
 
-    static class 傷病名 {
+    static class Byo {
         final String 型;
         final String コード;
         final String 名称;
 
-        傷病名(String 型, String コード, String 名称) {
+        Byo(String 型, String コード, String 名称) {
             this.型 = 型;
             this.コード = コード;
             this.名称 = 名称;
@@ -80,22 +80,22 @@ public class TestTrie {
 
     static final Charset CHARSET = Charset.forName("Shift_JIS");
 
-    static List<傷病名> read(String path, int 型位置, int コード位置, int 名称位置)
+    static List<Byo> read(String path, int 型位置, int コード位置, int 名称位置)
         throws IOException {
         try (Stream<String> stream = Files.lines(Path.of(path), CHARSET)) {
             return stream.map(line -> line.split(","))
-                .map(f -> new 傷病名(unq(f[型位置]), unq(f[コード位置]), unq(f[名称位置])))
+                .map(f -> new Byo(unq(f[型位置]), unq(f[コード位置]), unq(f[名称位置])))
                 .collect(Collectors.toList());
         }
     }
 
-    static class 傷病名コード化 extends Trie<傷病名> {
+    static class ByoEnc extends Trie<Byo> {
 
-        List<List<傷病名>> encode(String s) {
+        List<List<Byo>> encode(String s) {
             int length = s.length();
-            Map<Integer, List<傷病名>> map = findAll(s);
-            Deque<傷病名> 選択 = new LinkedList<>();
-            List<List<傷病名>> 結果 = new ArrayList<>();
+            Map<Integer, List<Byo>> map = findAll(s);
+            Deque<Byo> 選択 = new LinkedList<>();
+            List<List<Byo>> 結果 = new ArrayList<>();
             new Object() {
                 void find(int index, int 傷病名数) {
                     if (index >= length) {
@@ -103,9 +103,9 @@ public class TestTrie {
                             結果.add(new ArrayList<>(選択));
                         return;
                     }
-                    List<傷病名> list = map.get(index);
+                    List<Byo> list = map.get(index);
                     if (list == null) return;
-                    for (傷病名 b : list) {
+                    for (Byo b : list) {
                         int 合計傷病名数 = 傷病名数 + (b.型.equals("B") ? 1 : 0);
                         if (合計傷病名数 > 1) continue;
                         選択.addLast(b);
@@ -128,22 +128,22 @@ public class TestTrie {
     }
     @Test
     public void test傷病名コード化() throws IOException {
-        List<傷病名> 修飾語マスタ = read("data/レセ電/z_20200601.txt", 1, 2, 6);
-        List<傷病名> 傷病名マスタ = read("data/レセ電/b_20200601.txt", 1, 2, 5);
+        List<Byo> 修飾語マスタ = read("data/レセ電/z_20200601.txt", 1, 2, 6);
+        List<Byo> 傷病名マスタ = read("data/レセ電/b_20200601.txt", 1, 2, 5);
         logger.info("修飾語マスタ 件数=" + 修飾語マスタ.size());
         logger.info("傷病名マスタ 件数=" + 傷病名マスタ.size());
-        傷病名コード化 encoder = new 傷病名コード化();
-        for (傷病名 b : 傷病名マスタ)
+        ByoEnc encoder = new ByoEnc();
+        for (Byo b : 傷病名マスタ)
             encoder.put(b.名称, b);
-        for (傷病名 b : 修飾語マスタ)
+        for (Byo b : 修飾語マスタ)
             encoder.put(b.名称, b);
         logger.info("trie size=" + encoder.size());
-        for (List<傷病名> b : encoder.encode("急性潰瘍性大腸炎"))
+        for (List<Byo> b : encoder.encode("急性潰瘍性大腸炎"))
             logger.info("\t" + b);
         logger.info(encoder.encode("急性潰瘍性大腸炎").toString());
         List<String> 未コード化傷病名 = read("data/レセ電/micode.txt", 1);
         for (String s : 未コード化傷病名) {
-            List<List<傷病名>> r = encoder.encode(s);
+            List<List<Byo>> r = encoder.encode(s);
             logger.info(s + " -> " + r.size() + ":" + r);
         }
     }

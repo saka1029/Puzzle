@@ -85,7 +85,7 @@ public class TestNumberLink2 {
             } else {
                 int count = 0;
                 for (int j = 0; j < DIR_SIZE; ++j) {
-                    int rr = r + DIR[i][0], cc = c + DIR[i][1];
+                    int rr = r + DIR[j][0], cc = c + DIR[j][1];
                     if (canGo(rr, cc)) {
                         ++count;
                         board[rr][cc] = e[0];

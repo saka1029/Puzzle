@@ -70,7 +70,7 @@ public class TestNumberLink2 {
         }
 
         void answer() {
-            print("anser:");
+            print("answer:");
         }
 
         boolean canGo(int r, int c) {
@@ -78,23 +78,16 @@ public class TestNumberLink2 {
         }
 
         void walk(int i, int r, int c) {
-            int[] e = ends[i];
-            if (r == e[3] && c == e[4]) {
-                print("path of %d:".formatted(e[0]));
-                solve(i + 1);
-            } else {
-                int count = 0;
-                for (int j = 0; j < DIR_SIZE; ++j) {
-                    int rr = r + DIR[j][0], cc = c + DIR[j][1];
-                    if (canGo(rr, cc)) {
-                        ++count;
-                        board[rr][cc] = e[0];
-                        walk(i, rr, cc);
-                        board[rr][cc] = 0;
-                    }
+            for (int j = 0; j < DIR_SIZE; ++j) {
+                int rr = r + DIR[j][0], cc = c + DIR[j][1];
+                if (rr == ends[i][3] && cc == ends[i][4]) {
+                    // print("path of %d:".formatted(ends[i][0]));
+                    solve(i + 1);
+                } else if (canGo(rr, cc)) {
+                    board[rr][cc] = ends[i][0];
+                    walk(i, rr, cc);
+                    board[rr][cc] = 0;
                 }
-                if (count == 0)
-                    print("stuck at %d,%d:".formatted(r, c));
             }
         }
 
@@ -118,6 +111,17 @@ public class TestNumberLink2 {
         {0, 0, 0, 0, 0, 0, 0},
         {0, 3, 5, 0, 0, 4, 0},
         {4, 0, 0, 0, 0, 0, 5}};
+    static final int[][] B4x4 = new int[][] {
+        {1, 0, 0, 0},
+        {0, 0, 0, 1},
+        {0, 3, 0, 2},
+        {2, 0, 0, 3}};
+    static final int[][] B5x5 = new int[][] {
+        {1, 2, 3, 0, 0},
+        {0, 0, 0, 4, 0},
+        {0, 4, 2, 0, 0},
+        {0, 0, 0, 0, 0},
+        {0, 0, 1, 3, 0}};
 
     @Test
     public void testNumberLink() {
@@ -126,7 +130,19 @@ public class TestNumberLink2 {
     }
 
     @Test
-    public void testSolve() {
+    public void testSolveB4x4() {
+        NumberLink problem = new NumberLink(B4x4);
+        problem.solve();
+    }
+
+    @Test
+    public void testSolveB5x5() {
+        NumberLink problem = new NumberLink(B5x5);
+        problem.solve();
+    }
+
+    // @Test
+    public void testSolveB7x7() {
         NumberLink problem = new NumberLink(B7x7);
         problem.solve();
     }

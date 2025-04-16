@@ -73,17 +73,32 @@ public class TestNumberLink2 {
             print("answer:");
         }
 
-        boolean canGo(int r, int c) {
-            return r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] == 0;
+        boolean valid(int r, int c) {
+            return r >= 0 && r < rows && c >= 0 && c < cols;
+        }
+
+        /**
+         * (r, c)の上下左右にある同じ数字を数える。
+         * ただし上下左右にゴールがある場合は除外して数える。
+         */
+        int neighbors(int i, int r, int c) {
+            int count = 0;
+            for (int j = 0; j < DIR_SIZE; ++j) {
+                int rr = r + DIR[j][0], cc = c + DIR[j][1];
+                if (valid(rr, cc)
+                    && rr != ends[i][3] && cc != ends[i][4] // not goal
+                    && board[rr][cc] == ends[i][0])
+                    ++count;
+            }
+            return count;
         }
 
         void walk(int i, int r, int c) {
             for (int j = 0; j < DIR_SIZE; ++j) {
                 int rr = r + DIR[j][0], cc = c + DIR[j][1];
                 if (rr == ends[i][3] && cc == ends[i][4]) {
-                    // print("path of %d:".formatted(ends[i][0]));
                     solve(i + 1);
-                } else if (canGo(rr, cc)) {
+                } else if (valid(rr, cc) && board[rr][cc] == 0 && neighbors(i, rr, cc) <= 1) {
                     board[rr][cc] = ends[i][0];
                     walk(i, rr, cc);
                     board[rr][cc] = 0;
@@ -141,7 +156,7 @@ public class TestNumberLink2 {
         problem.solve();
     }
 
-    // @Test
+    @Test
     public void testSolveB7x7() {
         NumberLink problem = new NumberLink(B7x7);
         problem.solve();

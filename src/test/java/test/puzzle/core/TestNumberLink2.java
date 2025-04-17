@@ -137,6 +137,27 @@ public class TestNumberLink2 {
         {0, 4, 2, 0, 0},
         {0, 0, 0, 0, 0},
         {0, 0, 1, 3, 0}};
+    static final int[][] B9x9 = new int[][] {
+        {0, 5, 0, 0, 0, 0, 0, 0, 3},
+        {0, 0, 0, 9, 0, 0, 0, 0, 4},
+        {0, 0, 1, 0, 0, 9, 0, 0, 0},
+        {0, 0, 2, 7, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 8, 0, 0},
+        {0, 0, 0, 6, 0, 1, 7, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 2, 0, 6, 0, 8, 3, 0},
+        {5, 0, 0, 0, 0, 0, 4, 0, 0}};
+    static final int[][] B10x10 = new int[][] {
+        {6, 0, 0, 0, 7, 0, 0, 0, 0, 6},
+        {0, 0, 0, 0, 0, 0, 1, 0, 9, 0},
+        {0, 7, 0, 10, 0, 0, 0, 0, 1, 0},
+        {0, 0, 0, 8, 0, 0, 0, 10, 0, 0},
+        {0, 0, 0, 0, 0, 0, 11, 0, 0, 11},
+        {5, 0, 0, 2, 0, 0, 0, 0, 0, 0},
+        {0, 0, 12, 0, 0, 0, 8, 0, 0, 0},
+        {0, 4, 0, 0, 0, 0, 5, 0, 9, 0},
+        {0, 2, 0, 3, 0, 0, 0, 0, 0, 0},
+        {4, 0, 0, 0, 0, 3, 0, 0, 0, 12}};
 
     @Test
     public void testNumberLink() {
@@ -159,6 +180,18 @@ public class TestNumberLink2 {
     @Test
     public void testSolveB7x7() {
         NumberLink problem = new NumberLink(B7x7);
+        problem.solve();
+    }
+
+    @Test
+    public void testSolveB9x9() {
+        NumberLink problem = new NumberLink(B9x9);
+        problem.solve();
+    }
+
+    @Test
+    public void testSolveB10x10() {
+        NumberLink problem = new NumberLink(B10x10);
         problem.solve();
     }
 }

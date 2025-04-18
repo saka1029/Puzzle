@@ -86,7 +86,7 @@ public class TestNumberLink2 {
             for (int j = 0; j < DIR_SIZE; ++j) {
                 int rr = r + DIR[j][0], cc = c + DIR[j][1];
                 if (valid(rr, cc)
-                    && (rr != ends[i][3] || cc != ends[i][4]) // not goal
+                    && !(rr == ends[i][3] && cc == ends[i][4]) // not goal
                     && board[rr][cc] == ends[i][0])
                     ++count;
             }

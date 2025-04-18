@@ -86,7 +86,7 @@ public class TestNumberLink2 {
             for (int j = 0; j < DIR_SIZE; ++j) {
                 int rr = r + DIR[j][0], cc = c + DIR[j][1];
                 if (valid(rr, cc)
-                    && rr != ends[i][3] && cc != ends[i][4] // not goal
+                    && (rr != ends[i][3] || cc != ends[i][4]) // not goal
                     && board[rr][cc] == ends[i][0])
                     ++count;
             }
@@ -97,6 +97,7 @@ public class TestNumberLink2 {
             for (int j = 0; j < DIR_SIZE; ++j) {
                 int rr = r + DIR[j][0], cc = c + DIR[j][1];
                 if (rr == ends[i][3] && cc == ends[i][4]) {
+                    // System.out.println(this);
                     solve(i + 1);
                 } else if (valid(rr, cc) && board[rr][cc] == 0 && neighbors(i, rr, cc) <= 1) {
                     board[rr][cc] = ends[i][0];
@@ -162,7 +163,7 @@ public class TestNumberLink2 {
     @Test
     public void testNumberLink() {
         NumberLink problem = new NumberLink(B7x7);
-        System.out.println(problem);
+        problem.solve();
     }
 
     @Test
@@ -192,6 +193,18 @@ public class TestNumberLink2 {
     @Test
     public void testSolveB10x10() {
         NumberLink problem = new NumberLink(B10x10);
+        problem.solve();
+    }
+
+    static final int[][] S4x4 = new int[][] {
+        {1, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 1}};
+
+    // @Test
+    public void testSolveS4x4() {
+        NumberLink problem = new NumberLink(S4x4);
         problem.solve();
     }
 }

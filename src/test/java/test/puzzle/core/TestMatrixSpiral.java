@@ -43,23 +43,10 @@ public class TestMatrixSpiral {
 
     int[][] spiral(int rows, int cols) {
         int[][] matrix = new int[rows][cols];
-        int[] steps = steps(rows, cols);
-        int sl = steps.length;
-        int x = 0, y = 0;
-        int dx = 0, dy = 1;
-        int n = 0;
-        // matrix[x][y] = n++;
-        for (int i = 0; i < sl; ++i) {
-            int sm = steps[i];
-            for (int j = 0; j < sm; ++j) {
+        int x = 0, y = 0, n = 0;
+        for (int i = 0, dx = 0, dy = 1, d = 0, s[] = steps(rows, cols); i < s.length; ++i, d = dx, dx = dy, dy = -d)
+            for (int j = 0; j < s[i]; ++j, x += dx, y += dy)
                 matrix[x][y] = n++;
-                x += dx;
-                y += dy;
-            }
-            int dt = dx;
-            dx = dy;
-            dy = -dt;
-        }
         matrix[x][y] = n++;
         return matrix;
     }
@@ -75,7 +62,7 @@ public class TestMatrixSpiral {
 
     @Test
     public void testSpiral() {
-        int[][] m = spiral(6, 6);
+        int[][] m = spiral(9, 6);
         print(m);
     }
 

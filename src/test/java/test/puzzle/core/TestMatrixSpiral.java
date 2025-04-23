@@ -66,4 +66,47 @@ public class TestMatrixSpiral {
         print(m);
     }
 
+    static class Spiral {
+        final int[][] matrix;
+        int n = 0, x = 0, y = 0, dx = 0, dy = 1;
+
+        boolean forward(int s) {
+            if (s <= 0)
+                return false;
+            for (int i = 0; i < s; ++i, x += dx, y += dy)
+                matrix[x][y] = n++;
+            int d = dx;
+            dx = dy;
+            dy = -d;
+            return true;
+        }
+
+        Spiral(int rows, int cols) {
+            this.matrix = new int[rows--][cols--];
+            forward(cols);
+            while (forward(rows--) && forward(cols--))
+                /* do nothing */;
+            matrix[x][y] = n;
+        }
+
+        static int[][] right(int rows, int cols) {
+            return new Spiral(rows, cols).matrix;
+        }
+    }
+
+    @Test
+    public void testSpiralClass() {
+        assertArrayEquals(new int[][] {
+            {0, 1, 2},
+            {7, 8, 3},
+            {6, 5, 4},
+        }, Spiral.right(3, 3));
+        assertArrayEquals(new int[][] {
+            {0, 1, 2},
+            {9, 10, 3},
+            {8, 11, 4},
+            {7, 6, 5},
+        }, Spiral.right(4, 3));
+    }
+
 }

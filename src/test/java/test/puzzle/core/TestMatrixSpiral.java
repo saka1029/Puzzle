@@ -68,14 +68,11 @@ public class TestMatrixSpiral {
 
     static class Spiral {
         final int[][] matrix;
-        final int rows, cols;
         int n = 0, x = 0, y = 0;
         int dx, dy;
         boolean right = true;
 
         public Spiral(int rows, int cols) {
-            this.rows = rows;
-            this.cols = cols;
             this.matrix = new int[rows][cols];
         }
 
@@ -90,34 +87,23 @@ public class TestMatrixSpiral {
             return true;
         }
 
-        void right() {
-            right = true;
-            dx = 0; dy = 1;
-            int rows = matrix.length - 1, cols = matrix[0].length - 1;
+        void walk(boolean right) {
+            this.right = right;
+            dx = right ? 0 : 1;
+            dy = right ? 1 : 0;
+            int rl = matrix.length - 1, cl = matrix[0].length - 1;
+            int rows = right ? rl : cl, cols = right ? cl : rl;
             forward(cols);
             while (forward(rows--) && forward(cols--))
                 /* do nothing */;
             matrix[x][y] = n;
         }
 
-        void left() {
-            right = false;
-            dx = 1; dy = 0;
-            int rows = matrix.length - 1, cols = matrix[0].length - 1;
-            forward(rows);
-            while (forward(cols--) && forward(rows--))
-                /* do nothing */;
-            matrix[x][y] = n;
-        }
-
         static int[][] of(int rows, int cols, boolean right) {
             Spiral spiral =  new Spiral(rows, cols);
-            if (right)
-                spiral.right();
-            else
-                spiral.left();
-            print(spiral.matrix);
-            System.out.println();
+            spiral.walk(right);
+            // print(spiral.matrix);
+            // System.out.println();
             return spiral.matrix;
         }
     }

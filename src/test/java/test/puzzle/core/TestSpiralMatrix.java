@@ -301,4 +301,98 @@ public class TestSpiralMatrix {
             System.out.println(Arrays.toString(row));
         printSpiral(m);
     }
+
+    /**
+     * ChatGPTが生成したPythonプログラム
+     * 
+     * <pre>
+     * def spiral_matrix(n):
+     *     matrix = [[0] * n for _ in range(n)]
+     *     dx = [0, 1, 0, -1]  # 右, 下, 左, 上
+     *     dy = [1, 0, -1, 0]
+     *     
+     *     x = y = 0  # 初期位置
+     *     direction = 0  # 初期方向（右）
+     *     
+     *     for i in range(n * n):
+     *         matrix[x][y] = i
+     *         nx, ny = x + dx[direction], y + dy[direction]
+     *         
+     *         # 境界または既に値があるところなら向きを変える
+     *         if not (0 <= nx < n and 0 <= ny < n and matrix[nx][ny] == 0):
+     *             direction = (direction + 1) % 4
+     *             nx, ny = x + dx[direction], y + dy[direction]
+     *         
+     *         x, y = nx, ny
+     *     
+     *     return matrix
+     * 
+     * # 表示用関数
+     * def print_matrix(matrix):
+     *     for row in matrix:
+     *         print(' '.join(f"{num:2}" for num in row))
+     * 
+     * # 実行例
+     * n = 5
+     * result = spiral_matrix(n)
+     * print_matrix(result)
+     * </pre>
+     * 
+     * 既に訪れた場所または配列内に収まらない場合は方向を右に回転する。
+     * ただしゼロから付番するので、ひとまわりして左上隅にもどったとき、
+     * 未格納であると判断してしまう。
+     * 結果として以下の誤った出力が得られる。
+     * 
+     * <pre>
+     * [16, 17, 2, 3, 4]
+     * [15, 18, 0, 0, 5]
+     * [22, 23, 24, 0, 6]
+     * [21, 20, 0, 0, 7]
+     * [12, 11, 10, 9, 8]
+     * </pre>
+     */
+    static int[][] spiral_matrix(int n) {
+        int[][] matrix = new int[n][n];
+        int[]  dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
+        int x = 0, y = 0, direction = 0;
+        for (int i = 0, max = n * n; i < max; ++i) {
+            matrix[x][y] = i;
+            int nx = x + dx[direction], ny = y + dy[direction];
+            // 境界または既に値があるところなら向きを変える
+            if (! (0 <= nx && nx < n && 0 <= ny && ny < n && matrix[nx][ny] == 0)) {
+                direction = (direction + 1) % 4;
+                nx = x + dx[direction]; ny = y + dy[direction];
+            }
+            x = nx; y = ny;
+        }
+        return matrix;
+    }
+
+    /**
+     * 配列の初期値として-1を埋めることによって改善できる。
+     */
+    static int[][] spiral_matrix_improved(int n) {
+        int[][] matrix = new int[n][n];
+        for (int[] row : matrix)
+            Arrays.fill(row, -1);
+        int[]  dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
+        int x = 0, y = 0, direction = 0;
+        for (int i = 0, max = n * n; i < max; ++i) {
+            matrix[x][y] = i;
+            int nx = x + dx[direction], ny = y + dy[direction];
+            // 境界または既に値があるところなら向きを変える
+            if (! (0 <= nx && nx < n && 0 <= ny && ny < n && matrix[nx][ny] == -1)) {
+                direction = (direction + 1) % 4;
+                nx = x + dx[direction]; ny = y + dy[direction];
+            }
+            x = nx; y = ny;
+        }
+        return matrix;
+    }
+
+    @Test
+    public void test_spiral_matrix() {
+        print(spiral_matrix(5));
+        print(spiral_matrix_improved(5));
+    }
 }

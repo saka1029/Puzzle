@@ -92,24 +92,17 @@ public class TestMatrixSpiral {
             return true;
         }
 
-        void walk(boolean right) {
-            this.right = right;
-            dx = right ? 0 : 1;
-            dy = right ? 1 : 0;
-            int rl = matrix.length - 1, cl = matrix[0].length - 1;
-            int rows = right ? rl : cl, cols = right ? cl : rl;
-            forward(cols);
-            while (forward(rows--) && forward(cols--))
-            /* do nothing */;
-            matrix[x][y] = n;
-        }
-
         static int[][] of(int rows, int cols, boolean right) {
             Spiral spiral = new Spiral();
             spiral.matrix = new int[rows][cols];
-            spiral.walk(right);
-            // print(spiral.matrix);
-            // System.out.println();
+            spiral.right = right;
+            spiral.dx = right ? 0 : 1;
+            spiral.dy = right ? 1 : 0;
+            int r = right ? rows - 1 : cols - 1, c = right ? cols - 1 : rows - 1;
+            spiral.forward(c);
+            while (spiral.forward(r--) && spiral.forward(c--))
+                /* do nothing */;
+            spiral.matrix[spiral.x][spiral.y] = spiral.n;
             return spiral.matrix;
         }
     }

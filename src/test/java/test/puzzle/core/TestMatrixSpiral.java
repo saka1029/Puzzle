@@ -72,8 +72,7 @@ public class TestMatrixSpiral {
             {21, 40, 51, 48, 33, 10},
             {20, 39, 50, 49, 34, 11},
             {19, 38, 37, 36, 35, 12},
-            {18, 17, 16, 15, 14, 13},
-        }, spiral(9, 6));
+            {18, 17, 16, 15, 14, 13}}, spiral(9, 6));
     }
 
     static class Spiral {
@@ -120,12 +119,12 @@ public class TestMatrixSpiral {
         assertArrayEquals(new int[][] {
             {0, 1, 2},
             {7, 8, 3},
-            {6, 5, 4}, }, Spiral.of(3, 3, true));
+            {6, 5, 4}}, Spiral.of(3, 3, true));
         assertArrayEquals(new int[][] {
             {0, 1, 2},
             {9, 10, 3},
             {8, 11, 4},
-            {7, 6, 5}, }, Spiral.of(4, 3, true));
+            {7, 6, 5}}, Spiral.of(4, 3, true));
     }
 
     @Test
@@ -133,12 +132,12 @@ public class TestMatrixSpiral {
         assertArrayEquals(new int[][] {
             {0, 7, 6},
             {1, 8, 5},
-            {2, 3, 4}, }, Spiral.of(3, 3, false));
+            {2, 3, 4}}, Spiral.of(3, 3, false));
         assertArrayEquals(new int[][] {
             {0, 9, 8},
             {1, 10, 7},
             {2, 11, 6},
-            {3, 4, 5},}, Spiral.of(4, 3, false));
+            {3, 4, 5}}, Spiral.of(4, 3, false));
     }
 
 }

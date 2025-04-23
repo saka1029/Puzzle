@@ -77,14 +77,10 @@ public class TestMatrixSpiral {
     }
 
     static class Spiral {
-        final int[][] matrix;
+        int[][] matrix;
         int n = 0, x = 0, y = 0;
         int dx, dy;
         boolean right = true;
-
-        public Spiral(int rows, int cols) {
-            this.matrix = new int[rows][cols];
-        }
 
         boolean forward(int s) {
             if (s <= 0)
@@ -110,7 +106,8 @@ public class TestMatrixSpiral {
         }
 
         static int[][] of(int rows, int cols, boolean right) {
-            Spiral spiral = new Spiral(rows, cols);
+            Spiral spiral = new Spiral();
+            spiral.matrix = new int[rows][cols];
             spiral.walk(right);
             // print(spiral.matrix);
             // System.out.println();
@@ -120,16 +117,28 @@ public class TestMatrixSpiral {
 
     @Test
     public void testSpiralRight() {
-        assertArrayEquals(new int[][] {{0, 1, 2}, {7, 8, 3}, {6, 5, 4},}, Spiral.of(3, 3, true));
-        assertArrayEquals(new int[][] {{0, 1, 2}, {9, 10, 3}, {8, 11, 4}, {7, 6, 5},},
-                Spiral.of(4, 3, true));
+        assertArrayEquals(new int[][] {
+            {0, 1, 2},
+            {7, 8, 3},
+            {6, 5, 4}, }, Spiral.of(3, 3, true));
+        assertArrayEquals(new int[][] {
+            {0, 1, 2},
+            {9, 10, 3},
+            {8, 11, 4},
+            {7, 6, 5}, }, Spiral.of(4, 3, true));
     }
 
     @Test
     public void testSpiralLeft() {
-        assertArrayEquals(new int[][] {{0, 7, 6}, {1, 8, 5}, {2, 3, 4},}, Spiral.of(3, 3, false));
-        assertArrayEquals(new int[][] {{0, 9, 8}, {1, 10, 7}, {2, 11, 6}, {3, 4, 5},},
-                Spiral.of(4, 3, false));
+        assertArrayEquals(new int[][] {
+            {0, 7, 6},
+            {1, 8, 5},
+            {2, 3, 4}, }, Spiral.of(3, 3, false));
+        assertArrayEquals(new int[][] {
+            {0, 9, 8},
+            {1, 10, 7},
+            {2, 11, 6},
+            {3, 4, 5},}, Spiral.of(4, 3, false));
     }
 
 }

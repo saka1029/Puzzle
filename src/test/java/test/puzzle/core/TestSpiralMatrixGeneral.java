@@ -4,6 +4,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntSupplier;
 import java.util.stream.IntStream;
 import org.junit.Test;
 
@@ -133,4 +134,72 @@ public class TestSpiralMatrixGeneral {
             {3, 4, 5}}, Spiral.of(4, 3, false));
     }
 
+    static class Turtle {
+        final int[][] matrix;
+        int x, y, dx, dy;
+
+        Turtle(int[][] matrix, int x, int y, int dx, int dy) {
+            this.matrix = matrix;
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+        }
+
+        void turn(boolean right) {
+            int t = dx;
+            if (right) {
+                dx = dy;
+                dy = -t;
+            } else {
+                dx = -dy;
+                dy = t;
+            }
+        }
+
+        void go() {
+            x += dx;
+            y += dy;
+        }
+
+        void line(int length, IntSupplier value) {
+            for (int i = 0; i < length; ++i, go()) 
+                matrix[x][y] = value.getAsInt();
+        }
+    }
+
+    @Test
+    public void testTurtleLine() {
+        int[][] matrix = new int[5][5];
+        Turtle t = new Turtle(matrix, 0, 0, 0, 1);
+        int[] n = {0};
+        IntSupplier next = () -> n[0]++;
+        t.line(5, next);
+        print(t.matrix);
+    }
+
+    static int[][] spiralTurtle(int rows, int cols) {
+        int[][] matrix = new int[rows][cols];
+        int[] n = {0};
+        IntSupplier next = () -> n[0]++;
+        int minStart = (Math.min(rows, cols) + 1) / 2;
+        Turtle turtle = new Turtle(matrix, 0, 0, 0, 1);
+        --rows; --cols;
+        for (int s = 0; s < minStart; ++s, rows -= 2, cols -= 2) {
+            turtle.x = s; turtle.y = s;
+            for (int c = 0; c < 2; ++c) {
+                turtle.line(cols, next);
+                turtle.turn(true);
+                turtle.line(rows, next);
+                turtle.turn(true);
+            }
+        }
+        return matrix;
+    }
+
+    @Test
+    public void testSpiralTurtle() {
+        int[][] a = spiralTurtle(9, 5);
+        print(a);
+    }
 }

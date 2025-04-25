@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.Test;
 
-public class TestMatrixSpiral {
+public class TestSpiralMatrixGeneral {
 
     static boolean add(List<Integer> list, int value) {
         return value > 0 ? list.add(value) : false;

@@ -178,7 +178,7 @@ public class TestSpiralMatrixGeneral {
         print(t.matrix);
     }
 
-    static int[][] spiralTurtle(int rows, int cols) {
+    static int[][] spiralTurtleRight(int rows, int cols) {
         int[][] matrix = new int[rows][cols];
         int[] n = {0};
         IntSupplier next = () -> n[0]++;
@@ -197,9 +197,29 @@ public class TestSpiralMatrixGeneral {
         return matrix;
     }
 
+    static int[][] spiralTurtleLeft(int rows, int cols) {
+        int[][] matrix = new int[rows][cols];
+        int[] n = {0};
+        IntSupplier next = () -> n[0]++;
+        int minStart = (Math.min(rows, cols) + 1) / 2;
+        Turtle turtle = new Turtle(matrix, 0, 0, 1, 0);
+        --rows; --cols;
+        for (int s = 0; s < minStart; ++s, rows -= 2, cols -= 2) {
+            turtle.x = s; turtle.y = s;
+            for (int c = 0; c < 2; ++c) {
+                turtle.line(rows, next);
+                turtle.turn(false);
+                turtle.line(cols, next);
+                turtle.turn(false);
+            }
+        }
+        return matrix;
+    }
+
     @Test
     public void testSpiralTurtle() {
-        int[][] a = spiralTurtle(9, 5);
-        print(a);
+        print(spiralTurtleRight(9, 5));
+        System.out.println("--");
+        print(spiralTurtleLeft(9, 5));
     }
 }

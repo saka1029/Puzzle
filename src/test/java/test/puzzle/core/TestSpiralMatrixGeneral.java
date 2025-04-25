@@ -162,35 +162,22 @@ public class TestSpiralMatrixGeneral {
             y += dy;
         }
 
-        void line(int length, IntSupplier value) {
-            for (int i = 0; i < length; ++i, go()) 
-                matrix[x][y] = value.getAsInt();
+        void set(int value) {
+            matrix[x][y] = value;
         }
-    }
-
-    @Test
-    public void testTurtleLine() {
-        int[][] matrix = new int[5][5];
-        Turtle t = new Turtle(matrix, 0, 0, 0, 1);
-        int[] n = {0};
-        IntSupplier next = () -> n[0]++;
-        t.line(5, next);
-        print(t.matrix);
     }
 
     static int[][] spiralTurtleRight(int rows, int cols) {
         int[][] matrix = new int[rows][cols];
-        int[] n = {0};
-        IntSupplier next = () -> n[0]++;
+        int n = 0, max = rows * cols;
         int minStart = (Math.min(rows, cols) + 1) / 2;
         Turtle turtle = new Turtle(matrix, 0, 0, 0, 1);
         --rows; --cols;
         for (int s = 0; s < minStart; ++s, rows -= 2, cols -= 2) {
             turtle.x = s; turtle.y = s;
-            for (int c = 0; c < 2; ++c) {
-                turtle.line(cols, next);
-                turtle.turn(true);
-                turtle.line(rows, next);
+            for (int i : new int[] { cols, rows, cols, rows}) {
+                for (int j = 0; j < i && n < max; ++j, turtle.go())
+                    turtle.set(n++);
                 turtle.turn(true);
             }
         }
@@ -199,17 +186,15 @@ public class TestSpiralMatrixGeneral {
 
     static int[][] spiralTurtleLeft(int rows, int cols) {
         int[][] matrix = new int[rows][cols];
-        int[] n = {0};
-        IntSupplier next = () -> n[0]++;
+        int n = 0, max = rows * cols;
         int minStart = (Math.min(rows, cols) + 1) / 2;
         Turtle turtle = new Turtle(matrix, 0, 0, 1, 0);
         --rows; --cols;
         for (int s = 0; s < minStart; ++s, rows -= 2, cols -= 2) {
             turtle.x = s; turtle.y = s;
-            for (int c = 0; c < 2; ++c) {
-                turtle.line(rows, next);
-                turtle.turn(false);
-                turtle.line(cols, next);
+            for (int i : new int[] { rows, cols, rows, cols }) {
+                for (int j = 0; j < i && n < max; ++j, turtle.go())
+                    turtle.set(n++);
                 turtle.turn(false);
             }
         }

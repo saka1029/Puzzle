@@ -207,4 +207,20 @@ public class TestSpiralMatrixGeneral {
         System.out.println("--");
         print(spiralTurtleLeft(9, 5));
     }
+
+    static int[][] spiralRightSimple(int r, int c) {
+        int[][] matrix = new int[r][c];
+        int m = r * c, t = Math.min(r, c);
+        --r; --c;
+        for (int s = 0, n = 0, dx = 0, dy = 1; s * 2 < t; ++s, r -= 2, c -= 2)
+            for (int i = 0, x = s, y = s, p[] = {c, r, c, r}, d = 0; i < 4; ++i, d = dx, dx = dy, dy = -d)
+                for (int j = 0; j < p[i] && n < m; ++j, x += dx, y += dy)
+                    matrix[x][y] = n++;
+        return matrix;
+    }
+
+    @Test
+    public void testSpiralRightSimple() {
+        print(spiralRightSimple(9, 5));
+    }
 }

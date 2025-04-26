@@ -4,7 +4,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntSupplier;
 import java.util.stream.IntStream;
 import org.junit.Test;
 
@@ -54,7 +53,9 @@ public class TestSpiralMatrixGeneral {
     }
 
     static void print(int[][] matrix) {
-        int rows = matrix.length, cols = matrix[0].length;
+        int rows = matrix.length;
+        int cols = rows > 0 ? matrix[0].length : 0;
+        System.out.printf("%d x %d%n", rows, cols);
         for (int r = 0; r < rows; ++r) {
             for (int c = 0; c < cols; ++c)
                 System.out.printf("%3d", matrix[r][c]);
@@ -208,19 +209,82 @@ public class TestSpiralMatrixGeneral {
         print(spiralTurtleLeft(9, 5));
     }
 
-    static int[][] spiralRightSimple(int r, int c) {
-        int[][] matrix = new int[r][c];
-        int m = r * c, t = Math.min(r, c);
-        --r; --c;
-        for (int s = 0, n = 0, dx = 0, dy = 1; s * 2 < t; ++s, r -= 2, c -= 2)
+    static int[][] spiralRightSimple(int h, int w) {
+        int[][] matrix = new int[h][w];
+        for (int s = 0, n = 0, r = h - 1, c = w - 1, m = h * w, t = Math.min(h, w), dx = 0, dy = 1; s * 2 < t; ++s, r -= 2, c -= 2)
             for (int i = 0, x = s, y = s, p[] = {c, r, c, r}, d = 0; i < 4; ++i, d = dx, dx = dy, dy = -d)
-                for (int j = 0; j < p[i] && n < m; ++j, x += dx, y += dy)
-                    matrix[x][y] = n++;
+                for (int j = 0; j < p[i] && n < m; ++j, x += dx, y += dy, ++n)
+                    matrix[x][y] = n;
         return matrix;
     }
 
+    static final int[][][] SPIRALS = {
+        // s = 0
+        {},
+        // s = 1
+        {{0}},
+        // s = 2
+        {{0, 1},
+        {3, 2}},
+        // s = 3
+        {{0, 1, 2},
+        {7, 8, 3},
+        {6, 5, 4}},
+        // s = 4
+        {{0, 1, 2, 3},
+        {11, 12, 13, 4},
+        {10, 15, 14, 5},
+        {9, 8, 7, 6}},
+        // s = 5
+        {{0, 1, 2, 3, 4},
+        {15, 16, 17, 18, 5},
+        {14, 23, 24, 19, 6},
+        {13, 22, 21, 20, 7},
+        {12, 11, 10, 9, 8}},
+        // s = 6
+        {{0, 1, 2, 3, 4, 5},
+        {19, 20, 21, 22, 23, 6},
+        {18, 31, 32, 33, 24, 7},
+        {17, 30, 35, 34, 25, 8},
+        {16, 29, 28, 27, 26, 9},
+        {15, 14, 13, 12, 11, 10}},
+        // s = 7
+        {{0, 1, 2, 3, 4, 5, 6},
+        {23, 24, 25, 26, 27, 28, 7},
+        {22, 39, 40, 41, 42, 29, 8},
+        {21, 38, 47, 48, 43, 30, 9},
+        {20, 37, 46, 45, 44, 31, 10},
+        {19, 36, 35, 34, 33, 32, 11},
+        {18, 17, 16, 15, 14, 13, 12}},
+        // s = 8
+        {{0, 1, 2, 3, 4, 5, 6, 7},
+        {27, 28, 29, 30, 31, 32, 33, 8},
+        {26, 47, 48, 49, 50, 51, 34, 9},
+        {25, 46, 59, 60, 61, 52, 35, 10},
+        {24, 45, 58, 63, 62, 53, 36, 11},
+        {23, 44, 57, 56, 55, 54, 37, 12},
+        {22, 43, 42, 41, 40, 39, 38, 13},
+        {21, 20, 19, 18, 17, 16, 15, 14}},
+        // s = 9
+        {{0, 1, 2, 3, 4, 5, 6, 7, 8},
+        {31, 32, 33, 34, 35, 36, 37, 38, 9},
+        {30, 55, 56, 57, 58, 59, 60, 39, 10},
+        {29, 54, 71, 72, 73, 74, 61, 40, 11},
+        {28, 53, 70, 79, 80, 75, 62, 41, 12},
+        {27, 52, 69, 78, 77, 76, 63, 42, 13},
+        {26, 51, 68, 67, 66, 65, 64, 43, 14},
+        {25, 50, 49, 48, 47, 46, 45, 44, 15},
+        {24, 23, 22, 21, 20, 19, 18, 17, 16}},
+    };
+
     @Test
     public void testSpiralRightSimple() {
-        print(spiralRightSimple(9, 5));
+        for (int i = 0, max = SPIRALS.length; i < max; ++i) {
+            int[][] a = spiralRightSimple(i, i);
+            print(a);
+            // assertArrayEquals(SPIRALS[i], a);
+        }
+        print(spiralRightSimple(3, 4));
+        print(spiralRightSimple(4, 3));
     }
 }

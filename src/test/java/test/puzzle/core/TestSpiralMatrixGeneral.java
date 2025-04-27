@@ -4,6 +4,8 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.IntStream;
 import org.junit.Test;
 
@@ -209,16 +211,30 @@ public class TestSpiralMatrixGeneral {
         print(spiralTurtleLeft(9, 5));
     }
 
+    /**
+     * c : 四角形の水平長さ
+     * r : 四角形の垂直長さ
+     * s : 四角形描画の開始位置(x = s, y = sから開始する)
+     * t : sの最大値(s * 2 < tでなければならない)
+     * x : 現在の垂直位置
+     * y : 現在の水平位置
+     * z : 垂直方向の移動距離(-1, 0, 1のいずれか)
+     * u : 水平方向の移動距離(-1, 0, 1のいずれか)
+     * d : 回転時に使用する一時変数
+     * @param h 四角形の幅
+     * @param w 四角形の高さ
+     * @return 左上隅から開始する螺旋上に数字をゼロから埋めた四角形の配列
+     */
     static int[][] spiralRightSimple(int h, int w) {
         int[][] matrix = new int[h][w];
-        for (int s = 0, n = 0, r = h - 1, c = w - 1, m = h * w, t = Math.min(h, w), dx = 0, dy = 1; s * 2 < t; ++s, r -= 2, c -= 2)
-            for (int i = 0, x = s, y = s, p[] = {c, r, c, r}, d = 0; i < 4; ++i, d = dx, dx = dy, dy = -d)
-                for (int j = 0; j < p[i] && n < m; ++j, x += dx, y += dy, ++n)
+        for (int s = 0, n = 0, r = h - 1, c = w - 1, t = Math.min(h, w), m = h * w, z = 0, u = 1; s * 2 < t; ++s, r -= 2, c -= 2)
+            for (int i = 0, x = s, y = s, p[] = {c + r == 0 ? 1 : c, r, c, r}, d = 0; i < 4; ++i, d = z, z = u, u = -d)
+                for (int j = 0; j < p[i] && n < m; ++j, x += z, y += u, ++n)
                     matrix[x][y] = n;
         return matrix;
     }
 
-    static final int[][][] SPIRALS = {
+    static final int[][][] SPIRALS_SQUARE = {
         // s = 0
         {},
         // s = 1
@@ -277,14 +293,40 @@ public class TestSpiralMatrixGeneral {
         {24, 23, 22, 21, 20, 19, 18, 17, 16}},
     };
 
+    static Map<int[], int[][]> SPIRALS = Map.of(
+        new int[] {1, 3},
+        new int[][] {
+            {0, 1, 2}},
+        new int[] {3, 1},
+        new int[][] {
+            {0},
+            {1},
+            {2}},
+        new int[] {4, 3},
+        new int[][] {
+            {0, 1, 2},
+            {9, 10, 3},
+            {8, 11, 4},
+            {7, 6, 5}},
+        new int[] {3, 4},
+        new int[][] {
+            {0, 1, 2, 3},
+            {9, 10, 11, 4},
+            {8, 7, 6, 5}}
+    );
+
     @Test
     public void testSpiralRightSimple() {
-        for (int i = 0, max = SPIRALS.length; i < max; ++i) {
+        for (int i = 0, max = SPIRALS_SQUARE.length; i < max; ++i) {
             int[][] a = spiralRightSimple(i, i);
             print(a);
-            // assertArrayEquals(SPIRALS[i], a);
+            assertArrayEquals(SPIRALS_SQUARE[i], a);
         }
-        print(spiralRightSimple(3, 4));
-        print(spiralRightSimple(4, 3));
+        for (Entry<int[], int[][]> e : SPIRALS.entrySet()) {
+            int[][] a = spiralRightSimple(e.getKey()[0], e.getKey()[1]);
+            print(a);
+            assertArrayEquals(e.getValue(), a);
+
+        }
     }
 }

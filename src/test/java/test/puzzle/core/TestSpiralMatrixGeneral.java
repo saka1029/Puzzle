@@ -3,6 +3,7 @@ package test.puzzle.core;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -326,7 +327,37 @@ public class TestSpiralMatrixGeneral {
             int[][] a = spiralRightSimple(e.getKey()[0], e.getKey()[1]);
             print(a);
             assertArrayEquals(e.getValue(), a);
+        }
+    }
 
+    static final int VACANT = -1;
+    static int[][] spiralRightVacant(int height, int width) {
+        int[][] matrix = new int[height][width];
+        for (int[] row : matrix)
+            Arrays.fill(row, VACANT);
+        int max = height * width, x = 0, y = 0, dx = 0, dy = 1, nx, ny;
+        for (int n = 0; n < max; n++, x = nx, y = ny) {
+            matrix[x][y] = n;
+            nx = x + dx; ny = y + dy;
+            if (nx < 0 || nx >= height || ny < 0 || ny >= width || matrix[nx][ny] != VACANT) {
+                int temp = dx; dx = dy; dy = -temp; // turn right
+                nx = x + dx; ny = y + dy;
+            }
+        }
+        return matrix;
+    }
+
+    @Test
+    public void testSpiralRightVacant() {
+        for (int i = 0, max = SPIRALS_SQUARE.length; i < max; ++i) {
+            int[][] a = spiralRightVacant(i, i);
+            print(a);
+            assertArrayEquals(SPIRALS_SQUARE[i], a);
+        }
+        for (Entry<int[], int[][]> e : SPIRALS.entrySet()) {
+            int[][] a = spiralRightVacant(e.getKey()[0], e.getKey()[1]);
+            print(a);
+            assertArrayEquals(e.getValue(), a);
         }
     }
 }

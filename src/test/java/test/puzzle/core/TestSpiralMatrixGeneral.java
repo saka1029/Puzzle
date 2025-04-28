@@ -331,6 +331,22 @@ public class TestSpiralMatrixGeneral {
     }
 
     static final int VACANT = -1;
+    static int[][] spiralLeftVacant(int height, int width) {
+        int[][] matrix = new int[height][width];
+        for (int[] row : matrix)
+            Arrays.fill(row, VACANT);
+        int max = height * width, x = 0, y = 0, dx = 1, dy = 0, nx, ny;
+        for (int n = 0; n < max; n++, x = nx, y = ny) {
+            matrix[x][y] = n;
+            nx = x + dx; ny = y + dy;
+            if (nx < 0 || nx >= height || ny < 0 || ny >= width || matrix[nx][ny] != VACANT) {
+                int temp = dx; dx = -dy; dy = temp; // turn left
+                nx = x + dx; ny = y + dy;
+            }
+        }
+        return matrix;
+    }
+
     static int[][] spiralRightVacant(int height, int width) {
         int[][] matrix = new int[height][width];
         for (int[] row : matrix)
@@ -359,5 +375,10 @@ public class TestSpiralMatrixGeneral {
             print(a);
             assertArrayEquals(e.getValue(), a);
         }
+    }
+
+    @Test
+    public void testSpiralLeftVacant() {
+        print(spiralLeftVacant(5, 5));
     }
 }

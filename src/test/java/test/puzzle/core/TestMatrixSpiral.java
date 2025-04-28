@@ -3,10 +3,11 @@ package test.puzzle.core;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
-
+import java.util.Map;
+import java.util.Map.Entry;
 import org.junit.Test;
 
-public class TestSpiralMatrix {
+public class TestMatrixSpiral {
 
     /**
      * s行s列の螺旋正方行列を求めます。
@@ -351,27 +352,8 @@ public class TestSpiralMatrix {
      * [12, 11, 10, 9, 8]
      * </pre>
      */
+    static final int[]  DX = {0, 1, 0, -1}, DY = {1, 0, -1, 0};
     static int[][] spiral_matrix(int n) {
-        int[][] matrix = new int[n][n];
-        int[]  dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
-        int x = 0, y = 0, direction = 0;
-        for (int i = 0, max = n * n; i < max; ++i) {
-            matrix[x][y] = i;
-            int nx = x + dx[direction], ny = y + dy[direction];
-            // 境界または既に値があるところなら向きを変える
-            if (! (0 <= nx && nx < n && 0 <= ny && ny < n && matrix[nx][ny] == 0)) {
-                direction = (direction + 1) % 4;
-                nx = x + dx[direction]; ny = y + dy[direction];
-            }
-            x = nx; y = ny;
-        }
-        return matrix;
-    }
-
-    /**
-     * 配列の初期値として-1を埋めることによって改善できる。
-     */
-    static int[][] spiral_matrix_improved(int n) {
         int[][] matrix = new int[n][n];
         for (int[] row : matrix)
             Arrays.fill(row, -1);
@@ -393,6 +375,91 @@ public class TestSpiralMatrix {
     @Test
     public void test_spiral_matrix() {
         print(spiral_matrix(5));
-        print(spiral_matrix_improved(5));
+    }
+
+    static final int VACANT = -1;
+    static int[][] matrix(int height, int width) {
+        int[][] matrix = new int[height][width];
+        for (int[] row : matrix)
+            Arrays.fill(row, VACANT);
+        return matrix;
+    }
+
+    static int[][] matrixSpiralLeft(int height, int width) {
+        int[][] matrix = matrix(height, width);
+        int x = 0, y = 0, dx = 0, dy = 1, max = height * width, nx, ny;
+        for (int i = 0; i < max; ++i, x = nx, y = ny) {
+            matrix[x][y] = i;
+            nx = x + dx; ny = y + dy;
+            if (nx < 0 || nx >= height || ny < 0 || ny >= width || matrix[nx][ny] != VACANT) {
+                int temp = dx; dx = dy; dy = -temp;
+                nx = x + dx; ny = y + dy;
+            }
+        }
+        return matrix;
+    }
+
+    static int[][] matrixSpiralRight(int height, int width) {
+        int[][] matrix = matrix(height, width);
+        int x = 0, y = 0, dx = 1, dy = 0, max = height * width, nx, ny;
+        for (int i = 0; i < max; ++i, x = nx, y = ny) {
+            matrix[x][y] = i;
+            nx = x + dx; ny = y + dy;
+            if (nx < 0 || nx >= height || ny < 0 || ny >= width || matrix[nx][ny] != VACANT) {
+                int temp = dx; dx = -dy; dy = temp;
+                nx = x + dx; ny = y + dy;
+            }
+        }
+        return matrix;
+    }
+
+    static final Map<int[], int[][]> MATRIX_SPIRAL_LEFT = Map.of(
+        new int[] {3, 1},
+        new int[][] {
+            {0},
+            {1},
+            {2},
+        },
+        new int[] {1, 3},
+        new int[][] {
+            {0, 1, 2},
+        },
+        new int[] {3, 2},
+        new int[][] {
+            {0, 1},
+            {5, 2},
+            {4, 3},
+        },
+        new int[] {2, 3},
+        new int[][] {
+            {0, 1, 2},
+            {5, 4, 3},
+        },
+        new int[] {3, 4},
+        new int[][] {
+            {0, 1, 2, 3},
+            {9, 10, 11, 4},
+            {8, 7, 6, 5},
+        },
+        new int[] {4, 6},
+        new int[][] {
+            {0, 1, 2, 3, 4, 5},
+            {15, 16, 17, 18, 19, 6},
+            {14, 23, 22, 21, 20, 7},
+            {13, 12, 11, 10, 9, 8},
+        }
+    );
+
+    @Test
+    public void testMatrixSpiralLeft() {
+        for (int i = 0, max = SPIRALS.length; i < max; ++i)
+            assertArrayEquals(SPIRALS[i], matrixSpiralLeft(i, i));
+        for (Entry<int[], int[][]> e : MATRIX_SPIRAL_LEFT.entrySet())
+            assertArrayEquals(e.getValue(), matrixSpiralLeft(e.getKey()[0], e.getKey()[1]));
+    }
+
+    @Test
+    public void testMatrixSpiralRight() {
+        print(matrixSpiralRight(3, 5));
     }
 }

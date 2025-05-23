@@ -3,15 +3,12 @@ package test.puzzle.nanopico;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.junit.Test;
 
 public class TestZyunkaisu {
 
     static int[] array(int n) {
-        return ("" + n).chars().map(i -> i - '0').toArray();
+        return Integer.toString(n).chars().map(i -> i - '0').toArray();
     }
 
     @Test
@@ -48,12 +45,14 @@ public class TestZyunkaisu {
     public void testCircularEquals() {
         assertTrue(circularEquals(array(1203), array(3120)));
         assertTrue(circularEquals(array(1203), array(300120)));
+        assertTrue(circularEquals(array(123), array(2301)));
+        assertTrue(circularEquals(array(123), array(23001)));
     }
 
     @Test
     public void testZyunkaisu() {
         for (int i = 1; i < 1000000; ++i)
             if (circularEquals(array(i), array(i * 2)))
-                System.out.printf("%d %d%n", i, i * 2);
+                System.out.printf("%d * 2 = %d%n", i, i * 2);
     }
 }

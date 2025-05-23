@@ -50,9 +50,17 @@ public class TestZyunkaisu {
     }
 
     @Test
-    public void testZyunkaisu() {
+    public void test巡回数問題1() {
         for (int i = 1; i < 1000000; ++i)
             if (circularEquals(array(i), array(i * 2)))
                 System.out.printf("%d * 2 = %d%n", i, i * 2);
+    }
+
+    @Test
+    public void test巡回数問題2() {
+        for (int i = 1; i < 1000000; ++i)
+            for (int j = 2; j <= 9; ++j)
+                if (circularEquals(array(i), array(i * j)))
+                    System.out.printf("%d * %d = %d%n", i, j, i * j);
     }
 }

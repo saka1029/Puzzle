@@ -2,18 +2,26 @@ package test.puzzle.nanopico;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
-
+import java.math.BigInteger;
 import org.junit.Test;
 
 public class TestZyunkaisu {
 
-    static int[] array(int n) {
-        return Integer.toString(n).chars().map(i -> i - '0').toArray();
+    static int[] intArray(String n) {
+        return n.chars().map(i -> i - '0').toArray();
+    }
+
+    static int[] intArray(int n) {
+        return intArray(Integer.toString(n));
+    }
+
+    static int[] intArray(BigInteger n) {
+        return n.toString().chars().map(i -> i - '0').toArray();
     }
 
     @Test
     public void testArray() {
-        assertArrayEquals(new int[] {1, 2, 0,3}, array(1203));
+        assertArrayEquals(new int[] {1, 2, 0,3}, intArray(1203));
     }
 
     static int find(int[] b, int key, int start) {
@@ -23,7 +31,7 @@ public class TestZyunkaisu {
         return -1;
     }
 
-    static boolean circularEquals(int[] a, int[] b) {
+    static boolean 巡回数(int[] a, int[] b) {
         int key = a[0], al = a.length, bl = b.length;
         L: for (int start = 0; start < bl; ++start) {
             int j = find(b, key, start);
@@ -43,16 +51,16 @@ public class TestZyunkaisu {
 
     @Test
     public void testCircularEquals() {
-        assertTrue(circularEquals(array(1203), array(3120)));
-        assertTrue(circularEquals(array(1203), array(300120)));
-        assertTrue(circularEquals(array(123), array(2301)));
-        assertTrue(circularEquals(array(123), array(23001)));
+        assertTrue(巡回数(intArray(1203), intArray(3120)));
+        assertTrue(巡回数(intArray(1203), intArray(300120)));
+        assertTrue(巡回数(intArray(123), intArray(2301)));
+        assertTrue(巡回数(intArray(123), intArray(23001)));
     }
 
     @Test
     public void test巡回数問題1() {
         for (int i = 1; i < 1000000; ++i)
-            if (circularEquals(array(i), array(i * 2)))
+            if (巡回数(intArray(i), intArray(i * 2)))
                 System.out.printf("%d * 2 = %d%n", i, i * 2);
     }
 
@@ -60,7 +68,7 @@ public class TestZyunkaisu {
     public void test巡回数問題2() {
         for (int i = 1; i < 1000000; ++i)
             for (int j = 2; j <= 9; ++j)
-                if (circularEquals(array(i), array(i * j)))
+                if (巡回数(intArray(i), intArray(i * j)))
                     System.out.printf("%d * %d = %d%n", i, j, i * j);
     }
 }

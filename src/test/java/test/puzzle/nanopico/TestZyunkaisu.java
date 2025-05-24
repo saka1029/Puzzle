@@ -75,7 +75,7 @@ public class TestZyunkaisu {
     @Test
     public void test588235294117647() {
         BigInteger n = new BigInteger("588235294117647");
-        for (int i = 2; i <= 9; ++i) {
+        for (int i = 2; i <= 16; ++i) {
             BigInteger m = n.multiply(BigInteger.valueOf(i));
             boolean b = 巡回数(intArray(n), intArray(m));
             System.out.printf("%s * %d = %s %s%n", n, i, m, b);

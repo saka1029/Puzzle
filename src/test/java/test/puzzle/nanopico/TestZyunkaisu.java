@@ -71,4 +71,24 @@ public class TestZyunkaisu {
                 if (巡回数(intArray(i), intArray(i * j)))
                     System.out.printf("%d * %d = %d%n", i, j, i * j);
     }
+
+    @Test
+    public void test588235294117647() {
+        BigInteger n = new BigInteger("588235294117647");
+        for (int i = 2; i <= 9; ++i) {
+            BigInteger m = n.multiply(BigInteger.valueOf(i));
+            boolean b = 巡回数(intArray(n), intArray(m));
+            System.out.printf("%s * %d = %s %s%n", n, i, m, b);
+            assertTrue(b);
+        }
+    }
+
+    @Test
+    public void test434782608695652173913() {
+        BigInteger n = new BigInteger("434782608695652173913");
+        for (int i = 2; i <= 9; ++i) {
+            BigInteger m = n.multiply(BigInteger.valueOf(i));
+            System.out.printf("%s * %d = %s %s%n", n, i, m, 巡回数(intArray(n), intArray(m)));
+        }
+    }
 }

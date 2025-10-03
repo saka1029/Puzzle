@@ -4,6 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+/**
+ * CPS(継続渡しスタイル)のプログラミングに入門する
+ * https://qiita.com/Kai101/items/eae3a00fcd1fc87e25fb
+ */
 public class TestCPS {
 
     interface Cont { void apply(int i); }

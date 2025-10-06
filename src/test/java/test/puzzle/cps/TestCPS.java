@@ -96,4 +96,33 @@ public class TestCPS {
         add.apply(i -> add.apply(c, i, 2), 3, 4);
         assertEquals(9, r[0]);
     }
+
+    @Test
+    public void testFactorial() {
+        var f = new Object() {
+            void mul(Cont c, int a, int b) {
+                c.apply(a * b);
+            }
+            void dec(Cont c, int a) {
+                c.apply(a - 1);
+            }
+            void fact(Cont c, int n) {
+                if (n <= 1)
+                    c.apply(1);
+                else
+                    dec(i ->
+                        fact(j ->
+                            mul(c, j, n),
+                            i),
+                        n);
+            }
+        };
+        int[] r = {0};
+        Cont c = i -> r[0] = i;
+        f.fact(c, 0); assertEquals(1, r[0]);
+        f.fact(c, 1); assertEquals(1, r[0]);
+        f.fact(c, 2); assertEquals(2, r[0]);
+        f.fact(c, 3); assertEquals(6, r[0]);
+        f.fact(c, 4); assertEquals(24, r[0]);
+    }
 }

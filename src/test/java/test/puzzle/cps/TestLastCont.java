@@ -45,16 +45,19 @@ public class TestLastCont {
                                 fibonacci(n2, f2 ->
                                     add(f1, f2, c)))));
             }
-            int result = 0;
-            void save(int i) { result = i; }
+            int fibonacci(int n) {
+                int[] result = {0};
+                fibonacci(n, i -> result[0] = i);
+                return result[0];
+            }
         };
-        f.fibonacci(0, f::save); assertEquals(0, f.result);
-        f.fibonacci(1, f::save); assertEquals(1, f.result);
-        f.fibonacci(2, f::save); assertEquals(1, f.result);
-        f.fibonacci(3, f::save); assertEquals(2, f.result);
-        f.fibonacci(4, f::save); assertEquals(3, f.result);
-        f.fibonacci(5, f::save); assertEquals(5, f.result);
-        f.fibonacci(6, f::save); assertEquals(8, f.result);
-        f.fibonacci(7, f::save); assertEquals(13, f.result);
+        assertEquals(0, f.fibonacci(0));
+        assertEquals(1, f.fibonacci(1));
+        assertEquals(1, f.fibonacci(2));
+        assertEquals(2, f.fibonacci(3));
+        assertEquals(3, f.fibonacci(4));
+        assertEquals(5, f.fibonacci(5));
+        assertEquals(8, f.fibonacci(6));
+        assertEquals(13, f.fibonacci(7));
     }
 }

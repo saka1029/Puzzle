@@ -2,6 +2,9 @@ package test.puzzle.cps;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.function.IntBinaryOperator;
+import java.util.function.IntUnaryOperator;
+
 import org.junit.Test;
 
 /**
@@ -72,4 +75,25 @@ public class TestCPS {
         assertEquals(20, r[0]);
     }
 
+    static Cont1 makeCont(IntUnaryOperator op) {
+        return (c, a) -> c.apply(op.applyAsInt(a));
+    }
+
+    static Cont2 makeCont(IntBinaryOperator op) {
+        return (c, a, b) -> c.apply(op.applyAsInt(a, b));
+    }
+
+    @Test
+    public void testMakeCont() {
+        Cont2 add = makeCont((a, b) -> a + b);
+        // Cont2 add = makeCont(Integer::sum);
+        int[] r = {0};
+        Cont c = i -> r[0] = i;
+        // 3 + 4
+        add.apply(c, 3, 4);
+        assertEquals(7, r[0]);
+        // 3 + 4 + 2
+        add.apply(i -> add.apply(c, i, 2), 3, 4);
+        assertEquals(9, r[0]);
+    }
 }

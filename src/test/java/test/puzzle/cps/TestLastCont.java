@@ -31,6 +31,24 @@ public class TestLastCont {
     }
 
     @Test
+    public void testFactorialSimple() {
+        var f = new Object() {
+            void factorial(int n, Cont c) {
+                if (n <= 0)
+                    c.apply(1);
+                else
+                    factorial(n - 1, f1 -> c.apply(n * f1));
+            }
+        };
+        int[] r = {0};
+        Cont c = i -> r[0] = i;
+        f.factorial(0, c); assertEquals(1, r[0]);
+        f.factorial(1, c); assertEquals(1, r[0]);
+        f.factorial(2, c); assertEquals(2, r[0]);
+        f.factorial(3, c); assertEquals(6, r[0]);
+    }
+
+    @Test
     public void testFibonacci() {
         var f = new Object() {
             void add(int a, int b, Cont c) { c.apply(a + b); }

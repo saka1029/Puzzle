@@ -78,4 +78,31 @@ public class TestLastCont {
         assertEquals(8, f.fibonacci(6));
         assertEquals(13, f.fibonacci(7));
     }
+
+    @Test
+    public void testFibonacciSimple() {
+        var f = new Object() {
+            void fibonacci(int n, Cont c) {
+                if (n <= 1)
+                    c.apply(n);
+                else
+                    fibonacci(n - 1, f1 ->
+                        fibonacci(n - 2, f2 ->
+                            c.apply(f1 + f2)));
+            }
+            int fibonacci(int n) {
+                int[] result = {0};
+                fibonacci(n, i -> result[0] = i);
+                return result[0];
+            }
+        };
+        assertEquals(0, f.fibonacci(0));
+        assertEquals(1, f.fibonacci(1));
+        assertEquals(1, f.fibonacci(2));
+        assertEquals(2, f.fibonacci(3));
+        assertEquals(3, f.fibonacci(4));
+        assertEquals(5, f.fibonacci(5));
+        assertEquals(8, f.fibonacci(6));
+        assertEquals(13, f.fibonacci(7));
+    }
 }

@@ -36,6 +36,8 @@ public class TestLastCont {
             void factorial(int n, Cont c) {
                 if (n <= 0)
                     c.apply(1);
+                else if (n > 12)
+                    c.apply(-1);
                 else
                     factorial(n - 1, f1 -> c.apply(n * f1));
             }
@@ -49,6 +51,16 @@ public class TestLastCont {
         assertEquals(1, f.factorial(1));
         assertEquals(2, f.factorial(2));
         assertEquals(6, f.factorial(3));
+        assertEquals(24, f.factorial(4));
+        assertEquals(120, f.factorial(5));
+        assertEquals(720, f.factorial(6));
+        assertEquals(5040, f.factorial(7));
+        assertEquals(40320, f.factorial(8));
+        assertEquals(362880, f.factorial(9));
+        assertEquals(3628800, f.factorial(10));
+        assertEquals(39916800, f.factorial(11));
+        assertEquals(479001600, f.factorial(12));
+        assertEquals(-1, f.factorial(13));
     }
 
     @Test

@@ -9,11 +9,11 @@
  * nは1から9の数字なので、全ての番号が使用済みの時は0b111_111_111_0となる。
  */
 function solveBitmapFast(a) {
-    let result = {};
-    let size = 9, mask = 0b111_111_111_0;
-    let rowSet = Array(size).fill(0);
-    let colSet = Array(size).fill(0);
-    let boxSet = Array(size).fill(0);
+    const result = [];
+    const size = 9, mask = 0b111_111_111_0;
+    const rowSet = Array(size).fill(0);
+    const colSet = Array(size).fill(0);
+    const boxSet = Array(size).fill(0);
     // 配列a初期化：既に確定している番号をbitmapにセットする。
     for (let r = 0; r < size; ++r)
         for (let c = 0; c < size; ++c) {
@@ -30,24 +30,6 @@ function solveBitmapFast(a) {
         if ((x & 0x0000000F) == 0) {n = n + 4; x = x >> 4;}
         if ((x & 0x00000003) == 0) {n = n + 2; x = x >> 2;}
         return n - (x & 1);
-    }
-
-    function set(r, c, bit) {
-        rowSet[r] |= bit;
-        colSet[c] |= bit;
-        boxSet[box(r, c)] |= bit;
-        a[r][c] = numberOfTrailingZeros(bit);
-    }
-
-    function unset(r, c, bit) {
-        rowSet[r] ^= bit;
-        colSet[c] ^= bit;
-        boxSet[box(r, c)] ^= bit;
-        a[r][c] = 0;
-    }
-
-    function answer() {
-        result.push(a.concat());
     }
     
     /**
@@ -67,7 +49,27 @@ function solveBitmapFast(a) {
      * </pre>
      */
     function box(r, c) {
-        return r - r % 3 + Math.floor(c / 3);
+        const result = r - r % 3 + Math.floor(c / 3);
+        // console.log("box:" + r + "," + c + "->" + result);
+        return result;
+    }
+
+    function set(r, c, bit) {
+        rowSet[r] |= bit;
+        colSet[c] |= bit;
+        boxSet[box(r, c)] |= bit;
+        a[r][c] = numberOfTrailingZeros(bit);
+    }
+
+    function unset(r, c, bit) {
+        rowSet[r] ^= bit;
+        colSet[c] ^= bit;
+        boxSet[box(r, c)] ^= bit;
+        a[r][c] = 0;
+    }
+
+    function answer() {
+        result.push(a.concat());
     }
 
     function solve(i) {

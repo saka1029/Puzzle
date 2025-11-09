@@ -69,7 +69,10 @@ function solveBitmapFast(a) {
     }
 
     function answer() {
-        result.push(a.concat());
+        let clone = [];
+        for (let row of a)
+            clone.push(row.concat());
+        result.push(clone);
     }
 
     function solve(i) {
@@ -81,7 +84,7 @@ function solveBitmapFast(a) {
         else
             // r行c列で配置可能な番号について配置を試みる。
             // vは適用可能な番号のbit値、v ^= bitは処理済のbitをvから除外する。
-            for (v = mask & ~(rowSet[r] | colSet[c] | boxSet[b]), bit = 0; v != 0; v ^= bit) {
+            for (let v = mask & ~(rowSet[r] | colSet[c] | boxSet[b]), bit = 0; v != 0; v ^= bit) {
                 // 適用可能な番号のbitmapから右端(最小)のビットを取り出す。
                 // bit = Integer.lowestOneBit(v); // or -v & v
                 bit = -v & v
@@ -92,6 +95,15 @@ function solveBitmapFast(a) {
     }
     solve(0);
     return result;
+}
+
+function printBoard(a) {
+    for (let r of a) {
+        let row = "";
+        for (let c of r)
+            row += " " + c;
+        console.log(row);
+    }
 }
 
 const board = [
@@ -106,18 +118,6 @@ const board = [
     [0, 0, 7, 0, 4, 0, 2, 0, 3],
 ];
 
-let b = 0;
-for (let i = 1; i <= 9; ++i)
-    b |= (1 << i);
-while (b != 0) {
-    console.log("b:" + b.toString(2));
-    let s = -b & b;
-    console.log("s:" + s.toString(2));
-    b ^= s;
-}
-
-
-/*
 console.log("Sudoku Solver sudoku_bitset.js");
 // for (let i = 121; i <= 999999999; i <<= 1)
 //     console.log("numberOfTrailingZerosproblem:" + i.toString(2) + "=" + numberOfTrailingZeros(i));
@@ -127,4 +127,3 @@ for (let index = 0; index < solutions.length; ++index) {
     console.log("Solution " + (index + 1) + ":");
     printBoard(solutions[index]);
 }
-*/

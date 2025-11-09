@@ -106,6 +106,18 @@ const board = [
     [0, 0, 7, 0, 4, 0, 2, 0, 3],
 ];
 
+let b = 0;
+for (let i = 1; i <= 9; ++i)
+    b |= (1 << i);
+while (b != 0) {
+    console.log("b:" + b.toString(2));
+    let s = -b & b;
+    console.log("s:" + s.toString(2));
+    b ^= s;
+}
+
+
+/*
 console.log("Sudoku Solver sudoku_bitset.js");
 // for (let i = 121; i <= 999999999; i <<= 1)
 //     console.log("numberOfTrailingZerosproblem:" + i.toString(2) + "=" + numberOfTrailingZeros(i));
@@ -115,3 +127,4 @@ for (let index = 0; index < solutions.length; ++index) {
     console.log("Solution " + (index + 1) + ":");
     printBoard(solutions[index]);
 }
+*/

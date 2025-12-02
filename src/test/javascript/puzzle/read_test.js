@@ -27,3 +27,25 @@ reader.on('close', () => {
     console.log(`count=${count}`);
     // console.log(trie.toString());
 });
+
+
+//////////
+//    const fs = require('fs');
+//    const readline = require('readline');
+//    // テキストファイル1行ごとの処理
+//    async function processLineByLine() {
+//        const fileStream = fs.createReadStream('input.txt');
+//        // crlfDelay オプションを使用して、改行コードが'\r\n'の場合も1行として処理する
+//        const rl = readline.createInterface({
+//            input: fileStream,
+//            crlfDelay: Infinity
+//        });
+//        // for awaitで1行ずつ処理
+//        for await (const line of rl) {
+//            console.log(`Line from file: ${line}`);
+//            // ループ内でデータベース検索など、awaitな処理を実行できる
+//            // await somePromise();
+//        }
+//    }
+//    processLineByLine();
+

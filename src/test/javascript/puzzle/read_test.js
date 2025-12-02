@@ -11,8 +11,8 @@ function remq(s) {
 }
 reader.on('line', (line) => {
     // console.log(line);
-    // if (count % 200 == 0) {
-    if (true) {
+    if (count % 200 == 0) {
+//    if (true) {
         const items = line.split(",");
         const code = remq(items[2]);
         const name = remq(items[5]);
@@ -25,7 +25,7 @@ reader.on('line', (line) => {
 });
 reader.on('close', () => {
     console.log(`count=${count}`);
-    // console.log(trie.toString());
+    console.log(trie.toString());
 });
 
 

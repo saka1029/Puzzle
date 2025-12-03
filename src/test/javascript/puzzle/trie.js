@@ -6,12 +6,20 @@ class Trie {
     insert(word, data) {
         let node = this.root;
         for (const char of word) {
-            if (!node[char]) {
+            if (!node[char])
                 node[char] = {};
-            }
             node = node[char];
         }
         node.data = data;
+    }
+
+    get(word) {
+        let node = this.root;
+        for (const char of word) {
+            if ((node = node[char]) === undefined)
+                return null;
+        }
+        return node.data || null;
     }
 
     toString() {

@@ -22,6 +22,21 @@ class Trie {
         return node.data || null;
     }
 
+    findFrom(word, start) {
+        const chars = Array.from(word);
+        const length = chars.length;
+        const result = [];
+        let node = this.root;
+        for (let i = start; i < length; i++) {
+            if ((node = node[chars[i]]) === undefined)
+                break;
+            const data = node.data;
+            if (data !== undefined)
+                result.push(data);
+        }
+        return result;
+    }
+
     toString() {
         return JSON.stringify(this.root, null, 2);
     }

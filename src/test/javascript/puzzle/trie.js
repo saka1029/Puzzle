@@ -3,7 +3,7 @@ class Trie {
         this.root = {};
     }
 
-    insert(word, data) {
+    put(word, data) {
         let node = this.root;
         for (const char of word) {
             if (!node[char])
@@ -13,7 +13,7 @@ class Trie {
         node.data = data;
     }
 
-    get(word) {
+    find(word) {
         let node = this.root;
         for (const char of word) {
             if ((node = node[char]) === undefined)

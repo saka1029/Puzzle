@@ -2,10 +2,10 @@ const Trie = require("./trie");
 const assert = require("assert");
 
 (function () {
-    console.log("*** TEST for of String ****");
+    console.log("*** of String ****");
     const testString = "abc😀de";
     let i = 0;
-    for (const c of testString) {
+    for (const c of testString)
         switch (i++) {
         case 0: assert.equal(c, 'a'); break;
         case 1: assert.equal(c, 'b'); break;
@@ -14,37 +14,38 @@ const assert = require("assert");
         case 4: assert.equal(c, 'd'); break;
         case 5: assert.equal(c, 'e'); break;
         }
-    }
 })();
 
 (function () {
-    console.log("*** TEST Array.from ****");
+    console.log("*** Array.from ****");
+    const testString = "abc😀de";
     const testArray = Array.from(testString);
     assert.equal(testArray.toString(),
         ['a', 'b', 'c', '😀', 'd', 'e'].toString());
 })();
 
+const trie = new Trie();
+trie.put("A","A");
+trie.put("to","to");
+trie.put("tea","tea");
+trie.put("ted","ted");
+trie.put("ten","ten");
+trie.put("i","i");
+trie.put("in","in");
+trie.put("inn","inn");
+
 (function () {
-    console.log("*** TEST Trie.insert ****");
-    const trie = new Trie();
-    trie.insert("A","A");
-    trie.insert("to","to");
-    trie.insert("tea","tea");
-    trie.insert("ted","ted");
-    trie.insert("ten","ten");
-    trie.insert("i","i");
-    trie.insert("in","in");
-    trie.insert("inn","inn");
-    trie.root["A"]["data"] = "A";
-    trie.root["t"]["o"]["data"] = "to";
-    trie.root["t"]["e"]["a"]["data"] = "tea";
-    trie.root["i"]["n"]["n"]["data"] = "inn";
+    console.log("*** Trie.put ****");
+    assert.equal(trie.root.A.data, "A");
+    assert.equal(trie.root.t.o.data, "to");
+    assert.equal(trie.root.t.e.a.data, "tea");
+    assert.equal(trie.root.i.n.n.data, "inn");
     // console.log(trie.toString());
 })();
 
 (function () {
-    console.log("*** TEST Trie.get ****");
-    assert.equal(trie.get("A"), "A");
-    assert.equal(trie.get("ten"), "ten");
-    assert.equal(trie.get("nine"), null);
+    console.log("*** Trie.find ****");
+    assert.equal(trie.find("A"), "A");
+    assert.equal(trie.find("ten"), "ten");
+    assert.equal(trie.find("nine"), null);
 })();

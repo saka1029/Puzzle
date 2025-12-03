@@ -2,6 +2,8 @@ package test.puzzle.core;
 
 import static org.junit.Assert.assertEquals;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -44,8 +46,8 @@ public class TestTriex {
     }
     
     @Test
-    public void testEmoji() throws IOException {
-        URL url = new URL("https://ja.wikipedia.org/wiki/Unicode%E3%81%AEEmoji%E3%81%AE%E4%B8%80%E8%A6%A7");
+    public void testEmoji() throws IOException, URISyntaxException {
+        URL url = new URI("https://ja.wikipedia.org/wiki/Unicode%E3%81%AEEmoji%E3%81%AE%E4%B8%80%E8%A6%A7").toURL();
         Document doc = Jsoup.parse(url, 5000);
         Elements elements = doc.select("table.sortable tbody tr");
         for (Element e : elements) {

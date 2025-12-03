@@ -59,3 +59,9 @@ trie.put("inn","inn");
     assert.equal(trie.findFrom("xA", 1).toString(), ["A"].toString());
     assert.equal(trie.findFrom("xtennis", 1).toString(), ["ten", "tennis"].toString());
 })();
+
+(function () {
+    console.log("*** Trie.findSequence ****");
+    assert.equal(trie.findSequence("tenteaA").toString(),
+        {0: ["ten"], 3: ["tea"], 6: ["A"]}.toString());
+})();

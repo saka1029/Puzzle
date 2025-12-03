@@ -37,6 +37,20 @@ class Trie {
         return result;
     }
 
+    findSequence(word) {
+        const result = {};
+        const chars = Array.from(word);
+        const length = chars.length;
+        for (let i = 0; i < length; i++) {
+            for (const data of this.findFrom(word, i)) {
+                if (result[i] === undefined)
+                    result[i] = [];
+                result[i].push(data);
+            }
+        }
+        return result;
+    }
+
     toString() {
         return JSON.stringify(this.root, null, 2);
     }

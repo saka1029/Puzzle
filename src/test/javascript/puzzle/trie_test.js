@@ -64,4 +64,6 @@ trie.put("inn","inn");
     console.log("*** Trie.findSequence ****");
     assert.equal(trie.findSequence("tenteaA").toString(),
         {0: ["ten"], 3: ["tea"], 6: ["A"]}.toString());
+    assert.equal(trie.findSequence("tenteaAX").toString(),
+        {0: ["ten"], 3: ["tea"], 6: ["A"]}.toString());
 })();

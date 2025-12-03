@@ -42,7 +42,7 @@ trie.put("inn","inn");
     assert.equal(trie.root.t.e.n.data, "ten");
     assert.equal(trie.root.t.e.n.n.i.s.data, "tennis");
     assert.equal(trie.root.i.n.n.data, "inn");
-    console.log(trie.toString());
+    // console.log(trie.toString());
 })();
 
 (function () {
@@ -55,6 +55,7 @@ trie.put("inn","inn");
 (function () {
     console.log("*** Trie.findFrom ****");
     assert.equal(trie.findFrom("A", 0).toString(), ["A"].toString());
+    assert.equal(trie.findFrom("A").toString(), ["A"].toString());
     assert.equal(trie.findFrom("xA", 1).toString(), ["A"].toString());
     assert.equal(trie.findFrom("xtennis", 1).toString(), ["ten", "tennis"].toString());
 })();

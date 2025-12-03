@@ -22,7 +22,7 @@ class Trie {
         return node.data || null;
     }
 
-    findFrom(word, start) {
+    findFrom(word, start = 0) {
         const chars = Array.from(word);
         const length = chars.length;
         const result = [];

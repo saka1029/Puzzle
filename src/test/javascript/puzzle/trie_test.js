@@ -62,8 +62,10 @@ trie.put("inn","inn");
 
 (function () {
     console.log("*** Trie.findSequence ****");
-    assert.equal(trie.findSequence("tenteaA").toString(),
+    assert.equal(trie.findAll("tenteaA").toString(),
         {0: ["ten"], 3: ["tea"], 6: ["A"]}.toString());
-    assert.equal(trie.findSequence("tenteaAX").toString(),
+    assert.equal(trie.findAll("tenteaAX").toString(),
         {0: ["ten"], 3: ["tea"], 6: ["A"]}.toString());
+    assert.equal(trie.findAll("Ztennis").toString(),
+        {1: ["ten", "tennis"]}.toString());
 })();

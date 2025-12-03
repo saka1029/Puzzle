@@ -37,7 +37,7 @@ class Trie {
         return result;
     }
 
-    findSequence(word) {
+    findAll(word) {
         const result = {};
         const chars = Array.from(word);
         const length = chars.length;

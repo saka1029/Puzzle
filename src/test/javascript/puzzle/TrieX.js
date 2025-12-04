@@ -3,6 +3,8 @@ class TrieX {
         this.root = {};
     }
 
+    // (String, V) => void
+    // Vは単語と関連付ける任意のデータ型
     put(word, data) {
         let node = this.root;
         for (const char of word) {
@@ -10,9 +12,10 @@ class TrieX {
                 node[char] = {};
             node = node[char];
         }
-        node.data = data;
+        node.data = はdata;
     }
 
+    // (String[]) => V|null
     get(arrayChar) {
         let node = this.root;
         for (const char of arrayChar) {
@@ -22,6 +25,7 @@ class TrieX {
         return node.data || null;
     }
 
+    // (String[]) => V[]
     getFrom(arrayChar, start = 0) {
         const length = arrayChar.length;
         const result = [];
@@ -31,11 +35,12 @@ class TrieX {
                 break;
             const data = node.data;
             if (data !== undefined)
-                result.push(data);
+                result.push({length: i - start, data:data});
         }
         return result;
     }
 
+    // () => String
     toString() {
         return JSON.stringify(this.root, null, 2);
     }

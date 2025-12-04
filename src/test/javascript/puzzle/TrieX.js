@@ -12,10 +12,10 @@ class TrieX {
                 node[char] = {};
             node = node[char];
         }
-        node.data = はdata;
+        node.data = data;
     }
 
-    // (String[]) => V|null
+    // ([String]) => V|null
     get(arrayChar) {
         let node = this.root;
         for (const char of arrayChar) {
@@ -25,7 +25,7 @@ class TrieX {
         return node.data || null;
     }
 
-    // (String[]) => V[]
+    // ([String]) => [{length: int, data: V}]
     getFrom(arrayChar, start = 0) {
         const length = arrayChar.length;
         const result = [];
@@ -35,7 +35,7 @@ class TrieX {
                 break;
             const data = node.data;
             if (data !== undefined)
-                result.push({length: i - start, data:data});
+                result.push({length: i - start + 1, data:data});
         }
         return result;
     }

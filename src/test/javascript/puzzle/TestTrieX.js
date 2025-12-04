@@ -37,8 +37,11 @@ function a(string) {
 (function () {
     console.log("*** getFrom ****");
     const wc = a("abc");
-    assert.deepEqual(trie.getFrom(wc, 0), ["a", "ab", "abc"]);
-    assert.deepEqual(trie.getFrom(wc, 1), ["b", "bc"]);
-    assert.deepEqual(trie.getFrom(wc, 2), ["c"]);
+    assert.deepEqual(trie.getFrom(wc, 0),
+        [{length: 1, data:"a"}, {length: 2, data:"ab"}, {length: 3, data:"abc"}]);
+    assert.deepEqual(trie.getFrom(wc, 1),
+        [{length: 1, data:"b"}, {length: 2, data:"bc"}]);
+    assert.deepEqual(trie.getFrom(wc, 2),
+        [{length: 1, data:"c"}]);
     assert.deepEqual(trie.getFrom(a("xyz"), 1), []);
 })();

@@ -38,10 +38,10 @@ function a(string) {
     console.log("*** getFrom ****");
     const wc = a("abc");
     assert.deepEqual(trie.getFrom(wc, 0),
-        [{length: 1, data:"a"}, {length: 2, data:"ab"}, {length: 3, data:"abc"}]);
+        [[1, "a"], [2, "ab"], [3, "abc"]]);
     assert.deepEqual(trie.getFrom(wc, 1),
-        [{length: 1, data:"b"}, {length: 2, data:"bc"}]);
+        [[1, "b"], [2, "bc"]]);
     assert.deepEqual(trie.getFrom(wc, 2),
-        [{length: 1, data:"c"}]);
+        [[1, "c"]]);
     assert.deepEqual(trie.getFrom(a("xyz"), 1), []);
 })();

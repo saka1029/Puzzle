@@ -25,7 +25,7 @@ class TrieX {
         return node.data || null;
     }
 
-    // ([String]) => [{length: int, data: V}]
+    // ([String]) => [[length: int, data: V], ...]
     getFrom(arrayChar, start = 0) {
         const length = arrayChar.length;
         const result = [];
@@ -35,7 +35,7 @@ class TrieX {
                 break;
             const data = node.data;
             if (data !== undefined)
-                result.push({length: i - start + 1, data:data});
+                result.push([i - start + 1, data]);
         }
         return result;
     }

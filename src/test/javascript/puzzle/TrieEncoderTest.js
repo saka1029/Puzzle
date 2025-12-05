@@ -1,7 +1,7 @@
-const TrieX = require('./TrieEncoder');
+const TrieEncoder = require('./TrieEncoder');
 const assert = require("assert");
 
-const trie = new TrieX();
+const trie = new TrieEncoder();
 trie.put("a", "a");
 trie.put("ab", "ab");
 trie.put("abc", "abc");

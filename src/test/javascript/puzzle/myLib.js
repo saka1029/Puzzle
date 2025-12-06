@@ -10,6 +10,8 @@ function remq(s) {
 }
 
 /**
+ * カンマ区切りのファイルを読み込む。
+ * 各項目は２重引用符で囲まれていてもよい。
  * 
  * @param {String} file 
  * @param {String} encoding 
@@ -34,8 +36,8 @@ class TrieEncoder {
 
     /**
      * 単語と関連付けられたデータを登録する。
-     * @param word String   登録する単語
-     * @param data V 単語と関連付ける値
+     * @param {String} word 登録する単語
+     * @param {V} data 単語と関連付ける値
      *          Vは単語と関連付ける任意のデータ型
      */
     put(word, data) {
@@ -50,8 +52,9 @@ class TrieEncoder {
 
     /**
      * 与えられた単語が登録されていれば関連付けられたデータを返す。
-     * @param word String
-     * @returns V|null
+     * @param {String} word 検索する単語
+     * @returns {V|null}
+     *          Vは単語と関連付けられた任意のデータ型
      */
     get(word) {
         let node = this.root;
@@ -64,8 +67,8 @@ class TrieEncoder {
 
     /**
      * 与えられた文字列を構成する単語の組み合わせをすべて返す。
-     * @param word String
-     * @returns [[{start: int, end: int, data: V}]]
+     * @param {String} word encodedする文字列
+     * @returns {[[{start: int, end: int, data: V}]]}
      *      start:   wordにおける単語の開始位置
      *      end:   wordにおける単語の終了位置
      *      data:  wordに関連付けられた値

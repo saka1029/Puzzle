@@ -19,7 +19,15 @@ readCSV('data/レセ電/b_20200601.txt', "Shift_JIS",
                 console.log(`count=${count}`);
                 // console.log(trie.toString());
                 const byomei = "急性潰瘍性大腸炎";
-                console.log(JSON.stringify(trie.encode(byomei), null, 2));
+                console.log(`傷病名: ${byomei}`);
+                const enc = trie.encode(byomei);
+                for (const line of enc) {
+                    let s = "";
+                    for (const e of line) {
+                        s += ` ${e.data}:${byomei.substring(e.start, e.end)}`;
+                    }
+                    console.log(s);
+                }
             }
         )
     }

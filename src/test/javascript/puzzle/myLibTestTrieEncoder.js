@@ -1,4 +1,4 @@
-const TrieEncoder = require('./TrieEncoder');
+const {TrieEncoder} = require('./myLib');
 const assert = require("assert");
 
 const trie = new TrieEncoder();
@@ -33,28 +33,6 @@ function a(string) {
     assert.strictEqual(trie.get(a("c")), "c");
     assert.strictEqual(trie.get(a("ca")), null);
 })();
-
-// (function () {
-//     console.log("*** getFrom ****");
-//     const wc = a("abc");
-//     assert.deepEqual(trie.getFrom(wc, 0),
-//         [{start: 0, end: 1, data: "a"}, {start: 0, end: 2, data: "ab"}, {start: 0, end: 3, data: "abc"}]);
-//     assert.deepEqual(trie.getFrom(wc, 1),
-//         [{start: 1, end: 2, data: "b"}, {start: 1, end: 3, data: "bc"}]);
-//     assert.deepEqual(trie.getFrom(wc, 2),
-//         [{start: 2, end: 3, data: "c"}]);
-//     assert.deepEqual(trie.getFrom(a("xyz"), 1), []);
-// })();
-
-// (function () {
-//     assert.deepEqual(trie.encode0("abc"),
-//         [
-//             [{start: 0, end: 1, data: "a"}, {start: 1, end: 2, data: "b"}, {start: 2, end: 3, data: "c"}],
-//             [{start: 0, end: 1, data: "a"}, {start: 1, end: 3, data: "bc"}],
-//             [{start: 0, end: 2, data: "ab"}, {start: 2, end: 3, data: "c"}],
-//             [{start: 0, end: 3, data: "abc"}]
-//         ]);
-// })();
 
 (function () {
     console.log("*** encode ****");

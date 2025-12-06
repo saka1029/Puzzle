@@ -1,3 +1,29 @@
+const fs = require('fs');
+const readline = require('readline');
+const iconv = require("iconv-lite");
+
+function remq(s) {
+    return s.substring(1, s.length - 1);
+}
+
+/**
+ * 
+ * @param {String} file 
+ * @param {String} encoding 
+ * @param {([String])=>Void} onRead 
+ * @param {()=>Void} onClose 
+ */
+function readCSV(file, encoding, onRead, onClose) {
+    const stream = fs.createReadStream(file)
+        .pipe(iconv.decodeStream("SHIFT_JIS"));
+    const reader = readline.createInterface( { input: stream});
+    reader.on("line", (line) => {
+        const items = line.split(",").map((item) => remq(item));
+        onRead(items);
+    });
+    reader.on("close", onClose);
+}
+
 class TrieEncoder {
     constructor() {
         this.root = {};
@@ -5,8 +31,9 @@ class TrieEncoder {
 
     /**
      * 単語と関連付けられたデータを登録する。
-     * (String, V) => void
-     * Vは単語と関連付ける任意のデータ型
+     * @param word String   登録する単語
+     * @param data V 単語と関連付ける値
+     *          Vは単語と関連付ける任意のデータ型
      */
     put(word, data) {
         let node = this.root;
@@ -20,56 +47,25 @@ class TrieEncoder {
 
     /**
      * 与えられた単語が登録されていれば関連付けられたデータを返す。
-     * (String) => V|null
+     * @param word String
+     * @returns V|null
      */
-    get(arrayChar) {
+    get(word) {
         let node = this.root;
-        for (const char of arrayChar) {
+        for (const char of word) {
             if ((node = node[char]) === undefined)
                 return null;
         }
         return node.data || null;
     }
 
-    // // ([String], int) => [{start: int, end: int, data: V}]
-    // getFrom(arrayChar, start) {
-    //     const length = arrayChar.length;
-    //     const result = [];
-    //     let node = this.root;
-    //     for (let i = start; i < length; i++) {
-    //         if ((node = node[arrayChar[i]]) === undefined)
-    //             break;
-    //         const data = node.data;
-    //         if (data !== undefined)
-    //             result.push({start: start, end: i + 1, data: data});
-    //     }
-    //     return result;
-    // }
-
-    // // ([String], [[{start: int, end: int, data: V}]], [{start: int, end: int, data: V}], int) => void
-    // search(arrayChar, result, sequence, index) {
-    //     const length = arrayChar.length;
-    //     if (index >= length)
-    //         result.push(sequence.slice());
-    //     else
-    //         for (const entry of this.getFrom(arrayChar, index)) {
-    //             sequence.push(entry);
-    //             this.search(arrayChar, result, sequence, entry.end);
-    //             sequence.pop();
-    //         }
-    // }
-
-    // // (String) => [[{start: int, end: int, data: V}]]
-    // encode0(word) {
-    //     const arrayChar = Array.from(word);
-    //     const result = [], sequence = [];
-    //     this.search(arrayChar, result, sequence, 0);
-    //     return result;
-    // }
-
     /**
      * 与えられた文字列を構成する単語の組み合わせをすべて返す。
-     * (String) => [[{start: int, end: int, data: V}]]
+     * @param word String
+     * @returns [[{start: int, end: int, data: V}]]
+     *      start:   wordにおける単語の開始位置
+     *      end:   wordにおける単語の終了位置
+     *      data:  wordに関連付けられた値
      */
     encode(word) {
         const arrayChar = Array.from(word);
@@ -108,4 +104,4 @@ class TrieEncoder {
     }
 }
 
-module.exports = TrieEncoder;
+module.exports = {readCSV, TrieEncoder};

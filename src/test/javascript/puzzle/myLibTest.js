@@ -1,4 +1,5 @@
-const {readCSV, TrieEncoder} = require('./myLib');
+const fs = require("fs");
+const {readCSV, TrieEncoder} = require("./myLib");
 
 const ENC = "Shift_JIS";
 const trie = new TrieEncoder();
@@ -40,6 +41,10 @@ readCSV('data/レセ電/b_20200601.txt', ENC,
                         }
                     },
                     () => {
+                        fs.writeFileSync('src/test/javascript/puzzle/encoder.js',
+                            "const { TrieEncoder } = require('./myLib');"
+                            + `const ENCODER = new TrieEncoder(${JSON.stringify(trie.root)});`
+                            + "module.exports = ENCODER;");
                         console.log(`登録件数=${count}`);
                         console.log(`エンコード件数=${encodeCount}`);
                     }

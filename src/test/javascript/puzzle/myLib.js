@@ -31,8 +31,8 @@ function readCSV(file, encoding, onRead, onClose) {
 }
 
 class TrieEncoder {
-    constructor() {
-        this.root = {};
+    constructor(initRoot = null) {
+        this.root = initRoot == null ? {} : initRoot;
     }
 
     /**

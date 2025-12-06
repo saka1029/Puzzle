@@ -19,13 +19,15 @@ function main() {
     }
 }
 
+/**
+ * 傷病名が１つだけ含まれる組み合わせを返すフィルタ。 
+ * @param [{start:int,end:int,data:V}] sequence 単語の並び
+ * @returns Bool
+ */
 function byomeiFilter(sequence) {
-    let byomeiCount = 0;
-    for (const entry of sequence) {
-        if (entry.data.length == 7)
-            ++byomeiCount;
-    }
-    return byomeiCount == 1;
+    return sequence
+        .filter(entry => entry.data.length == 7)
+        .length == 1;
 }
 
 readCSV('data/レセ電/b_20200601.txt', ENC,

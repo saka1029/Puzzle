@@ -66,7 +66,9 @@ class TrieEncoder {
     }
 
     /**
-     * 与えられた文字列を構成する単語の組み合わせをすべて返す。
+     * 
+
+わせをすべて返す。
      * @param String word encodedする文字列
      * @param (([{start:int,end:int,data:V}])=>Bool) filter
      *      単語の組み合わせを受け取り、条件を満たす場合にtrueを返す関数。

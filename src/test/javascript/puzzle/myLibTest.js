@@ -44,7 +44,7 @@ readCSV('data/レセ電/b_20200601.txt', ENC,
                 console.log(`登録件数=${count}`);
                 readCSV('data/レセ電/micode.txt', "UTF-8",
                     (items) => {
-                        console.log(`傷病名; ${items[1]}`);
+                        console.log(`傷病名: ${items[1]}`);
                         for (const line of trie.encode(items[1], byomeiFilter))
                             console.log(" " + line
                                 .map(e => e.data + ":" + items[1].substring(e.start, e.end))

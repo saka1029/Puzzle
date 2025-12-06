@@ -13,14 +13,14 @@ function remq(s) {
  * カンマ区切りのファイルを読み込む。
  * 各項目は２重引用符で囲まれていてもよい。
  * 
- * @param {String} file 
- * @param {String} encoding 
- * @param {([String])=>Void} onRead 
- * @param {()=>Void} onClose 
+ * @param String file 
+ * @param String encoding 
+ * @param ([String])=>Void onRead 
+ * @param ()=>Void onClose 
  */
 function readCSV(file, encoding, onRead, onClose) {
     const stream = fs.createReadStream(file)
-        .pipe(iconv.decodeStream("SHIFT_JIS"));
+        .pipe(iconv.decodeStream(encoding));
     const reader = readline.createInterface( { input: stream});
     reader.on("line", (line) => {
         const items = line.split(",").map((item) => remq(item));
@@ -67,13 +67,13 @@ class TrieEncoder {
 
     /**
      * 与えられた文字列を構成する単語の組み合わせをすべて返す。
-     * @param {String} word encodedする文字列
-     * @returns {[[{start: int, end: int, data: V}]]}
+     * @param String word encodedする文字列
+     * @returns [[{start: int, end: int, data: V}]]
      *      start:   wordにおける単語の開始位置
      *      end:   wordにおける単語の終了位置
      *      data:  wordに関連付けられた値
      */
-    encode(word) {
+    encode(word, filter = null) {
         const arrayChar = Array.from(word);
         const length = arrayChar.length;
         const result = [], sequence = [];
@@ -91,7 +91,7 @@ class TrieEncoder {
                 }
                 return result;
             }
-            if (index >= length)
+            if (index >= length && (filter == null || filter(sequence)))
                 result.push(sequence.slice());
             else
                 for (const entry of getFrom(index)) {

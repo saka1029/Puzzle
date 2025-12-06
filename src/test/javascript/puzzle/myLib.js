@@ -3,7 +3,10 @@ const readline = require('readline');
 const iconv = require("iconv-lite");
 
 function remq(s) {
-    return s.substring(1, s.length - 1);
+    if (s.length >= 2 && s[0] == '"' && s[s.length - 1] == '"')
+        return s.substring(1, s.length - 1);
+    else
+        return s;
 }
 
 /**

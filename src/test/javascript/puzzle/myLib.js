@@ -10,6 +10,13 @@ function remq(s) {
         return s;
 }
 
+function substring(s, start, end = null) {
+    const array = Array.from(s);
+    if (end == null)
+        end = array.length;
+    return array.slice(start, end).join("");
+}
+
 /**
  * カンマ区切りのファイルを読み込む。
  * 各項目は２重引用符で囲まれていてもよい。
@@ -116,4 +123,4 @@ class TrieEncoder {
     }
 }
 
-module.exports = {readCSV, TrieEncoder};
+module.exports = {substring, readCSV, TrieEncoder};

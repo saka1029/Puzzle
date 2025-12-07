@@ -1,5 +1,5 @@
 const fs = require("fs");
-const {readCSV, TrieEncoder} = require("./myLib");
+const {substring, readCSV, TrieEncoder} = require("./myLib");
 
 const ENC = "Shift_JIS";
 const trie = new TrieEncoder();
@@ -35,7 +35,7 @@ readCSV('data/レセ電/b_20200601.txt', ENC,
                         console.log(`傷病名: ${items[1]}`);
                         for (const line of trie.encode(items[1], byomeiFilter)) {
                             console.log(" " + line
-                                .map(e => e.data + ":" + items[1].substring(e.start, e.end))
+                                .map(e => e.data + ":" + substring(items[1], e.start, e.end))
                                 .join(" "));
                             ++encodeCount;
                         }

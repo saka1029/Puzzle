@@ -21,8 +21,8 @@ public class TestCSVReader {
         String csv = "a,\"b \"\"c\\\",d\",e\r\n"    // 引用符内の引用符およびカンマ、CRLFの行区切り
             + "\"f\rg\r\nh\ni\", j ,k\n"            // 引用符内の改行、LFの行区切り
             + "l,m n \"o,p\" q";                    // 引用符あり、なしの混在
-        try (BufferedReader br = new BufferedReader(new StringReader(csv))) {
-            CSVReader reader = new CSVReader(br);
+        try (BufferedReader br = new BufferedReader(new StringReader(csv));
+            CSVReader reader = new CSVReader(br);) {
             assertEquals(List.of("a", "b \"c\",d", "e"), reader.readLine());
             assertEquals(List.of("f\rg\r\nh\ni", " j ", "k"), reader.readLine());
             assertEquals(List.of("l", "m n o,p q"), reader.readLine());
@@ -33,8 +33,8 @@ public class TestCSVReader {
     @Ignore
     @Test
     public void testFile() throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader("data/test.csv"))) {
-            CSVReader reader = new CSVReader(br);
+        try (BufferedReader br = new BufferedReader(new FileReader("data/test.csv"));
+            CSVReader reader = new CSVReader(br);) {
             assertEquals(List.of("a", "b \"c\",d", "e"), reader.readLine());
             assertEquals(List.of("f\ng\nh\ni", " j ", "k"), reader.readLine());
             assertEquals(List.of("l", "m n o,p q"), reader.readLine());

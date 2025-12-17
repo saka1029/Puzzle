@@ -42,14 +42,7 @@ public class TrieEncoder<V> implements Encoder<V> {
         node.value = value;
     }
 
-    class Found {
-        final int end;
-        final V value;
-        Found(int end, V value) {
-            this.end = end;
-            this.value = value;
-        }
-    }
+    record Found<V>(int end, V value){}
 
     @Override
     public List<List<Entry<V>>> encode(String text, Predicate<List<Entry<V>>> filter) {
@@ -59,15 +52,15 @@ public class TrieEncoder<V> implements Encoder<V> {
         List<Entry<V>> sequence = new ArrayList<>();
         new Object() {
 
-            List<Found> find(int start) {
+            List<Found<V>> find(int start) {
                 Node node = root;
-                List<Found> found = new ArrayList<>();
+                List<Found<V>> found = new ArrayList<>();
                 for (int i = start; i < length; ++i) {
                     if ((node = node.get(textcp[i])) == null)
                         break;
                     V value = node.value;
                     if (value != null)
-                        found.add(new Found(i, value));
+                        found.add(new Found<>(i + 1, value));
                 }
                 return found;
             }
@@ -77,8 +70,8 @@ public class TrieEncoder<V> implements Encoder<V> {
                     if (filter.test(sequence))
                         result.add(new ArrayList<>(sequence));
                 } else {
-                    for (Found f : find(index)) {
-                        sequence.addLast(Entry.of(new String(textcp, index, f.end - index), f.value));
+                    for (Found<V> f : find(index)) {
+                        sequence.addLast(new Entry<>(new String(textcp, index, f.end - index), f.value));
                         search(f.end);
                         sequence.removeLast();
                     }

@@ -56,7 +56,7 @@ public class HashEncoder<V> implements Encoder<V>{
                         V value = map.get(key);
                         if (value == null)
                             continue;
-                        sequence.addLast(Entry.of(key, value));
+                        sequence.addLast(new Entry<>(key, value));
                         search(i);
                         sequence.removeLast();
                     }

@@ -42,8 +42,6 @@ public class TrieEncoder<V> implements Encoder<V> {
         node.value = value;
     }
 
-    record Found<V>(int end, V value){}
-
     @Override
     public List<List<Entry<V>>> encode(String text, Predicate<List<Entry<V>>> filter) {
         int[] textcp = text.codePoints().toArray();
@@ -51,28 +49,20 @@ public class TrieEncoder<V> implements Encoder<V> {
         List<List<Entry<V>>> result = new ArrayList<>();
         List<Entry<V>> sequence = new ArrayList<>();
         new Object() {
-
-            List<Found<V>> find(int start) {
-                Node node = root;
-                List<Found<V>> found = new ArrayList<>();
-                for (int i = start; i < length; ++i) {
-                    if ((node = node.get(textcp[i])) == null)
-                        break;
-                    V value = node.value;
-                    if (value != null)
-                        found.add(new Found<>(i + 1, value));
-                }
-                return found;
-            }
-
             void search(int index) {
                 if (index >= length) {
                     if (filter.test(sequence))
                         result.add(new ArrayList<>(sequence));
                 } else {
-                    for (Found<V> f : find(index)) {
-                        sequence.addLast(new Entry<>(new String(textcp, index, f.end - index), f.value));
-                        search(f.end);
+                    Node node = root;
+                    for (int i = index; i < length; ++i) {
+                        node = node.get(textcp[i]);
+                        if (node == null)
+                            break;
+                        if (node.value == null)
+                            continue;
+                        sequence.addLast(new Entry<>(new String(textcp, index, i + 1 - index), node.value));
+                        search(i + 1);
                         sequence.removeLast();
                     }
                 }

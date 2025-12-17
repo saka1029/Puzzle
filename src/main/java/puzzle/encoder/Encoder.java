@@ -24,11 +24,12 @@ public interface Encoder<V> {
         }
     }
  
+    void put(String key, V value);
 
-    List<List<Entry<V>>> encode(String s, Predicate<List<Entry<V>>> filter);
+    List<List<Entry<V>>> encode(String text, Predicate<List<Entry<V>>> filter);
 
-    default List<List<Entry<V>>> encode(String s) {
-        return encode(s, e -> true);
+    default List<List<Entry<V>>> encode(String text) {
+        return encode(text, e -> true);
     }
 }
 

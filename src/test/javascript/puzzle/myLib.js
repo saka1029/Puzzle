@@ -92,26 +92,21 @@ class TrieEncoder {
         const result = [], sequence = [];
         const root = this.root;
         function search(index) {
-            function getFrom(start) {
-                const result = [];
+            if (index >= length && (filter == null || filter(sequence)))
+                result.push(sequence.slice());
+            else {
                 let node = root;
-                for (let i = start; i < length; i++) {
+                for (let i = index; i < length; i++) {
                     if ((node = node[arrayChar[i]]) === undefined)
                         break;
                     const data = node.data;
-                    if (data !== undefined)
-                        result.push({start: start, end: i + 1, data: data});
-                }
-                return result;
-            }
-            if (index >= length && (filter == null || filter(sequence)))
-                result.push(sequence.slice());
-            else
-                for (const entry of getFrom(index)) {
-                    sequence.push(entry);
-                    search(entry.end);
+                    if (data === undefined)
+                        continue;
+                    sequence.push({start: index, end: i + 1, data:data});
+                    search(i + 1);
                     sequence.pop();
                 }
+            }
         }
         search(0);
         return result;

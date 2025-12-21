@@ -37,6 +37,9 @@ public class TestSudokuIntSet {
         assertEquals(0b000_010_001_0, set);
     }
 
+    /**
+     * 集合に含まれる一番小さい要素を取り出す。
+     */
     @Test
     public void testLowestOneBit() {
         int set = 0b000_010_101_0;  // {1, 3, 5}
@@ -48,6 +51,9 @@ public class TestSudokuIntSet {
         assertEquals(0b000_010_000_0, -set & set);                  // lowest one == 5;
     }
 
+    /**
+     * 集合に含まれる要素を小さいものから順に取り出す。
+     */
     @Test
     public void testIterateIntSet() {
         int set = 0b100_100_100_0;  // {9, 6, 3}

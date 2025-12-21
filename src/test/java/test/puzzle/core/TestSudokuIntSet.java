@@ -35,13 +35,13 @@ public class TestSudokuIntSet {
     }
 
     @Test
-    public void testLastOneBit() {
+    public void testLowestOneBit() {
         int set = 0b000_010_101_0;  // {1, 3, 5}
-        assertEquals(0b000_000_001_0, Integer.lowestOneBit(set));   // last one == 1
-        assertEquals(0b000_000_001_0, -set & set);                  // last one == 1
+        assertEquals(0b000_000_001_0, Integer.lowestOneBit(set));   // lowest one == 1
+        assertEquals(0b000_000_001_0, -set & set);                  // lowest one == 1
         set ^= 1 << 1;  // remove 1
         set ^= 1 << 3;  // remove 3
-        assertEquals(0b000_010_000_0, Integer.lowestOneBit(set));   // last one == 5;
-        assertEquals(0b000_010_000_0, -set & set);                  // last one == 5;
+        assertEquals(0b000_010_000_0, Integer.lowestOneBit(set));   // lowest one == 5;
+        assertEquals(0b000_010_000_0, -set & set);                  // lowest one == 5;
     }
 }

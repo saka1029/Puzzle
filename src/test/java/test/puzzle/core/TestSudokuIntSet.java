@@ -58,10 +58,8 @@ public class TestSudokuIntSet {
     public void testIterateIntSet() {
         int set = 0b100_100_100_0;  // {9, 6, 3}
         List<Integer> elements = new ArrayList<>();
-        for (int s = set, b = 0; s != 0; s ^= b) {
-            b = -s & s;     // get lowest one bit
+        for (int s = set, b = 0; (b = -s & s) != 0; s ^= b)
             elements.add(Integer.numberOfTrailingZeros(b));
-        }
         assertEquals(List.of(3, 6, 9), elements);
     }
 }

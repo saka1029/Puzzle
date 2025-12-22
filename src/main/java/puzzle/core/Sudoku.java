@@ -81,13 +81,14 @@ public class Sudoku {
             solve(i + 1); // 既に番号が付与されている場合は次へ
         else
             // r行c列で配置可能な番号について配置を試みる。
-            // vは適用可能な番号のbit値、v ^= bitは処理済のbitをvから除外する。
-            for (int v = MASK & ~(rowSet[r] | colSet[c] | boxSet[b]), bit = 0; v != 0; v ^= bit) {
-                // 適用可能な番号のbitmapから右端(最小)のビットを取り出す。
-                bit = Integer.lowestOneBit(v); // or -v & v
-                set(r, c, bit);     // 配置する。
+            // v は適用可能な番号の集合。
+            // e は最小の要素(bit)。
+            // e = -v & v は適用可能な番号のbitmapから右端(最小)のビットを取り出す。
+            // v ^= e は処理済のbitをvから除外する。
+            for (int v = MASK & ~(rowSet[r] | colSet[c] | boxSet[b]), e = 0; (e = -v & v) != 0; v ^= e) {
+                set(r, c, e);     // 配置する。
                 solve(i + 1);       // 次へ進む。
-                unset(r, c, bit);   // もとに戻す。
+                unset(r, c, e);   // もとに戻す。
             }
     }
 

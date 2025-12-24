@@ -115,6 +115,7 @@ public class TestNumberLink2 {
         }
 
         void solve() {
+            print("problem:");
             solve(0);
         }
     }

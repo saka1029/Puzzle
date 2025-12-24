@@ -57,10 +57,10 @@ public class TestNumberLink2 {
             for (int[] row : board)
                 sb.append(Arrays.toString(row))
                     .append(System.lineSeparator());
-            for (int[] e : ends)
-                sb.append("end")
-                    .append(Arrays.toString(e))
-                    .append(System.lineSeparator());
+            // for (int[] e : ends)
+            //     sb.append("end")
+            //         .append(Arrays.toString(e))
+            //         .append(System.lineSeparator());
             return sb.toString();
         }
 

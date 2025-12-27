@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -22,9 +23,7 @@ public class TestNumberLink2 {
         NumberLink(int[][] board) {
             this.rows = board.length;
             this.cols = board[0].length;
-            this.board = new int[rows][];
-            for (int i = 0; i < rows; ++i)
-                this.board[i] = Arrays.copyOf(board[i], cols);
+            this.board = Stream.of(board).map(r -> r.clone()).toArray(int[][]::new);
             NavigableMap<Integer, int[]> map = new TreeMap<>();
             for (int r = 0; r < rows; ++r)
                 for (int c = 0; c < cols; ++c) {
@@ -41,7 +40,7 @@ public class TestNumberLink2 {
                         e[4] = c;
                     }
                 }
-            ends = map.values().stream()
+            this.ends = map.values().stream()
                 .peek(e -> {
                     if (e[3] == -1)
                         throw new RuntimeException(

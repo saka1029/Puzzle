@@ -18,41 +18,50 @@ public class TestNumberLink2 {
 
     static final Logger logger = Common.getLogger(TestNumberLink2.class);
 
+    static record Point(int r, int c) {
+        Point add(Point p) { return new Point(r + p.r, c + p.c); }
+        Point right() { return new Point(-c, r); }
+        Point left() { return new Point(c, -r); }
+    }
+
+    static record Ends(int name, Point start, Point end) {}
+
     static class NumberLink {
         final int rows, cols;
         final int[][] board;
-        final int[][] ends;
+        final Ends[] ends;
         final List<int[][]> results = new ArrayList<>();
-        static final int[][] DIR = { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
-        static final int[][] DIAG = { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } };
+        static final Point[] DIR = {
+            new Point(1, 0),
+            new Point(0, 1),
+            new Point(-1, 0),
+            new Point(0, -1) };
 
         NumberLink(int[][] board) {
             this.rows = board.length;
             this.cols = board[0].length;
             this.board = Stream.of(board).map(r -> r.clone()).toArray(int[][]::new);
-            NavigableMap<Integer, int[]> map = new TreeMap<>();
+            NavigableMap<Integer, Ends> map = new TreeMap<>();
             for (int r = 0; r < rows; ++r)
                 for (int c = 0; c < cols; ++c) {
                     int name = board[r][c];
                     if (name == 0)
                         continue;
-                    int[] e = map.get(name);
+                    Ends e = map.get(name);
                     if (e == null)
-                        map.put(name, e = new int[] { name, r, c, -1, -1 });
-                    else if (e[3] != -1)
+                        map.put(name, e = new Ends(name, new Point(r, c), null));
+                    else if (e.end != null)
                         throw new RuntimeException("'%d' duplicate".formatted(name));
-                    else {
-                        e[3] = r;
-                        e[4] = c;
-                    }
+                    else 
+                        map.put(name, new Ends(e.name, e.start, new Point(r, c)));
                 }
             this.ends = map.values().stream()
                     .peek(e -> {
-                        if (e[3] == -1)
+                        if (e.end == null)
                             throw new RuntimeException(
-                                    "Single end %s".formatted(Arrays.toString(e)));
+                                    "Single end %s".formatted(e));
                     })
-                    .toArray(int[][]::new);
+                    .toArray(Ends[]::new);
         }
 
         @Override
@@ -61,10 +70,10 @@ public class TestNumberLink2 {
             for (int[] row : board)
                 sb.append(Arrays.toString(row))
                         .append(System.lineSeparator());
-            // for (int[] e : ends)
-            // sb.append("end")
-            // .append(Arrays.toString(e))
-            // .append(System.lineSeparator());
+            // for (Ends e : ends)
+            //     sb.append("end")
+            //     .append(e)
+            //     .append(System.lineSeparator());
             return sb.toString();
         }
 
@@ -78,54 +87,38 @@ public class TestNumberLink2 {
             print("answer:");
         }
 
-        boolean valid(int r, int c) {
-            return r >= 0 && r < rows && c >= 0 && c < cols;
+        boolean valid(Point p) {
+            return p.r >= 0 && p.r < rows && p.c >= 0 && p.c < cols;
         }
 
         /**
          * (r, c)の上下左右にある同じ数字を数える。
          * ただし上下左右にゴールがある場合は除外して数える。
          */
-        int neighbors(int i, int r, int c) {
+        int neighbors(int i, Point p) {
             int count = 0;
-            for (int[] dir : DIR) {
-                int rr = r + dir[0], cc = c + dir[1];
-                if (valid(rr, cc)
-                        && !(rr == ends[i][3] && cc == ends[i][4]) // not goal
-                        && board[rr][cc] == ends[i][0])
+            for (Point dir : DIR) {
+                Point n = p.add(dir);
+                if (valid(n)
+                        && !(n.equals(ends[i].end)) // not goal
+                        && board[n.r][n.c] == ends[i].name)
                     ++count;
             }
             return count;
         }
 
-        /**
-         * (r, c)の斜め上下左右にある同じ数字を数える。
-         * ただし斜め上下左右にゴールがある場合は除外して数える。
-         */
-        int diagonal(int i, int r, int c) {
-            int count = 0;
-            for (int[] dir : DIAG) {
-                int rr = r + dir[0], cc = c + dir[1];
-                if (valid(rr, cc)
-                        && !(rr == ends[i][3] && cc == ends[i][4]) // not goal
-                        && board[rr][cc] == ends[i][0])
-                    ++count;
-            }
-            return count;
-        }
-
-        void walk(int i, int r, int c) {
-            for (int[] dir : DIR) {
-                int rr = r + dir[0], cc = c + dir[1];
-                if (rr == ends[i][3] && cc == ends[i][4]) {
+        void walk(int i, Point p) {
+            for (Point dir : DIR) {
+                Point n = p.add(dir);
+                if (n.equals(ends[i].end)) {
                     // System.out.println(this);
                     solve(i + 1);
-                } else if (valid(rr, cc) && board[rr][cc] == 0
-                        && neighbors(i, rr, cc) <= 1
+                } else if (valid(n) && board[n.r][n.c] == 0
+                    && neighbors(i, n) <= 1
                 /* && diagonal(i, rr, cc) == 0 */) {
-                    board[rr][cc] = ends[i][0];
-                    walk(i, rr, cc);
-                    board[rr][cc] = 0;
+                    board[n.r][n.c] = ends[i].name;
+                    walk(i, n);
+                    board[n.r][n.c] = 0;
                 }
             }
         }
@@ -134,7 +127,7 @@ public class TestNumberLink2 {
             if (i >= ends.length)
                 answer();
             else
-                walk(i, ends[i][1], ends[i][2]);
+                walk(i, ends[i].start);
         }
 
         List<int[][]> solve() {

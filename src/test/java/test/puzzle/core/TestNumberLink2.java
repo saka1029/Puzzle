@@ -108,15 +108,16 @@ public class TestNumberLink2 {
         }
 
         void walk(int i, Point p) {
+            Ends e = ends[i];
             for (Point dir : DIR) {
                 Point n = p.add(dir);
-                if (n.equals(ends[i].end)) {
+                if (n.equals(e.end)) {
                     // System.out.println(this);
                     solve(i + 1);
                 } else if (valid(n) && board[n.r][n.c] == 0
                     && neighbors(i, n) <= 1
                 /* && diagonal(i, rr, cc) == 0 */) {
-                    board[n.r][n.c] = ends[i].name;
+                    board[n.r][n.c] = e.name;
                     walk(i, n);
                     board[n.r][n.c] = 0;
                 }

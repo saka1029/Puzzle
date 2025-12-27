@@ -18,7 +18,6 @@ public class TestNumberLink2 {
         final int[][] board;
         final int[][] ends;
         static final int[][] DIR = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-        static final int DIR_SIZE = DIR.length;
 
         NumberLink(int[][] board) {
             this.rows = board.length;
@@ -83,8 +82,8 @@ public class TestNumberLink2 {
          */
         int neighbors(int i, int r, int c) {
             int count = 0;
-            for (int j = 0; j < DIR_SIZE; ++j) {
-                int rr = r + DIR[j][0], cc = c + DIR[j][1];
+            for (int[] dir : DIR) {
+                int rr = r + dir[0], cc = c + dir[1];
                 if (valid(rr, cc)
                     && !(rr == ends[i][3] && cc == ends[i][4]) // not goal
                     && board[rr][cc] == ends[i][0])
@@ -94,8 +93,8 @@ public class TestNumberLink2 {
         }
 
         void walk(int i, int r, int c) {
-            for (int j = 0; j < DIR_SIZE; ++j) {
-                int rr = r + DIR[j][0], cc = c + DIR[j][1];
+            for (int[] dir : DIR) {
+                int rr = r + dir[0], cc = c + dir[1];
                 if (rr == ends[i][3] && cc == ends[i][4]) {
                     // System.out.println(this);
                     solve(i + 1);

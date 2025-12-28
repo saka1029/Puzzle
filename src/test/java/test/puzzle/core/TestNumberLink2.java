@@ -18,15 +18,16 @@ public class TestNumberLink2 {
 
     static final Logger logger = Common.getLogger(TestNumberLink2.class);
 
-    static record Point(int r, int c) {
-        Point add(Point p) { return new Point(r + p.r, c + p.c); }
-        Point right() { return new Point(-c, r); }
-        Point left() { return new Point(c, -r); }
-    }
-
-    static record Ends(int name, Point start, Point end) {}
-
     static class NumberLink {
+
+        static record Point(int r, int c) {
+            Point add(Point p) { return new Point(r + p.r, c + p.c); }
+            Point right() { return new Point(-c, r); }
+            Point left() { return new Point(c, -r); }
+        }
+
+        static record Ends(int name, Point start, Point end) {}
+
         final int rows, cols;
         final int[][] board;
         final Ends[] ends;
@@ -107,6 +108,20 @@ public class TestNumberLink2 {
             return count;
         }
 
+        boolean check(int i, Point p, Point dir, Point n) {
+            if (!valid(n)) return false;
+            if (board[n.r][n.c] != 0) return false;
+            Point right = dir.right(), left = dir.left();
+            Point nn = n.add(dir);
+            Point[] points = {n.add(right), n.add(left), nn, nn.add(right), nn.add(left)};
+            for (Point x : points) {
+                if (!valid(x)) continue;
+                if (x.equals(ends[i].end)) continue;
+                if (board[x.r][x.c] == ends[i].name) return false;
+            }
+            return true;
+        }
+
         void walk(int i, Point p) {
             Ends e = ends[i];
             for (Point dir : DIR) {
@@ -114,9 +129,7 @@ public class TestNumberLink2 {
                 if (n.equals(e.end)) {
                     // System.out.println(this);
                     solve(i + 1);
-                } else if (valid(n) && board[n.r][n.c] == 0
-                    && neighbors(i, n) <= 1
-                /* && diagonal(i, rr, cc) == 0 */) {
+                } else if (valid(n) && board[n.r][n.c] == 0 && neighbors(i, n) <= 1) {
                     board[n.r][n.c] = e.name;
                     walk(i, n);
                     board[n.r][n.c] = 0;

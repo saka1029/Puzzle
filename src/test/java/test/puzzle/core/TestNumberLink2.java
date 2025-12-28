@@ -129,7 +129,8 @@ public class TestNumberLink2 {
                 if (n.equals(e.end)) {
                     // System.out.println(this);
                     solve(i + 1);
-                } else if (valid(n) && board[n.r][n.c] == 0 && neighbors(i, n) <= 1) {
+                // } else if (valid(n) && board[n.r][n.c] == 0 && neighbors(i, n) <= 1) {
+                } else if (check(i, p, dir, n)) {
                     board[n.r][n.c] = e.name;
                     walk(i, n);
                     board[n.r][n.c] = 0;

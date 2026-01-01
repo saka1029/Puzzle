@@ -122,9 +122,11 @@ public class TestNumberLink2 {
             return true;
         }
 
-        static int VISITED = 10000;
+        static int VISITED = -1;
 
         boolean reachable(int i, Point p) {
+            if (!valid(p))
+                return false;
             if (p.equals(ends[i].end))
                 return true;
             if (board[p.r][p.c] == 0) {
@@ -137,6 +139,7 @@ public class TestNumberLink2 {
         boolean reachable(int i) {
             Point start = ends[i].start;
             boolean ok = Stream.of(DIR).anyMatch(d -> reachable(i, start.add(d)));
+            print("reachable(" + ends[i].name + ")");
             for (int r = 0; r < rows; ++r)
                 for (int c = 0; c < cols; ++c)
                     if (board[r][c] == VISITED)
@@ -169,6 +172,8 @@ public class TestNumberLink2 {
 
         List<int[][]> solve() {
             print("problem:");
+            for (int i = 0; i < ends.length; ++i)
+                reachable(i);
             solve(0);
             return results;
         }

@@ -122,21 +122,26 @@ public class TestNumberLink2 {
             return true;
         }
 
+        static int VISITED = 10000;
+
         boolean reachable(int i, Point p) {
             if (p.equals(ends[i].end))
                 return true;
             if (board[p.r][p.c] == 0) {
-                board[p.r][p.c] = ends[i].name;
-                boolean ok = Stream.of(DIR).anyMatch(d -> reachable(i, p.add(d)));
-                board[p.r][p.c] = 0;
-                return ok;
+                board[p.r][p.c] = VISITED;
+                return Stream.of(DIR).anyMatch(d -> reachable(i, p.add(d)));
             }
             return false;
         }
 
         boolean reachable(int i) {
             Point start = ends[i].start;
-            return Stream.of(DIR).anyMatch(d -> reachable(i, start.add(d)));
+            boolean ok = Stream.of(DIR).anyMatch(d -> reachable(i, start.add(d)));
+            for (int r = 0; r < rows; ++r)
+                for (int c = 0; c < cols; ++c)
+                    if (board[r][c] == VISITED)
+                        board[r][c] = 0;
+            return ok;
         }
 
         void walk(int i, Point p) {

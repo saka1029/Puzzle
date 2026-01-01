@@ -122,6 +122,31 @@ public class TestNumberLink2 {
             return true;
         }
 
+        boolean go(int i, Point p) {
+            if (p.equals(ends[i].end))
+                return true;
+            else if (board[p.r][p.c] == 0) {
+                board[p.r][p.c] = ends[i].name;
+                boolean ok = false;
+                for (Point d : DIR)
+                    if (go(i, p.add(d))) {
+                        ok = true;
+                        break;
+                    }
+                board[p.r][p.c] = 0;
+                return ok;
+            }
+                return false;
+        }
+
+        boolean reachable(int i) {
+            Point start = ends[i].start;
+            for (Point d : DIR)
+                if (go(i, start.add(d)))
+                    return true;
+            return false;
+        }
+
         void walk(int i, Point p) {
             Ends e = ends[i];
             for (Point dir : DIR) {

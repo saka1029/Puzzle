@@ -139,7 +139,7 @@ public class TestNumberLink2 {
         boolean reachable(int i) {
             Point start = ends[i].start;
             boolean ok = Stream.of(DIR).anyMatch(d -> reachable(i, start.add(d)));
-            print("reachable(" + ends[i].name + ")");
+            // print("reachable(" + ends[i].name + ")");
             for (int r = 0; r < rows; ++r)
                 for (int c = 0; c < cols; ++c)
                     if (board[r][c] == VISITED)
@@ -164,16 +164,18 @@ public class TestNumberLink2 {
         }
 
         void solve(int i) {
-            if (i >= ends.length)
+            if (i >= ends.length) {
                 answer();
-            else
-                walk(i, ends[i].start);
+                return;
+            }
+            for (int j = i; j < ends.length; ++j) 
+                if (!reachable(j)) 
+                    return;
+            walk(i, ends[i].start);
         }
 
         List<int[][]> solve() {
             print("problem:");
-            for (int i = 0; i < ends.length; ++i)
-                reachable(i);
             solve(0);
             return results;
         }

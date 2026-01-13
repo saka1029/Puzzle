@@ -1,5 +1,5 @@
 target/
-lib/
+# lib/
 .settings/
 .vscode/
 .classpath

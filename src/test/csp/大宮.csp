@@ -1,4 +1,4 @@
-problem 大宮;
+problem 大宮
 
 import java.util.stream.IntStream;
 
@@ -10,14 +10,14 @@ import java.util.stream.IntStream;
 # ------
 # 浜松町
 
-variable [1..9] 大;
-variable [0..9] 宮 井 町;
-variable [1..9] 横 浜;
-variable [0..9] 松;
+variable 1 9 大
+variable 0 9 宮 井 町
+variable 1 9 横 浜
+variable 0 9 松
 
-constraint number(大, 宮) * number(宮) == number(大, 井, 町);
-constraint number(大, 宮) * number(大) == number(横, 浜);
-constraint number(大, 井, 町) + number(横, 浜, 0) == number(浜, 松, 町);
+constraint number(大, 宮) * number(宮) == number(大, 井, 町)
+constraint number(大, 宮) * number(大) == number(横, 浜)
+constraint number(大, 井, 町) + number(横, 浜, 0) == number(浜, 松, 町)
 
 static int number(int... digits) {
     return IntStream.of(digits).reduce(0, (n, d) -> n * 10 + d);

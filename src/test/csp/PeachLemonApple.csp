@@ -1,17 +1,14 @@
-problem TestParsePeachLemonApple;
+problem TestParsePeachLemonApple
 
 # PEACH + LEMON = APPLE
 
 import java.util.stream.IntStream;
 
-variable [1..9] p l a;
-variable [0..9] e c h m o n;
+variable 1 9 p l a
+variable 0 9 e c h m o n
 
-different p l a e c h m o n;
-constraint
-           number(p, e, a, c, h)
-         + number(l, e, m, o, n)
-        == number(a, p, p, l, e);
+allDifferent p l a e c h m o n
+constraint number(p, e, a, c, h) + number(l, e, m, o, n) == number(a, p, p, l, e)
 
 static int number(int... digits) {
     return IntStream.of(digits).reduce(0, (n, d) -> n * 10 + d);

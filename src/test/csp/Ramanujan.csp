@@ -1,17 +1,17 @@
-problem Ramanujan;
+problem Ramanujan
 
 # 2つの立方数の和で二様に表せる数
 
-variable [0..100] a b c d;
+variable 0 100 a b c d
 
-constraint a < b;
-constraint b <= c;
-constraint c < d;
+constraint a < b
+constraint b <= c
+constraint c < d
 
-constraint term(a) + term(d) == term(b) + term(c);
+constraint term(a) + term(d) == term(b) + term(c)
 
 # 立方数の和を表示するためのダミーの制約
-constraint print(a, b, c, d);
+constraint print(a, b, c, d)
 
 static int term(int n) {
     return n * n * n;

@@ -1,18 +1,18 @@
-problem 超高層覆面算;
+problem 超高層覆面算
 
 import java.util.stream.*;
 
 # に×5000+せん×4+にせん×8=さんまん
 
-variable [0..9] に せ ん さ ま;
+variable 0 9 に せ ん さ ま
 
-different に せ ん さ ま;
+allDifferent に せ ん さ ま
 
-constraint に > 0;
-constraint せ > 0;
-constraint さ > 0;
+constraint に > 0
+constraint せ > 0
+constraint さ > 0
 
-constraint n(に) * 5000 + n(せ,ん) * 4 + n(に,せ,ん) * 8 == n(さ,ん,ま,ん);
+constraint n(に) * 5000 + n(せ,ん) * 4 + n(に,せ,ん) * 8 == n(さ,ん,ま,ん)
 
 static int n(int... digits) {
     return IntStream.of(digits).reduce(0, (n, d) -> n * 10 + d);

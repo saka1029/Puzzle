@@ -129,10 +129,7 @@ public class TestPermutation {
     }
     
     static int number(int... digits) {
-        int r = 0;
-        for (int i : digits)
-            r = r * 10 + i;
-        return r;
+        return IntStream.of(digits).reduce(0, (a, b) -> 10 * a + b);
     }
 
     static boolean isSendMoreMoney(int[] a) {

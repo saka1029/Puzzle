@@ -130,5 +130,6 @@ public class TestKomachi2 {
     public void testEval() {
         assertEquals(579, eval(List.of(PLUS, 123, PLUS, 456)));
         assertEquals(147, eval(List.of(PLUS, 123, PLUS, 4, MULT, 6)));
+        assertEquals(-99, eval(List.of(MINUS, 123, PLUS, 4, MULT, 6)));
     }
 }

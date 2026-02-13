@@ -100,6 +100,20 @@ public class TestKomachi2 {
         return s.codePoints().map(c -> c - '0').toArray();
     }
 
+    static String string(List<Integer> terms) {
+        StringBuilder sb = new StringBuilder();
+        for (int i  : terms)
+            sb.append(
+                switch (i) {
+                    case -100 -> "+";
+                    case -99 -> "-";
+                    case -98 -> "*";
+                    case -97 -> "/";
+                    default -> "" + i;
+                });
+        return sb.toString();
+    }
+
     static void komachi2(int[] digits, int total) {
         int length = digits.length;
         int tryMax = 2 * IntStream.range(1, length).reduce(1, (a, b) -> a * 5);
@@ -107,7 +121,9 @@ public class TestKomachi2 {
         for (int i = 0; i < tryMax; ++i) {
             int[] ops = intsBase5(i, length);
             List<Integer> terms = makeTerms(digits, ops);
-            System.out.printf("i=%d(%s) terms=%s%n", i, Integer.toString(i, 5), terms);
+            int sum = eval(terms);
+            if (sum == total)
+                System.out.println(string(terms));
         }
     }
 

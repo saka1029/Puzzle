@@ -6,7 +6,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -69,21 +68,6 @@ public class TestKomachi2 {
         }.parse();
     }
 
-    @Test
-    public void testEval() {
-        assertEquals(579, eval(List.of(PLUS, 123, PLUS, 456)));
-        assertEquals(147, eval(List.of(PLUS, 123, PLUS, 4, MULT, 6)));
-        assertEquals(-99, eval(List.of(MINUS, 123, PLUS, 4, MULT, 6)));
-    }
-
-    @Test
-    public void testCount() {
-        int max = 2 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5;
-        System.out.printf("max=%d(%s base 5)%n", max, Integer.toString(max, 5));
-        System.out.printf("max - 1=%d(%s base 5)%n", max - 1, Integer.toString(max - 1, 5));
-    }
-
-
     static List<Integer> makeTerms(int[] digits, int[] ops) {
         int term = 0;
         List<Integer> terms = new ArrayList<>();
@@ -125,6 +109,20 @@ public class TestKomachi2 {
             List<Integer> terms = makeTerms(digits, ops);
             System.out.printf("i=%d(%s) terms=%s%n", i, Integer.toString(i, 5), terms);
         }
+    }
+
+    @Test
+    public void testEval() {
+        assertEquals(579, eval(List.of(PLUS, 123, PLUS, 456)));
+        assertEquals(147, eval(List.of(PLUS, 123, PLUS, 4, MULT, 6)));
+        assertEquals(-99, eval(List.of(MINUS, 123, PLUS, 4, MULT, 6)));
+    }
+
+    @Test
+    public void testCount() {
+        int max = 2 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5;
+        System.out.printf("max=%d(%s base 5)%n", max, Integer.toString(max, 5));
+        System.out.printf("max - 1=%d(%s base 5)%n", max - 1, Integer.toString(max - 1, 5));
     }
 
     @Test

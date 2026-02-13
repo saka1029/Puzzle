@@ -71,4 +71,10 @@ public class TestKomachi2 {
         assertEquals(147, eval(List.of(PLUS, 123, PLUS, 4, MULT, 6)));
         assertEquals(-99, eval(List.of(MINUS, 123, PLUS, 4, MULT, 6)));
     }
+
+    @Test
+    public void testCount() {
+        int max = 2 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 * 5 - 1;
+        System.out.printf("max=%d(%s base 5)%n", max, Integer.toString(max, 5));
+    }
 }

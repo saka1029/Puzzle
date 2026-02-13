@@ -1,10 +1,12 @@
 package test.puzzle.core;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -82,10 +84,36 @@ public class TestKomachi2 {
     }
 
 
+    static List<Integer> makeTerms(int[] digits, int[] ops) {
+        int term = 0;
+        List<Integer> terms = new ArrayList<>();
+        for (int j = 0; j < digits.length; ++j) {
+            int op = ops[j];
+            switch (op) {
+                case 0: case 1: case 2: case 3:
+                    if (j > 0)
+                        terms.add(term);
+                    terms.add(op - 100);
+                    term = digits[j];
+                    break;
+                case 4:
+                    term = term * 10 + digits[j];
+                    break;
+            }
+        }
+        terms.add(term);
+        return terms;
+    }
+
     static String padLeftZero(String s, int size) {
         for (int i = s.length(); i < size; ++i)
             s = "0" + s;
         return s;
+    }
+
+    static int[] intsBase5(int i, int length) {
+        String s = ("%" + length + "s").formatted(Integer.toString(i, 5)).replace(' ', '0');
+        return s.codePoints().map(c -> c - '0').toArray();
     }
 
     static void komachi2(int[] digits, int total) {
@@ -93,30 +121,22 @@ public class TestKomachi2 {
         int tryMax = 2 * IntStream.range(1, length).reduce(1, (a, b) -> a * 5);
         System.out.println(tryMax);
         for (int i = 0; i < tryMax; ++i) {
-            String ops = padLeftZero(Integer.toString(i, 5), length);
-            int term = 0;
-            List<Integer> terms = new ArrayList<>();
-            for (int j = 0; j < length; ++j) {
-                int op = ops.charAt(j) - '0';
-                switch (op) {
-                    case 0: case 1: case 2: case 3:
-                        if (j > 0)
-                            terms.add(term);
-                        terms.add(op - 100);
-                        term = digits[j];
-                        break;
-                    case 4:
-                        term = term * 10 * digits[j];
-                        break;
-                }
-
-            }
+            int[] ops = intsBase5(i, length);
+            List<Integer> terms = makeTerms(digits, ops);
             System.out.printf("i=%d(%s) terms=%s%n", i, Integer.toString(i, 5), terms);
         }
     }
 
     @Test
-    public void testKomachi2() {
-        komachi2(new int[] {1,2,3,4,5,6,7,8,9}, 100);
+    public void testMakeTerms() {
+        int[] digits = {1,2,3,4,5,6,7,8,9};
+        assertEquals(List.of(-100, 123, -100, 456, -100, 789), makeTerms(digits, new int[] {0,4,4,0,4,4,0,4,4}));
     }
+
+    @Test
+    public void testIntsBase5() {
+        assertArrayEquals(new int[] {0,4,4}, intsBase5(Integer.parseInt("044", 5), 3));
+        assertArrayEquals(new int[] {0,1,2,3,4,1,2,3,4}, intsBase5(Integer.parseInt("012341234", 5), 9));
+    }
+
 }

@@ -30,19 +30,26 @@ public class TestKomachi2 {
         public abstract int eval(int left, int right);
     }
 
-    static class Calcurator {
+    static class Calculator {
         final Deque<Integer> stack = new ArrayDeque<>();
         final Deque<Operator> opStack = new ArrayDeque<>();
+
+        void reduce() {
+            while (!opStack.isEmpty()) {
+                int r = stack.pop(), l = stack.pop();
+                stack.push(opStack.pop().eval(l, r));
+            }
+        }
 
         public void add(Operator op, int digit) {
             switch (op) {
                 case Append: stack.push(stack.pop() * 10 + digit); break;
                 default:
+                    reduce();
                     opStack.push(op);
                     stack.push(digit);
                     break;
             }
-
         }
     }
 
@@ -52,4 +59,20 @@ public class TestKomachi2 {
         assertEquals(Operator.Multiply, Operator.at(4));
     }
 
+    @Test
+    public void testCalculator() {
+        Calculator c = new Calculator();
+        c.add(Operator.Plus, 1);
+        c.add(Operator.Append, 2);
+        c.add(Operator.Append, 3);
+        assertEquals(123, (int)c.stack.pop());
+    }
+
+    static int eval(List<Integer> input) {
+        return new Object() {
+            int parse() {
+
+            }
+        }.parse();
+    }
 }

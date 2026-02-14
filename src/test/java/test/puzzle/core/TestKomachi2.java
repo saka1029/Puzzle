@@ -96,7 +96,8 @@ public class TestKomachi2 {
     }
 
     static int[] intsBase5(int i, int length) {
-        String s = ("%" + length + "s").formatted(Integer.toString(i, 5)).replace(' ', '0');
+        String base5 = Integer.toString(i, 5);
+        String s = "0".repeat(length - base5.length()) + base5;
         return s.codePoints().map(c -> c - '0').toArray();
     }
 

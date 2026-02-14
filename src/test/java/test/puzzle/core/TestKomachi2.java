@@ -13,7 +13,9 @@ public class TestKomachi2 {
 
     static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
 
-    static int eval(List<Integer> input) {
+    static class DivisionException extends Exception {}
+
+    static int eval(List<Integer> input) throws DivisionException {
         return new Object() {
             static int EOF = -99999;
             int index = 0, max = input.size();
@@ -37,19 +39,22 @@ public class TestKomachi2 {
                 return value;
             }
 
-            int term() {
+            int term() throws DivisionException {
                 int value = primary();
                 while (true)
-                    if (eat(MULT))
+                    if (eat(MULT)) {
                         value *= primary();
-                    else if (eat(DIV))
-                        value /= primary();
-                    else
+                    } else if (eat(DIV)) {
+                        int p = primary();
+                        if (value % p != 0)
+                            throw new DivisionException();
+                        value /= p;
+                    } else
                         break;
                 return value;
             }
 
-            int factor() {
+            int factor() throws DivisionException {
                 int value = 0;
                 while (true)
                     if (eat(PLUS))
@@ -61,7 +66,7 @@ public class TestKomachi2 {
                 return value;
             }
 
-            int parse() {
+            int parse() throws DivisionException {
                 get();
                 return factor();
             }
@@ -122,14 +127,17 @@ public class TestKomachi2 {
         for (int i = 0; i < tryMax; ++i) {
             int[] ops = intsBase5(i, length);
             List<Integer> terms = makeTerms(digits, ops);
-            int sum = eval(terms);
-            if (sum == total)
-                System.out.println(string(terms));
+            try {
+                int sum = eval(terms);
+                if (sum == total)
+                    System.out.println(string(terms));
+            } catch (DivisionException e) {
+            }
         }
     }
 
     @Test
-    public void testEval() {
+    public void testEval() throws DivisionException {
         assertEquals(579, eval(List.of(PLUS, 123, PLUS, 456)));
         assertEquals(147, eval(List.of(PLUS, 123, PLUS, 4, MULT, 6)));
         assertEquals(-99, eval(List.of(MINUS, 123, PLUS, 4, MULT, 6)));
@@ -152,6 +160,12 @@ public class TestKomachi2 {
     public void testIntsBase5() {
         assertArrayEquals(new int[] {0,4,4}, intsBase5(Integer.parseInt("044", 5), 3));
         assertArrayEquals(new int[] {0,1,2,3,4,1,2,3,4}, intsBase5(Integer.parseInt("012341234", 5), 9));
+    }
+
+    @Test
+    public void testKomachi2() {
+        int[] digits = {1,2,3,4,5,6,7,8,9};
+        komachi2(digits, 100);
     }
 
 }

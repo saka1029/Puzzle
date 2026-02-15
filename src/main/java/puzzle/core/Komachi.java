@@ -40,25 +40,25 @@ public class Komachi {
                 return false;
             }
 
-            Rational primary() {
+            Rational factor() {
                 int value = token;
                 get();
                 return Rational.of(value);
             }
 
             Rational term() {
-                Rational value = primary();
+                Rational value = factor();
                 while (true)
                     if (eat(MULT)) {
-                        value = value.multiply(primary());
+                        value = value.multiply(factor());
                     } else if (eat(DIV)) {
-                        value = value.divide(primary());
+                        value = value.divide(factor());
                     } else
                         break;
                 return value;
             }
 
-            Rational factor() {
+            Rational expression() {
                 Rational value = Rational.ZERO;
                 while (true)
                     if (eat(PLUS))
@@ -72,7 +72,7 @@ public class Komachi {
 
             Rational parse() {
                 get();
-                return factor();
+                return expression();
             }
         }.parse();
     }

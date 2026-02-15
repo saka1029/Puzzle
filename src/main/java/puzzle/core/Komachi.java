@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
+ * 【繰返し計算版】
+ * 【有理数非対応版】
  * 小町算（こまちざん）は、数の遊びである数学パズルの一種。
  * 1□2□3□4□5□6□7□8□9 = 100 という数式の□の中に、
  * +, -, ×, ÷, 空白 のいずれかを一つずつ入れて正しい数式を完成させるというものである。
@@ -129,13 +131,14 @@ public class Komachi {
         int length = digits.length;
         int tryMax = 2 * IntStream.range(1, length).reduce(1, (a, b) -> a * 5);
         System.out.println(tryMax);
+        int count = 0;
         for (int i = 0; i < tryMax; ++i) {
             int[] ops = intsBase5(i, length);
             List<Integer> terms = makeTerms(digits, ops);
             try {
                 int sum = eval(terms);
                 if (sum == total)
-                    System.out.println(string(terms));
+                    System.out.println(++count + ": " + string(terms));
             } catch (DivisionException e) {
             }
         }

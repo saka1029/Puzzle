@@ -41,7 +41,7 @@ public class TestKomachi {
     @Test
     public void testKomachi2() {
         int[] digits = {1,2,3,4,5,6,7,8,9};
-        komachi2(digits, 100);
+        solve(digits, 100);
     }
 
     static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;

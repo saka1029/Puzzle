@@ -1,10 +1,8 @@
 package puzzle.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.IntStream;
-
 /**
+ * 【再帰版】
+ * 【有理数対応版】
  * 小町算（こまちざん）は、数の遊びである数学パズルの一種。
  * 1□2□3□4□5□6□7□8□9 = 100 という数式の□の中に、
  * +, -, ×, ÷, 空白 のいずれかを一つずつ入れて正しい数式を完成させるというものである。
@@ -24,16 +22,14 @@ public class Komachi {
 
     public static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
 
-    public static class DivisionException extends Exception {}
-
-    public static int eval(List<Integer> input) throws DivisionException {
+    public static Rational eval(int[] terms, int tsize) {
         return new Object() {
             static int EOF = -99999;
-            int index = 0, max = input.size();
+            int index = 0;
             int token;
 
             int get() {
-                return token = index < max ? input.get(index++) : EOF;
+                return token = index < tsize ? terms[index++] : EOF;
             }
 
             boolean eat(int expected) {
@@ -44,100 +40,85 @@ public class Komachi {
                 return false;
             }
 
-            int primary() {
+            Rational primary() {
                 int value = token;
                 get();
-                return value;
+                return Rational.of(value);
             }
 
-            int term() throws DivisionException {
-                int value = primary();
+            Rational term() {
+                Rational value = primary();
                 while (true)
                     if (eat(MULT)) {
-                        value *= primary();
+                        value = value.multiply(primary());
                     } else if (eat(DIV)) {
-                        int p = primary();
-                        if (value % p != 0)
-                            throw new DivisionException();
-                        value /= p;
+                        value = value.divide(primary());
                     } else
                         break;
                 return value;
             }
 
-            int factor() throws DivisionException {
-                int value = 0;
+            Rational factor() {
+                Rational value = Rational.ZERO;
                 while (true)
                     if (eat(PLUS))
-                        value += term();
+                        value = value.add(term());
                     else if (eat(MINUS))
-                        value -= term();
+                        value = value.subtract(term());
                     else
                         break;
                 return value;
             }
 
-            int parse() throws DivisionException {
+            Rational parse() {
                 get();
                 return factor();
             }
         }.parse();
     }
 
-    public static List<Integer> makeTerms(int[] digits, int[] ops) {
-        int term = 0;
-        List<Integer> terms = new ArrayList<>();
-        for (int j = 0; j < digits.length; ++j) {
-            int op = ops[j];
-            switch (op) {
-                case 0: case 1: case 2: case 3:
-                    if (j > 0)
-                        terms.add(term);
-                    terms.add(op - 100);
-                    term = digits[j];
-                    break;
-                case 4:
-                    term = term * 10 + digits[j];
-                    break;
-            }
-        }
-        terms.add(term);
-        return terms;
-    }
-
-    public static int[] intsBase5(int i, int length) {
-        String base5 = Integer.toString(i, 5);
-        String s = "0".repeat(length - base5.length()) + base5;
-        return s.codePoints().map(c -> c - '0').toArray();
-    }
-
-    public static String string(List<Integer> terms) {
+    public static String string(int[] terms, int tsize) {
         StringBuilder sb = new StringBuilder();
-        for (int i  : terms)
+        for (int i = 0; i < tsize; ++i) 
             sb.append(
-                switch (i) {
+                switch (terms[i]) {
                     case -100 -> "+";
                     case -99 -> "-";
                     case -98 -> "*";
                     case -97 -> "/";
-                    default -> "" + i;
+                    default -> "" + terms[i];
                 });
         return sb.toString();
     }
 
-    public static void solve(int[] digits, int total) {
-        int length = digits.length;
-        int tryMax = 2 * IntStream.range(1, length).reduce(1, (a, b) -> a * 5);
-        System.out.println(tryMax);
-        for (int i = 0; i < tryMax; ++i) {
-            int[] ops = intsBase5(i, length);
-            List<Integer> terms = makeTerms(digits, ops);
-            try {
-                int sum = eval(terms);
-                if (sum == total)
-                    System.out.println(string(terms));
-            } catch (DivisionException e) {
+    public static void solve(int[] digits, int goal) {
+        new Object() {
+            Rational rgoal = Rational.of(goal);
+            int[] terms = new int[digits.length * 2];
+            int tsize = 0;
+            int count = 0;
+
+            void push(int value) {
+                terms[tsize++] = value;
             }
-        }
+
+            void solve(int i, int term) {
+                if (i >= digits.length) {
+                    push(term);     // the last term
+                    if (eval(terms, tsize).equals(rgoal)) 
+                        System.out.println(++count + ": " + string(terms, tsize));
+            } else {
+                    int backup = tsize;
+                    if (i > 0) push(term); push(PLUS); solve(i + 1, digits[i]); tsize = backup;
+                    if (i > 0) push(term); push(MINUS); solve(i + 1, digits[i]); tsize = backup;
+                    if (i > 0) {
+                        push(term); push(MULT); solve(i + 1, digits[i]); tsize = backup;
+                        push(term); push(DIV); solve(i + 1, digits[i]); tsize = backup;
+                        solve(i + 1, term * 10 + digits[i]);
+                    }
+                }
+            }
+
+        }.solve(0, 0);
     }
 }

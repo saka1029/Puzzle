@@ -2,6 +2,7 @@ package puzzle.core;
 
 /**
  * 【再帰版】
+ * 【有理数対応版】
  * 小町算（こまちざん）は、数の遊びである数学パズルの一種。
  * 1□2□3□4□5□6□7□8□9 = 100 という数式の□の中に、
  * +, -, ×, ÷, 空白 のいずれかを一つずつ入れて正しい数式を完成させるというものである。
@@ -21,9 +22,7 @@ public class Komachi2 {
 
     public static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
 
-    public static class DivisionException extends Exception {}
-
-    public static int eval(int[] terms, int tsize) throws DivisionException {
+    public static Rational eval(int[] terms, int tsize) {
         return new Object() {
             static int EOF = -99999;
             int index = 0;
@@ -41,40 +40,37 @@ public class Komachi2 {
                 return false;
             }
 
-            int primary() {
+            Rational primary() {
                 int value = token;
                 get();
-                return value;
+                return Rational.of(value);
             }
 
-            int term() throws DivisionException {
-                int value = primary();
+            Rational term() {
+                Rational value = primary();
                 while (true)
                     if (eat(MULT)) {
-                        value *= primary();
+                        value = value.multiply(primary());
                     } else if (eat(DIV)) {
-                        int p = primary();
-                        if (value % p != 0)
-                            throw new DivisionException();
-                        value /= p;
+                        value = value.divide(primary());
                     } else
                         break;
                 return value;
             }
 
-            int factor() throws DivisionException {
-                int value = 0;
+            Rational factor() {
+                Rational value = Rational.ZERO;
                 while (true)
                     if (eat(PLUS))
-                        value += term();
+                        value = value.add(term());
                     else if (eat(MINUS))
-                        value -= term();
+                        value = value.subtract(term());
                     else
                         break;
                 return value;
             }
 
-            int parse() throws DivisionException {
+            Rational parse() {
                 get();
                 return factor();
             }
@@ -97,8 +93,10 @@ public class Komachi2 {
 
     public static void solve(int[] digits, int goal) {
         new Object() {
+            Rational rgoal = Rational.of(goal);
             int[] terms = new int[digits.length * 2];
             int tsize = 0;
+            int count = 0;
 
             void push(int value) {
                 terms[tsize++] = value;
@@ -107,12 +105,9 @@ public class Komachi2 {
             void solve(int i, int term) {
                 if (i >= digits.length) {
                     push(term);     // the last term
-                    try {
-                        if (eval(terms, tsize) == goal)
-                            System.out.println(string(terms, tsize));
-                    } catch(DivisionException e) {
-                    }
-                } else {
+                    if (eval(terms, tsize).equals(rgoal)) 
+                        System.out.println(++count + ": " + string(terms, tsize));
+            } else {
                     int backup = tsize;
                     if (i > 0) push(term); push(PLUS); solve(i + 1, digits[i]); tsize = backup;
                     if (i > 0) push(term); push(MINUS); solve(i + 1, digits[i]); tsize = backup;

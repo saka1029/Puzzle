@@ -38,6 +38,14 @@ public class ConsList<T> implements Iterable<T> {
         return new ConsList<>(element, this);
     }
 
+    public T car() {
+        return element;
+    }
+
+    public ConsList<T> cdr() {
+        return rest;
+    }
+
     public ConsList<T> reverse() {
         ConsList<T> result = nil();
         for (ConsList<T> list = this; list != nil(); list = list.rest)

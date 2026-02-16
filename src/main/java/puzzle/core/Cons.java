@@ -1,27 +1,27 @@
-package puzzle.list;
+package puzzle.core;
 
 import java.util.Iterator;
 
-public class ConsList<T> implements Iterable<T> {
+public class Cons<T> implements Iterable<T> {
 
-    public static final ConsList<?> NIL = new ConsList<>(null, null);
+    public static final Cons<?> NIL = new Cons<>(null, null);
 
     @SuppressWarnings("unchecked")
-    public static <T> ConsList<T> nil() {
-        return (ConsList<T>) NIL;
+    public static <T> Cons<T> nil() {
+        return (Cons<T>) NIL;
     }
 
     final T car;
-    final ConsList<T> cdr;
+    final Cons<T> cdr;
 
-    ConsList(T car, ConsList<T> cdr) {
+    Cons(T car, Cons<T> cdr) {
         this.car = car;
         this.cdr = cdr;
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> ConsList<T> of(T... elements) {
-        ConsList<T> result = nil();
+    public static <T> Cons<T> of(T... elements) {
+        Cons<T> result = nil();
         for (int i = elements.length - 1; i >= 0; --i)
             result = result.cons(elements[i]);
         return result;
@@ -33,26 +33,26 @@ public class ConsList<T> implements Iterable<T> {
 
     public int size() {
         int size = 0;
-        for (ConsList<T> list = this; list != nil(); list = list.cdr)
+        for (Cons<T> list = this; list != nil(); list = list.cdr)
             ++size;
         return size;
     }
 
-    public ConsList<T> cons(T car) {
-        return new ConsList<>(car, this);
+    public Cons<T> cons(T car) {
+        return new Cons<>(car, this);
     }
 
     public T car() {
         return car;
     }
 
-    public ConsList<T> cdr() {
+    public Cons<T> cdr() {
         return cdr;
     }
 
-    public ConsList<T> reverse() {
-        ConsList<T> result = nil();
-        for (ConsList<T> list = this; list != nil(); list = list.cdr)
+    public Cons<T> reverse() {
+        Cons<T> result = nil();
+        for (Cons<T> list = this; list != nil(); list = list.cdr)
             result = result.cons(list.car);
         return result;
     }
@@ -60,7 +60,7 @@ public class ConsList<T> implements Iterable<T> {
     @Override
     public Iterator<T> iterator() {
         return new Iterator<>() {
-            ConsList<T> list = ConsList.this;
+            Cons<T> list = Cons.this;
 
             @Override
             public boolean hasNext() {
@@ -81,7 +81,7 @@ public class ConsList<T> implements Iterable<T> {
         StringBuilder sb = new StringBuilder("[");
         if (this != nil())
             sb.append(car);
-        for (ConsList<T> list = cdr; list != nil(); list = list.cdr)
+        for (Cons<T> list = cdr; list != nil(); list = list.cdr)
             sb.append(", ").append(list.car);
         return sb.append("]").toString();
     }

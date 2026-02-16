@@ -1,7 +1,5 @@
 package puzzle.core;
 
-import puzzle.list.ConsList;
-
 /**
  * 【再帰版】
  * 【有理数対応版】
@@ -32,9 +30,9 @@ public class Komachi2 {
      * factor     = NUMBER
      * @return  評価結果の有理数
      */
-    public static Rational eval(ConsList<Integer> termsOrg) {
+    public static Rational eval(Cons<Integer> termsOrg) {
         return new Object() {
-            ConsList<Integer> terms = termsOrg.reverse();
+            Cons<Integer> terms = termsOrg.reverse();
             int token;
 
             int get() {
@@ -90,7 +88,7 @@ public class Komachi2 {
         }.parse();
     }
 
-    public static String string(ConsList<Integer> terms) {
+    public static String string(Cons<Integer> terms) {
         StringBuilder sb = new StringBuilder();
         for (int term : terms.reverse().cdr())
             sb.append(
@@ -107,11 +105,9 @@ public class Komachi2 {
     public static void solve(int[] digits, int goal) {
         new Object() {
             Rational rgoal = Rational.of(goal);
-            // int[] terms = new int[digits.length * 2 + 1];
-            // int tsize = 0;
             int count = 0;
 
-            void solve(int i, int term, ConsList<Integer> terms) {
+            void solve(int i, int term, Cons<Integer> terms) {
                 if (i >= digits.length) {
                     terms = terms.cons(term);     // the last term
                     if (eval(terms).equals(rgoal)) 
@@ -126,6 +122,6 @@ public class Komachi2 {
                     }
                 }
             }
-        }.solve(0, 0, ConsList.nil());
+        }.solve(0, 0, Cons.nil());
     }
 }

@@ -22,14 +22,21 @@ public class Komachi {
 
     public static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
 
+    /**
+     * SYNTAX
+     * <pre>
+     * expression = { ( '+' | '-' ) term }
+     * term       = factor { ( '*' | '/' ) factor }
+     * factor     = NUMBER
+     * @return  評価結果の有理数
+     */
     public static Rational eval(int[] terms, int tsize) {
         return new Object() {
-            static int EOF = -99999;
             int index = 0;
             int token;
 
             int get() {
-                return token = index < tsize ? terms[index++] : EOF;
+                return token = index < tsize ? terms[index++] : -999999;
             }
 
             boolean eat(int expected) {
@@ -41,19 +48,19 @@ public class Komachi {
             }
 
             Rational factor() {
-                int value = token;
+                Rational value = Rational.of(token);
                 get();
-                return Rational.of(value);
+                return value;
             }
 
             Rational term() {
                 Rational value = factor();
                 while (true)
-                    if (eat(MULT)) {
+                    if (eat(MULT))
                         value = value.multiply(factor());
-                    } else if (eat(DIV)) {
+                    else if (eat(DIV))
                         value = value.divide(factor());
-                    } else
+                    else
                         break;
                 return value;
             }
@@ -95,8 +102,7 @@ public class Komachi {
         new Object() {
             Rational rgoal = Rational.of(goal);
             int[] terms = new int[digits.length * 2];
-            int tsize = 0;
-            int count = 0;
+            int tsize = 0, count = 0;
 
             void push(int value) {
                 terms[tsize++] = value;
@@ -118,7 +124,6 @@ public class Komachi {
                     }
                 }
             }
-
         }.solve(0, 0);
     }
 }

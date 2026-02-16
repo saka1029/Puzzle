@@ -66,7 +66,7 @@ public class Komachi {
             }
 
             Rational expression() {
-                Rational value = Rational.ZERO;
+                Rational value = term();
                 while (true)
                     if (eat(PLUS))
                         value = value.add(term());
@@ -86,7 +86,7 @@ public class Komachi {
 
     public static String string(int[] terms, int tsize) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < tsize; ++i) 
+        for (int i = 1; i < tsize; ++i) 
             sb.append(
                 switch (terms[i]) {
                     case -100 -> "+";
@@ -101,7 +101,7 @@ public class Komachi {
     public static void solve(int[] digits, int goal) {
         new Object() {
             Rational rgoal = Rational.of(goal);
-            int[] terms = new int[digits.length * 2];
+            int[] terms = new int[digits.length * 2 + 1];
             int tsize = 0, count = 0;
 
             void push(int value) {
@@ -115,8 +115,8 @@ public class Komachi {
                         System.out.println(++count + ": " + string(terms, tsize));
             } else {
                     int backup = tsize;
-                    if (i > 0) push(term); push(PLUS); solve(i + 1, digits[i]); tsize = backup;
-                    if (i > 0) push(term); push(MINUS); solve(i + 1, digits[i]); tsize = backup;
+                    push(term); push(PLUS); solve(i + 1, digits[i]); tsize = backup;
+                    push(term); push(MINUS); solve(i + 1, digits[i]); tsize = backup;
                     if (i > 0) {
                         push(term); push(MULT); solve(i + 1, digits[i]); tsize = backup;
                         push(term); push(DIV); solve(i + 1, digits[i]); tsize = backup;

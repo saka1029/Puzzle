@@ -32,7 +32,7 @@ public class Komachi2 {
      */
     public static Rational eval(Cons<Integer> termsOrg) {
         return new Object() {
-            Cons<Integer> terms = termsOrg.reverse();
+            Cons<Integer> terms = termsOrg;
             int token;
 
             int get() {
@@ -90,7 +90,7 @@ public class Komachi2 {
 
     public static String string(Cons<Integer> terms) {
         StringBuilder sb = new StringBuilder();
-        for (int term : terms.reverse().cdr())
+        for (int term : terms.cdr())
             sb.append(
                 switch (term) {
                     case -100 -> "+";
@@ -110,8 +110,8 @@ public class Komachi2 {
             void solve(int i, int term, Cons<Integer> terms) {
                 if (i >= digits.length) {
                     terms = terms.cons(term);     // the last term
-                    if (eval(terms).equals(rgoal)) 
-                        System.out.println(++count + ": " + string(terms));
+                    if (eval(terms.reverse()).equals(rgoal)) 
+                        System.out.println(++count + ": " + string(terms.reverse()));
             } else {
                     solve(i + 1, digits[i], terms.cons(term).cons(PLUS));
                     solve(i + 1, digits[i], terms.cons(term).cons(MINUS));

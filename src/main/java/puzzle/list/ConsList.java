@@ -11,12 +11,12 @@ public class ConsList<T> implements Iterable<T> {
         return (ConsList<T>) NIL;
     }
 
-    final T element;
-    final ConsList<T> rest;
+    final T car;
+    final ConsList<T> cdr;
 
-    ConsList(T element, ConsList<T> rest) {
-        this.element = element;
-        this.rest = rest;
+    ConsList(T car, ConsList<T> cdr) {
+        this.car = car;
+        this.cdr = cdr;
     }
 
     @SuppressWarnings("unchecked")
@@ -29,27 +29,27 @@ public class ConsList<T> implements Iterable<T> {
 
     public int size() {
         int size = 0;
-        for (ConsList<T> list = this; list != nil(); list = list.rest)
+        for (ConsList<T> list = this; list != nil(); list = list.cdr)
             ++size;
         return size;
     }
 
-    public ConsList<T> cons(T element) {
-        return new ConsList<>(element, this);
+    public ConsList<T> cons(T car) {
+        return new ConsList<>(car, this);
     }
 
     public T car() {
-        return element;
+        return car;
     }
 
     public ConsList<T> cdr() {
-        return rest;
+        return cdr;
     }
 
     public ConsList<T> reverse() {
         ConsList<T> result = nil();
-        for (ConsList<T> list = this; list != nil(); list = list.rest)
-            result = result.cons(list.element);
+        for (ConsList<T> list = this; list != nil(); list = list.cdr)
+            result = result.cons(list.car);
         return result;
     }
 
@@ -65,9 +65,9 @@ public class ConsList<T> implements Iterable<T> {
 
             @Override
             public T next() {
-                T e = list.element;
-                list = list.rest;
-                return e;
+                T car = list.car;
+                list = list.cdr;
+                return car;
             }
         };
     }
@@ -76,9 +76,9 @@ public class ConsList<T> implements Iterable<T> {
     public String toString() {
         StringBuilder sb = new StringBuilder("[");
         if (this != nil())
-            sb.append(element);
-        for (ConsList<T> list = rest; list != nil(); list = list.rest)
-            sb.append(", ").append(list.element);
+            sb.append(car);
+        for (ConsList<T> list = cdr; list != nil(); list = list.cdr)
+            sb.append(", ").append(list.car);
         return sb.append("]").toString();
     }
 }

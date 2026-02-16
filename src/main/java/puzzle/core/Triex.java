@@ -26,7 +26,8 @@ public class Triex<K, V> {
         return nodes.computeIfAbsent(new NodeKey<>(node, key), k -> new Node<>());
     }
 
-    public void put(V data, @SuppressWarnings("unchecked") K... keys) {
+    @SuppressWarnings("unchecked")
+    public void put(V data, K... keys) {
         Node<K, V> node = root;
         for (K key : keys)
             node = add(node, key);

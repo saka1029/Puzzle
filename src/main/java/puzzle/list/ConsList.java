@@ -27,6 +27,10 @@ public class ConsList<T> implements Iterable<T> {
         return result;
     }
 
+    public boolean isEmpty() {
+        return this == NIL;
+    }
+
     public int size() {
         int size = 0;
         for (ConsList<T> list = this; list != nil(); list = list.cdr)

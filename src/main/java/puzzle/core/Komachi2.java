@@ -38,7 +38,7 @@ public class Komachi2 {
             int token;
 
             int get() {
-                if (terms == ConsList.NIL)
+                if (terms.isEmpty())
                     return token = -999999;
                 token = terms.car();
                 terms = terms.cdr();

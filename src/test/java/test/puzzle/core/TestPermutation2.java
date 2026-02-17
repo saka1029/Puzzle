@@ -23,4 +23,16 @@ public class TestPermutation2 {
         Cons<Integer> list = Cons.of(1, 2, 3, 4);
         permutation(list);
     }
+
+    static <T> Cons<Cons<T>> select(Cons<T> list) {
+        Cons<Cons<T>> result = Cons.nil();
+        for (T x : list)
+            result.cons(x.
+
+        return result;
+    }
+
+    @Test
+    public void testSelect() {
+    }
 }

@@ -2,6 +2,7 @@ package test.puzzle.core;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
@@ -54,11 +55,12 @@ public class TestCons {
     //     assertEquals(4, (int)clist.get(3));
     // }
    
-    // @Test
-    // public void testToList() {
-    //     Cons<Integer> clist = Cons.of(1, 2, 3, 4);
-    //     assertEquals(List.of(1, 2, 3, 4), clist.toList());
-    // }
+    @Test
+    public void testStream() {
+        Cons<Integer> clist = Cons.of(1, 2, 3, 4);
+        assertEquals(List.of(1, 2, 3, 4), clist.stream().toList());
+        assertArrayEquals(new int[] {1, 2, 3, 4}, clist.stream().mapToInt(x -> x).toArray());
+    }
     
     @Test
     public void testIterable() {

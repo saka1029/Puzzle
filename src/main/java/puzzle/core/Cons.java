@@ -2,6 +2,8 @@ package puzzle.core;
 
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class Cons<T> implements Iterable<T> {
 
@@ -95,6 +97,10 @@ public class Cons<T> implements Iterable<T> {
                 return car;
             }
         };
+    }
+
+    public Stream<T> stream() {
+        return StreamSupport.stream(spliterator(), false);
     }
 
     @Override

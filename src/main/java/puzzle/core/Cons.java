@@ -28,7 +28,7 @@ public class Cons<T> implements Iterable<T> {
         return result;
     }
 
-    public boolean isEmpty() {
+    public boolean isNull() {
         return this == NIL;
     }
 
@@ -59,11 +59,11 @@ public class Cons<T> implements Iterable<T> {
     }
 
     public Cons<T> append(Cons<T> list) {
-        return isEmpty() ? list : cdr.append(list).cons(car);
+        return isNull() ? list : cdr.append(list).cons(car);
     }
 
     public Cons<T> remove(T element) {
-        if (isEmpty())
+        if (isNull())
             return this;
         else if (car.equals(element))
             return cdr.remove(element);

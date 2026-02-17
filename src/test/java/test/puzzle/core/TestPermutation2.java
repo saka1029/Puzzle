@@ -11,7 +11,7 @@ public class TestPermutation2 {
     }
 
     static <T> void permutation(Cons<T> list, Cons<T> aux) {
-        if (list.isEmpty())
+        if (list.isNull())
             System.out.println(aux.reverse());
         else
             for (T x : list)

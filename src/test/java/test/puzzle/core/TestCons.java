@@ -60,8 +60,9 @@ public class TestCons {
         Cons<Integer> clist = Cons.of(1, 2, 3, 4);
         assertEquals(List.of(1, 2, 3, 4), clist.stream().toList());
         assertArrayEquals(new int[] {1, 2, 3, 4}, clist.stream().mapToInt(x -> x).toArray());
+        assertEquals(10, clist.stream().mapToInt(Integer::intValue).sum());
     }
-    
+        
     @Test
     public void testIterable() {
         Cons<Integer> clist = Cons.of(1, 2, 3, 4);
@@ -78,12 +79,6 @@ public class TestCons {
     public void testReverse() {
         assertEquals(Cons.of(4, 3, 2, 1), Cons.of(1, 2, 3, 4).reverse());
     }
-        
-    // @Test
-    // public void testStream() {
-    //     Cons<Integer> clist = Cons.of(1, 2, 3, 4);
-    //     assertEquals(10, clist.stream().mapToInt(Integer::intValue).sum());
-    // }
     
     static <T> List<T> cat(List<T> a, List<T> b) {
         List<T> result = new ArrayList<>(a);

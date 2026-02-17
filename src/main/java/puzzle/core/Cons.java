@@ -1,6 +1,7 @@
 package puzzle.core;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 public class Cons<T> implements Iterable<T> {
 
@@ -48,6 +49,26 @@ public class Cons<T> implements Iterable<T> {
 
     public Cons<T> cdr() {
         return cdr;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Cons c
+            && Objects.equals(car, c.car)
+            && Objects.equals(cdr, c.cdr);
+    }
+
+    public Cons<T> append(Cons<T> list) {
+        return isEmpty() ? list : cdr.append(list).cons(car);
+    }
+
+    public Cons<T> remove(T element) {
+        if (isEmpty())
+            return this;
+        else if (car.equals(element))
+            return cdr.remove(element);
+        else
+            return cdr.remove(element).cons(car);
     }
 
     public Cons<T> reverse() {

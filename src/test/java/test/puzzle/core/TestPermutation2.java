@@ -65,6 +65,6 @@ public class TestPermutation2 {
             Cons.of(3, 1, 2, 4),
             Cons.of(4, 1, 2, 3)),
             select(Cons.of(1,2,3,4)));
-
+        System.out.println(select(Cons.of(2, 3, 4)));
     }
 }

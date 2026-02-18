@@ -9,40 +9,30 @@ import org.junit.Test;
 import puzzle.core.Cons;
 import puzzle.core.Rational;
 
+/**
+ * 小町算を解くプログラム
+ * 使用可能な演算子は+, -, *. /
+ * カッコを使用しても良い。
+ * 結果は少なくとも10万件ある。
+ * 以下はその出力の一部である。
+ * 出力内容に重複が見られる。
+ * OUTPUT
+ * <pre>
+ * .....
+ * 112962: (((((1/2)*34)*5)-(6/(7-8)))+9)
+ * 112963: (((((1/2)*34)*5)-(6/(7-8)))+9)
+ * 112964: (((((1/2)*34)*5)+6)-((7-8)*9))
+ * 112965: (((((1/2)*34)*5)+6)-((7-8)*9))
+ * 112966: (((((1/2)*34)*5)+6)-((7-8)*9))
+ * 112967: (((((1/2)*34)*5)+6)-((7-8)*9))
+ * .....
+ * <pre>
+ * 手順は以下の通り
+ * 1. 制約を満たす式をRPNで生成する。
+ * 2. RPNを評価して、ゴールに一致するかどうかを調べる。
+ * 3. 一致したら式を通常のRPNでない形に変換して出力する。
+ */
 public class TestKomachiRPN {
-
-    static int patterns(int n) {
-        return new Object() {
-            int count = 0;
-            void solve(int i, int j, String s) {
-                if (i >= n && j >= n - 1)
-                    System.out.println(++count + " : " + s);
-                else {
-                    if (i < n)
-                        solve(i + 1, j, s + (char)(i + '1'));
-                    if (j < n - 1 && i - j >= 2)
-                        solve(i, j + 1, s + (char)(j + 'a'));
-                }
-            }
-            int solve() {
-                solve(0, 0, "");
-                return count;
-            }
-        }.solve();
-    }
-
-    @Test
-    public void testPatterns() {
-        for (int i = 2; i < 10; ++i)
-            System.out.printf("%3d %8d%n", i, patterns(i));
-    }
-
-    static final Map<String, Integer> PRECEDENCE = Map.of(
-        "+", 0, "-", 0, "*", 1, "/", 1);
-
-    static int precedence(String left, String right) {
-        return PRECEDENCE.get(left) - PRECEDENCE.get(right);
-    }
 
     static class Node {
         public final int value;
@@ -80,10 +70,13 @@ public class TestKomachiRPN {
         public String toString() {
             if (left == null)
                 return String.valueOf(value);
-            else if (parent != null && precedence(value, parent.value) < 0)
-                return "(%s%s%s)".formatted(left, OP.get(value), right);
             else
-                return "%s%s%s".formatted(left, OP.get(value), right);
+                return "(%s%s%s)".formatted(left, OP.get(value), right);
+            // else if (parent != null && 
+            //     precedence(value, parent.value) < 0)
+            //     return "(%s%s%s)".formatted(left, OP.get(value), right);
+            // else
+            //     return "%s%s%s".formatted(left, OP.get(value), right);
         }
     }
 
@@ -132,9 +125,10 @@ public class TestKomachiRPN {
                 return stack.pop();
             }
 
+            int count = 0;
             void answer(Cons<Integer> rpn) {
                 Node root = tree(rpn.reverse());
-                System.out.println(root);
+                System.out.println(++count + ": " + root);
             }
 
             void solve(int i, int j, int k, int ts, int t, Cons<Integer> rpn) {
@@ -145,14 +139,20 @@ public class TestKomachiRPN {
                     if (i < max) solve(i + 1, j, k, ts + 1, t * 10 + digits[i], rpn);
                     if (ts > 0) solve(i, j + 1, k, 0, 0, rpn.cons(t));
                     if (j - k >= 2) {
-                        solve(i, j, k + 1, ts, t, rpn.cons(PLUS));
-                        solve(i, j, k + 1, ts, t, rpn.cons(MINUS));
-                        solve(i, j, k + 1, ts, t, rpn.cons(MULT));
-                        solve(i, j, k + 1, ts, t, rpn.cons(DIV));
+                        solve(i, j, k + 1, 0, 0, rpn.cons(PLUS));
+                        solve(i, j, k + 1, 0, 0, rpn.cons(MINUS));
+                        solve(i, j, k + 1, 0, 0, rpn.cons(MULT));
+                        solve(i, j, k + 1, 0, 0, rpn.cons(DIV));
                     }
                 }
 
             }
         }.solve(0, 0, 0, 0, 0, Cons.nil());
+    }
+
+    @Test
+    public void testKomachiRPN() {
+        int[] digits = {1,2,3,4,5,6,7,8,9};
+        komachiRPN(digits, 100);
     }
 }

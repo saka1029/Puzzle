@@ -1,7 +1,5 @@
 package test.puzzle.core;
 
-import static java.util.Comparator.nullsLast;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
@@ -79,14 +77,13 @@ public class TestKomachiRPN {
 
     static Node tree(String rpn) {
         Deque<Node> stack = new ArrayDeque<>();
-        for (char c : rpn.toCharArray()) {
+        for (char c : rpn.toCharArray())
             if (Character.isDigit(c))
                 stack.push(Node.of(Character.toString(c)));
             else {
                 Node right = stack.pop(), left = stack.pop();
                 stack.push(Node.of(Character.toString(c), left, right));
             }
-        }
         return stack.pop();
     }
 

@@ -45,11 +45,11 @@ public class TestKomachiRPN {
     }
 
     static class Node {
-        public final String value;
+        public final int value;
         public final Node left, right;
         public Node parent;
 
-        Node(String value, Node left, Node right) {
+        Node(int value, Node left, Node right) {
             this.value = value;
             this.left = left;
             this.right = right;
@@ -59,12 +59,21 @@ public class TestKomachiRPN {
                 right.parent = this;
         }
 
-        public static  Node of(String value, Node left, Node right) {
+        public static Node of(int value, Node left, Node right) {
             return new Node(value, left, right);
         }
 
-        public static  Node of(String value) {
+        public static Node of(int value) {
             return new Node(value, null, null);
+        }
+        
+        static final Map<Integer, Integer> PRECEDENCE = Map.of(
+            PLUS, 0, MINUS, 0, MULT, 1, DIV, 1);
+        static final Map<Integer, String> OP = Map.of(
+            PLUS, "+", MINUS, "-", MULT, "*", DIV, "/");
+
+        int precedence(int left, int right) {
+            return PRECEDENCE.get(left) - PRECEDENCE.get(right);
         }
 
         @Override
@@ -72,20 +81,20 @@ public class TestKomachiRPN {
             if (left == null)
                 return String.valueOf(value);
             else if (parent != null && precedence(value, parent.value) < 0)
-                return "(%s%s%s)".formatted(left, value, right);
+                return "(%s%s%s)".formatted(left, OP.get(value), right);
             else
-                return "%s%s%s".formatted(left, value, right);
+                return "%s%s%s".formatted(left, OP.get(value), right);
         }
     }
 
-    static Node tree(String rpn) {
+    static Node tree(Cons<Integer> rpn) {
         Deque<Node> stack = new ArrayDeque<>();
-        for (char c : rpn.toCharArray())
-            if (Character.isDigit(c))
-                stack.push(Node.of(Character.toString(c)));
+        for (int e : rpn)
+            if (e >= 0)
+                stack.push(Node.of(e));
             else {
                 Node right = stack.pop(), left = stack.pop();
-                stack.push(Node.of(Character.toString(c), left, right));
+                stack.push(Node.of(e, left, right));
             }
         return stack.pop();
     }
@@ -93,7 +102,7 @@ public class TestKomachiRPN {
     @Test
     public void testTree() {
         // String expr = "123+4+-56+*";
-        String expr = "12+3*4+5+6*7*8+9+";
+        Cons<Integer> expr = Cons.of(1, 2, 3, -100, 4, -100, -99, 5, 6, -99, -98);
         Node tree = tree(expr);
         System.out.println(expr + " -> " + tree);
     }
@@ -124,6 +133,7 @@ public class TestKomachiRPN {
             }
 
             void answer(Cons<Integer> rpn) {
+                Node root = tree(rpn.reverse());
             }
 
             void solve(int i, int j, int k, int ts, int t, Cons<Integer> rpn) {

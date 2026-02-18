@@ -6,6 +6,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import puzzle.core.Cons;
+import puzzle.core.Rational;
+
 public class TestKomachiRPN {
 
     static int patterns(int n) {
@@ -93,5 +96,52 @@ public class TestKomachiRPN {
         String expr = "12+3*4+5+6*7*8+9+";
         Node tree = tree(expr);
         System.out.println(expr + " -> " + tree);
+    }
+
+    static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
+
+    static void komachiRPN(int[] digits, int goal) {
+        new Object() {
+            int max = digits.length;
+            Rational rgoal = Rational.of(goal);
+
+            Rational eval(Cons<Integer> rpn) {
+                Deque<Rational> stack = new ArrayDeque<>();
+                for (int e : rpn.reverse()) {
+                    if (e >= 0)
+                        stack.push(Rational.of(e));
+                    else {
+                        Rational right = stack.pop(), left = stack.pop();
+                        switch (e) {
+                            case PLUS: stack.push(left.add(right)); break;
+                            case MINUS: stack.push(left.subtract(right)); break;
+                            case MULT: stack.push(left.multiply(right)); break;
+                            case DIV: stack.push(left.divide(right)); break;
+                        }
+                    }
+                }
+                return stack.pop();
+            }
+
+            void answer(Cons<Integer> rpn) {
+            }
+
+            void solve(int i, int j, int k, int ts, int t, Cons<Integer> rpn) {
+                if (i >= max && k == j - 1 && ts == 0) {
+                    if (eval(rpn).equals(rgoal))
+                        answer(rpn);
+                } else {
+                    if (i < max) solve(i + 1, j, k, ts + 1, t * 10 + digits[i], rpn);
+                    if (ts > 0) solve(i, j + 1, k, 0, 0, rpn.cons(t));
+                    if (j - k >= 2) {
+                        solve(i, j, k + 1, ts, t, rpn.cons(PLUS));
+                        solve(i, j, k + 1, ts, t, rpn.cons(MINUS));
+                        solve(i, j, k + 1, ts, t, rpn.cons(MULT));
+                        solve(i, j, k + 1, ts, t, rpn.cons(DIV));
+                    }
+                }
+
+            }
+        }.solve(0, 0, 0, 0, 0, Cons.nil());
     }
 }

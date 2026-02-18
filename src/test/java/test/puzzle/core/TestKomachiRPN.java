@@ -102,7 +102,7 @@ public class TestKomachiRPN {
     @Test
     public void testTree() {
         // String expr = "123+4+-56+*";
-        Cons<Integer> expr = Cons.of(1, 2, 3, -100, 4, -100, -99, 5, 6, -99, -98);
+        Cons<Integer> expr = Cons.of(1, 2, 3, -100, 4, -100, -99, 5, 6, -100, -98);
         Node tree = tree(expr);
         System.out.println(expr + " -> " + tree);
     }
@@ -134,6 +134,7 @@ public class TestKomachiRPN {
 
             void answer(Cons<Integer> rpn) {
                 Node root = tree(rpn.reverse());
+                System.out.println(root);
             }
 
             void solve(int i, int j, int k, int ts, int t, Cons<Integer> rpn) {

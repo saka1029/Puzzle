@@ -68,7 +68,11 @@ public class TestKomachiRPN2 {
         return stack.pop();
     }
 
-    static List<Cons<Integer>> solve(int[] digits, int goal) {
+    static void solve(int[] digits, int goal) {
+        solve(digits, goal, false);
+    }
+
+    static List<Cons<Integer>> solve(int[] digits, int goal, boolean needReturn) {
         return new Object() {
             Rational ratGoal = Rational.of(goal);
             List<Cons<Integer>> list = new ArrayList<>();
@@ -77,7 +81,8 @@ public class TestKomachiRPN2 {
                 // digitsがすべてrpnに追加され、rpn上の演算子の数がrpn上の数値の数-1に等しい。
                 if (rpnDigitsSize >= digitsSize && rpnOpSize >= rpnTermSize - 1) {
                     Cons<Integer> rrpn = rpn.reverse();
-                    list.add(rrpn);
+                    if (needReturn)
+                        list.add(rrpn);
                     Tree tree = tree(rrpn);
                     if (tree.value.equals(ratGoal))
                         System.out.println(tree + " = " + ratGoal);
@@ -104,7 +109,7 @@ public class TestKomachiRPN2 {
     @Test
     public void testSolve() {
         int[] digits = {1, 2};
-        List<Cons<Integer>> list = solve(digits, 3);
+        List<Cons<Integer>> list = solve(digits, 3, true);
         assertEquals(
             List.of(Cons.of(12), Cons.of(1, 2, PLUS), Cons.of(1, 2, MINUS), Cons.of(1, 2, MULT), Cons.of(1, 2, DIV)),
             list);
@@ -114,5 +119,11 @@ public class TestKomachiRPN2 {
         assertEquals(
             List.of(Rational.of(12), Rational.of(3), Rational.of(-1), Rational.of(2), Rational.of(1,2)),
             list.stream().map(c -> tree(c).value).toList());
+    }
+
+    @Test
+    public void testKomachi() {
+        int[] digits = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        solve(digits, 100);
     }
 }

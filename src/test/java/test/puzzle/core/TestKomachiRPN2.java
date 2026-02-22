@@ -39,6 +39,13 @@ public class TestKomachiRPN2 {
             this.left = this.right = null;
             this.value = Rational.of(value);
         }
+
+        @Override
+        public String toString() {
+            return left == null
+                ? ("" + value)
+                : "(%s%s%s)".formatted(left, operator, right);
+        }
     }
 
     static Node node(Cons<Integer> rpn) {
@@ -94,6 +101,9 @@ public class TestKomachiRPN2 {
         assertEquals(
             List.of(Cons.of(12), Cons.of(1, 2, PLUS), Cons.of(1, 2, MINUS), Cons.of(1, 2, MULT), Cons.of(1, 2, DIV)),
             list);
+        assertEquals(
+            List.of("12", "(1+2)", "(1-2)", "(1*2)", "(1/2)"),
+            list.stream().map(c -> node(c).toString()).toList());
         assertEquals(
             List.of(Rational.of(12), Rational.of(3), Rational.of(-1), Rational.of(2), Rational.of(1,2)),
             list.stream().map(c -> node(c).value).toList());

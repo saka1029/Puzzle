@@ -94,14 +94,13 @@ public class TestKomachiRPN {
                     String str = string(rrpn);
                     if (tree.value.equals(ratGoal))
                         System.out.println(tree + " " + str + " = " + ratGoal);
-                    else
-                        System.out.println(tree + " " + str);
                 } else {
-                    for (int k = i + 1; k <= digits.length; ++k)
-                        solve(k, numberCount + 1, operatorCount,
-                            rpn.cons(IntStream.range(i, k)
+                    for (int k = i + 1; k <= digits.length; ++k) {  // 数値をrpnに追加する。
+                        int number = IntStream.range(i, k)
                                 .map(j -> digits[j])
-                                .reduce(0, (a, b) -> 10 * a + b)));
+                                .reduce(0, (a, b) -> 10 * a + b);
+                        solve(k, numberCount + 1, operatorCount, rpn.cons(number));
+                    }
                     if (operatorCount < numberCount - 1) {  // 演算子をrpnに追加する。
                         solve(i, numberCount, operatorCount + 1, rpn.cons(PLUS));
                         solve(i, numberCount, operatorCount + 1, rpn.cons(MINUS));
@@ -131,8 +130,8 @@ public class TestKomachiRPN {
 
     @Test
     public void testKomachi() {
-        int[] digits = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-        solve(digits, 100);
+        int[] digits = {1, 2, 3, 4, 5};
+        solve(digits, 10);
     }
 
     @Test

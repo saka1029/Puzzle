@@ -93,7 +93,8 @@ public class TestKomachiRPN {
                     Tree tree = tree(rrpn);
                     String str = string(rrpn);
                     if (tree.value.equals(ratGoal))
-                        System.out.println(tree + " " + str + " = " + ratGoal);
+                        System.out.println(tree.toString().replaceFirst("^\\((.*)\\)$", "$1")
+                            + " " + str + " = " + ratGoal);
                 } else {
                     for (int k = i + 1; k <= digits.length; ++k) {  // 数値をrpnに追加する。
                         int number = IntStream.range(i, k)

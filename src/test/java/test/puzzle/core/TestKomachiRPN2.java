@@ -2,7 +2,9 @@ package test.puzzle.core;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -10,10 +12,29 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 
 import puzzle.core.Cons;
+import puzzle.core.Rational;
 
 public class TestKomachiRPN2 {
 
     static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
+
+    static Rational eval(Cons<Integer> rpn) {
+        Deque<Rational> stack = new ArrayDeque<>();
+        for (int e : rpn) {
+            if (e >= 0)
+                stack.push(Rational.of(e));
+            else {
+                Rational r = stack.pop(), l = stack.pop();
+                switch (e) {
+                    case PLUS: stack.push(l.add(r)); break;
+                    case MINUS: stack.push(l.subtract(r)); break;
+                    case MULT: stack.push(l.multiply(r)); break;
+                    case DIV: stack.push(l.divide(r)); break;
+                }
+            }
+        }
+        return stack.pop();
+    }
 
     static List<Cons<Integer>> solve(int[] digits, int goal) {
         return new Object() {
@@ -57,7 +78,8 @@ public class TestKomachiRPN2 {
         assertEquals(
             List.of(Cons.of(12), Cons.of(1, 2, PLUS), Cons.of(1, 2, MINUS), Cons.of(1, 2, MULT), Cons.of(1, 2, DIV)),
             list);
-        for (var c : list)
-            System.out.println(print(c));
+        assertEquals(
+            List.of(Rational.of(12), Rational.of(3), Rational.of(-1), Rational.of(2), Rational.of(1,2)),
+            list.stream().map(c -> eval(c)).toList());
     }
 }

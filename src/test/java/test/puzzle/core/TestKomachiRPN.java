@@ -73,7 +73,7 @@ public class TestKomachiRPN {
     static String string(Cons<Integer> rpn) {
         return rpn.stream()
             .map(e -> OPSTR.containsKey(e) ? OPSTR.get(e) : ("" + e))
-            .collect(Collectors.joining(",", "[", "]"));
+            .collect(Collectors.joining(","));
     }
 
     static void solve(int[] digits, int goal) {
@@ -84,17 +84,24 @@ public class TestKomachiRPN {
         new Object() {
             Rational ratGoal = Rational.of(goal);
             final int digitsSize = digits.length;
+            int count = 0;
+
+            void check(Cons<Integer> rpn) {
+                Cons<Integer> rrpn = rpn.reverse();
+                if (list != null)
+                    list.add(rrpn);
+                Tree tree = tree(rrpn);
+                String str = string(rrpn);
+                if (tree.value.equals(ratGoal))
+                    System.out.println(++count + ": "
+                        + tree.toString().replaceFirst("^\\((.*)\\)$", "$1")
+                        + " = " + str + " = " + ratGoal);
+            }
+
             void solve(int i, int numberCount, int operatorCount, Cons<Integer> rpn) {
                 // digitsがすべてrpnに追加され、rpn上の演算子の数がrpn上の数値の数-1に等しい。
                 if (i >= digitsSize && operatorCount >= numberCount - 1) {
-                    Cons<Integer> rrpn = rpn.reverse();
-                    if (list != null)
-                        list.add(rrpn);
-                    Tree tree = tree(rrpn);
-                    String str = string(rrpn);
-                    if (tree.value.equals(ratGoal))
-                        System.out.println(tree.toString().replaceFirst("^\\((.*)\\)$", "$1")
-                            + " " + str + " = " + ratGoal);
+                    check(rpn);
                 } else {
                     for (int k = i + 1; k <= digits.length; ++k) {  // 数値をrpnに追加する。
                         int number = IntStream.range(i, k)
@@ -137,6 +144,6 @@ public class TestKomachiRPN {
 
     @Test
     public void testTicket() {
-        solve(new int[] {9,9,9,9}, 10);
+        solve(new int[] {9, 9, 9, 9}, 10);
     }
 }

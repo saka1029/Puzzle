@@ -126,4 +126,9 @@ public class TestKomachiRPN2 {
         int[] digits = {1, 2, 3, 4, 5, 6, 7, 8, 9};
         solve(digits, 100);
     }
+
+    @Test
+    public void testTicket() {
+        solve(new int[] {9,9,9,9}, 10);
+    }
 }

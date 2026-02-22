@@ -25,12 +25,15 @@ public class TestKomachiRPN2 {
                 stack.push(Rational.of(e));
             else {
                 Rational r = stack.pop(), l = stack.pop();
-                switch (e) {
-                    case PLUS: stack.push(l.add(r)); break;
-                    case MINUS: stack.push(l.subtract(r)); break;
-                    case MULT: stack.push(l.multiply(r)); break;
-                    case DIV: stack.push(l.divide(r)); break;
-                }
+                stack.push(switch (e) {
+                    case PLUS -> l.add(r);
+                    case MINUS -> l.subtract(r);
+                    case MULT -> l.multiply(r);
+                    case DIV -> l.divide(r);
+                    default -> {
+                        throw new RuntimeException("Unknown operator " + e);
+                    }
+                });
             }
         }
         return stack.pop();

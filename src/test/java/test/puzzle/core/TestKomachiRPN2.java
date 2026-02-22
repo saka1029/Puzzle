@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -17,25 +18,38 @@ import puzzle.core.Rational;
 public class TestKomachiRPN2 {
 
     static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
+    static final Map<Integer, String> OPSTR = Map.of(PLUS, "+", MINUS, "-", MULT, "*", DIV, "/");
+    static final Map<Integer, BinaryOperator<Rational>> OPS = Map.of(
+        PLUS, Rational::add, MINUS, Rational::subtract, MULT, Rational::multiply, DIV, Rational::divide);
 
-    static Rational eval(Cons<Integer> rpn) {
-        Deque<Rational> stack = new ArrayDeque<>();
-        for (int e : rpn) {
-            if (e >= 0)
-                stack.push(Rational.of(e));
-            else {
-                Rational r = stack.pop(), l = stack.pop();
-                stack.push(switch (e) {
-                    case PLUS -> l.add(r);
-                    case MINUS -> l.subtract(r);
-                    case MULT -> l.multiply(r);
-                    case DIV -> l.divide(r);
-                    default -> {
-                        throw new RuntimeException("Unknown operator " + e);
-                    }
-                });
-            }
+    static class Node {
+        final String operator;
+        final Node left, right;
+        final Rational value;
+
+        Node(int operator, Node left, Node right) {
+            this.operator = OPSTR.get(operator);
+            this.left = left;
+            this.right = right;
+            this.value = OPS.get(operator).apply(left.value, right.value);
         }
+
+        Node(int value) {
+            this.operator = "";
+            this.left = this.right = null;
+            this.value = Rational.of(value);
+        }
+    }
+
+    static Node node(Cons<Integer> rpn) {
+        Deque<Node> stack = new ArrayDeque<>();
+        for (int e : rpn)
+            if (e >= 0)
+                stack.push(new Node(e));
+            else {
+                Node right = stack.pop(), left = stack.pop();
+                stack.push(new Node(e, left, right));
+            }
         return stack.pop();
     }
 
@@ -67,10 +81,9 @@ public class TestKomachiRPN2 {
         }.solve();
     }
 
-    Map<Integer, String> OPS = Map.of(PLUS, "+", MINUS, "-", MULT, "*", DIV, "/");
     String print(Cons<Integer> list) {
         return list.stream()
-            .map(e -> OPS.containsKey(e) ? OPS.get(e) : ("" + e))
+            .map(e -> OPSTR.containsKey(e) ? OPSTR.get(e) : ("" + e))
             .collect(Collectors.joining(", ", "[", "]"));
     }
 
@@ -83,6 +96,6 @@ public class TestKomachiRPN2 {
             list);
         assertEquals(
             List.of(Rational.of(12), Rational.of(3), Rational.of(-1), Rational.of(2), Rational.of(1,2)),
-            list.stream().map(c -> eval(c)).toList());
+            list.stream().map(c -> node(c).value).toList());
     }
 }

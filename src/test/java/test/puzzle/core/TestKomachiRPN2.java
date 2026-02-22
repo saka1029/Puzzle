@@ -8,7 +8,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -22,39 +21,48 @@ public class TestKomachiRPN2 {
     static final Map<Integer, BinaryOperator<Rational>> OPS = Map.of(
         PLUS, Rational::add, MINUS, Rational::subtract, MULT, Rational::multiply, DIV, Rational::divide);
 
-    static class Node {
-        final String operator;
-        final Node left, right;
+    static abstract class Tree {
         final Rational value;
+        Tree(Rational value) {
+            this.value = value;
+        }
+    }
 
-        Node(int operator, Node left, Node right) {
+    static class Node extends Tree {
+        final String operator;
+        final Tree left, right;
+
+        Node(int operator, Tree left, Tree right) {
+            super(OPS.get(operator).apply(left.value, right.value));
             this.operator = OPSTR.get(operator);
             this.left = left;
             this.right = right;
-            this.value = OPS.get(operator).apply(left.value, right.value);
-        }
-
-        Node(int value) {
-            this.operator = "";
-            this.left = this.right = null;
-            this.value = Rational.of(value);
         }
 
         @Override
         public String toString() {
-            return left == null
-                ? ("" + value)
-                : "(%s%s%s)".formatted(left, operator, right);
+            return "(%s%s%s)".formatted(left, operator, right);
         }
     }
 
-    static Node node(Cons<Integer> rpn) {
-        Deque<Node> stack = new ArrayDeque<>();
+    static class Leaf extends Tree {
+        Leaf(int value) {
+            super(Rational.of(value));
+        }
+
+        @Override
+        public String toString() {
+            return "" + value; 
+        }
+    }
+
+    static Tree tree(Cons<Integer> rpn) {
+        Deque<Tree> stack = new ArrayDeque<>();
         for (int e : rpn)
             if (e >= 0)
-                stack.push(new Node(e));
+                stack.push(new Leaf(e));
             else {
-                Node right = stack.pop(), left = stack.pop();
+                Tree right = stack.pop(), left = stack.pop();
                 stack.push(new Node(e, left, right));
             }
         return stack.pop();
@@ -62,12 +70,17 @@ public class TestKomachiRPN2 {
 
     static List<Cons<Integer>> solve(int[] digits, int goal) {
         return new Object() {
+            Rational ratGoal = Rational.of(goal);
             List<Cons<Integer>> list = new ArrayList<>();
             final int digitsSize = digits.length;
             void solve(int i, int rpnTermSize, int rpnOpSize, int rpnDigitsSize, int termDigitsSize, int term, Cons<Integer> rpn) {
                 // digitsがすべてrpnに追加され、rpn上の演算子の数がrpn上の数値の数-1に等しい。
                 if (rpnDigitsSize >= digitsSize && rpnOpSize >= rpnTermSize - 1) {
-                    list.add(rpn.reverse());
+                    Cons<Integer> rrpn = rpn.reverse();
+                    list.add(rrpn);
+                    Tree tree = tree(rrpn);
+                    if (tree.value.equals(ratGoal))
+                        System.out.println(tree + " = " + ratGoal);
                 } else {
                     if (i < digitsSize)                 // termにdigitsをひとつ追加する。
                         solve(i + 1, rpnTermSize, rpnOpSize, rpnDigitsSize, termDigitsSize + 1, term * 10 + digits[i], rpn);
@@ -88,24 +101,18 @@ public class TestKomachiRPN2 {
         }.solve();
     }
 
-    String print(Cons<Integer> list) {
-        return list.stream()
-            .map(e -> OPSTR.containsKey(e) ? OPSTR.get(e) : ("" + e))
-            .collect(Collectors.joining(", ", "[", "]"));
-    }
-
     @Test
     public void testSolve() {
         int[] digits = {1, 2};
-        List<Cons<Integer>> list = solve(digits, 100);
+        List<Cons<Integer>> list = solve(digits, 3);
         assertEquals(
             List.of(Cons.of(12), Cons.of(1, 2, PLUS), Cons.of(1, 2, MINUS), Cons.of(1, 2, MULT), Cons.of(1, 2, DIV)),
             list);
         assertEquals(
             List.of("12", "(1+2)", "(1-2)", "(1*2)", "(1/2)"),
-            list.stream().map(c -> node(c).toString()).toList());
+            list.stream().map(c -> tree(c).toString()).toList());
         assertEquals(
             List.of(Rational.of(12), Rational.of(3), Rational.of(-1), Rational.of(2), Rational.of(1,2)),
-            list.stream().map(c -> node(c).value).toList());
+            list.stream().map(c -> tree(c).value).toList());
     }
 }

@@ -8,6 +8,8 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 
@@ -68,58 +70,62 @@ public class TestKomachiRPN2 {
         return stack.pop();
     }
 
-    static void solve(int[] digits, int goal) {
-        solve(digits, goal, false);
+    static String string(Cons<Integer> rpn) {
+        return rpn.stream()
+            .map(e -> OPSTR.containsKey(e) ? OPSTR.get(e) : ("" + e))
+            .collect(Collectors.joining(",", "[", "]"));
     }
 
-    static List<Cons<Integer>> solve(int[] digits, int goal, boolean needReturn) {
-        return new Object() {
+    static void solve(int[] digits, int goal) {
+        solve(digits, goal, null);
+    }
+
+    static void solve(int[] digits, int goal, List<Cons<Integer>> list) {
+        new Object() {
             Rational ratGoal = Rational.of(goal);
-            List<Cons<Integer>> list = new ArrayList<>();
             final int digitsSize = digits.length;
-            void solve(int i, int rpnTermSize, int rpnOpSize, int rpnDigitsSize, int termDigitsSize, int term, Cons<Integer> rpn) {
+            void solve(int i, int numberCount, int operatorCount, Cons<Integer> rpn) {
                 // digitsがすべてrpnに追加され、rpn上の演算子の数がrpn上の数値の数-1に等しい。
-                if (rpnDigitsSize >= digitsSize && rpnOpSize >= rpnTermSize - 1) {
+                if (i >= digitsSize && operatorCount >= numberCount - 1) {
                     Cons<Integer> rrpn = rpn.reverse();
-                    if (needReturn)
+                    if (list != null)
                         list.add(rrpn);
                     Tree tree = tree(rrpn);
+                    String str = string(rrpn);
                     if (tree.value.equals(ratGoal))
-                        System.out.println(tree + " = " + ratGoal);
+                        System.out.println(tree + " " + str + " = " + ratGoal);
                     else
-                        System.out.println(tree);
+                        System.out.println(tree + " " + str);
                 } else {
-                    if (i < digitsSize)                 // termにdigitsをひとつ追加する。
-                        solve(i + 1, rpnTermSize, rpnOpSize, rpnDigitsSize, termDigitsSize + 1, term * 10 + digits[i], rpn);
-                    if (termDigitsSize > 0)             // termをrpnに追加する。
-                        solve(i, rpnTermSize + 1, rpnOpSize, rpnDigitsSize + termDigitsSize, 0, 0, rpn.cons(term));
-                    if (rpnOpSize < rpnTermSize - 1) {  // 演算子をrpnに追加する。
-                        solve(i, rpnTermSize, rpnOpSize + 1, rpnDigitsSize, termDigitsSize, term, rpn.cons(PLUS));
-                        solve(i, rpnTermSize, rpnOpSize + 1, rpnDigitsSize, termDigitsSize, term, rpn.cons(MINUS));
-                        solve(i, rpnTermSize, rpnOpSize + 1, rpnDigitsSize, termDigitsSize, term, rpn.cons(MULT));
-                        solve(i, rpnTermSize, rpnOpSize + 1, rpnDigitsSize, termDigitsSize, term, rpn.cons(DIV));
+                    for (int k = i + 1; k <= digits.length; ++k)
+                        solve(k, numberCount + 1, operatorCount,
+                            rpn.cons(IntStream.range(i, k)
+                                .map(j -> digits[j])
+                                .reduce(0, (a, b) -> 10 * a + b)));
+                    if (operatorCount < numberCount - 1) {  // 演算子をrpnに追加する。
+                        solve(i, numberCount, operatorCount + 1, rpn.cons(PLUS));
+                        solve(i, numberCount, operatorCount + 1, rpn.cons(MINUS));
+                        solve(i, numberCount, operatorCount + 1, rpn.cons(MULT));
+                        solve(i, numberCount, operatorCount + 1, rpn.cons(DIV));
                     }
                 }
             }
-            List<Cons<Integer>> solve() {
-                solve(0, 0, 0, 0, 0, 0, Cons.nil());
-                return list;
-            }
-        }.solve();
+        }.solve(0, 0, 0, Cons.nil());
     }
 
     @Test
     public void testSolve() {
         int[] digits = {1, 2};
-        List<Cons<Integer>> list = solve(digits, 3, true);
+        List<Cons<Integer>> list = new ArrayList<>();
+        solve(digits, 3, list);
         assertEquals(
-            List.of(Cons.of(12), Cons.of(1, 2, PLUS), Cons.of(1, 2, MINUS), Cons.of(1, 2, MULT), Cons.of(1, 2, DIV)),
+            List.of(Cons.of(1, 2, PLUS), Cons.of(1, 2, MINUS), Cons.of(1, 2, MULT), Cons.of(1, 2, DIV), Cons.of(12)),
             list);
         assertEquals(
-            List.of("12", "(1+2)", "(1-2)", "(1*2)", "(1/2)"),
+            List.of("(1+2)", "(1-2)", "(1*2)", "(1/2)", "12"),
             list.stream().map(c -> tree(c).toString()).toList());
         assertEquals(
-            List.of(Rational.of(12), Rational.of(3), Rational.of(-1), Rational.of(2), Rational.of(1,2)),
+            List.of(Rational.of(3), Rational.of(-1), Rational.of(2), Rational.of(1, 2), Rational.of(12)),
             list.stream().map(c -> tree(c).value).toList());
     }
 

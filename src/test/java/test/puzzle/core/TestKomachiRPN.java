@@ -1,158 +1,142 @@
 package test.puzzle.core;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 
 import puzzle.core.Cons;
 import puzzle.core.Rational;
 
-/**
- * 小町算を解くプログラム
- * 使用可能な演算子は+, -, *. /
- * カッコを使用しても良い。
- * 結果は少なくとも10万件ある。
- * 以下はその出力の一部である。
- * 出力内容に重複が見られる。
- * OUTPUT
- * <pre>
- * .....
- * 112962: (((((1/2)*34)*5)-(6/(7-8)))+9)
- * 112963: (((((1/2)*34)*5)-(6/(7-8)))+9)
- * 112964: (((((1/2)*34)*5)+6)-((7-8)*9))
- * 112965: (((((1/2)*34)*5)+6)-((7-8)*9))
- * 112966: (((((1/2)*34)*5)+6)-((7-8)*9))
- * 112967: (((((1/2)*34)*5)+6)-((7-8)*9))
- * .....
- * <pre>
- * 手順は以下の通り
- * 1. 制約を満たす式をRPNで生成する。
- * 2. RPNを評価して、ゴールに一致するかどうかを調べる。
- * 3. 一致したら式を通常のRPNでない形に変換して出力する。
- */
 public class TestKomachiRPN {
 
-    static class Node {
-        public final int value;
-        public final Node left, right;
-        public Node parent;
+    static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
+    static final Map<Integer, String> OPSTR = Map.of(PLUS, "+", MINUS, "-", MULT, "*", DIV, "/");
+    static final Map<Integer, BinaryOperator<Rational>> OPS = Map.of(
+        PLUS, Rational::add, MINUS, Rational::subtract, MULT, Rational::multiply, DIV, Rational::divide);
 
-        Node(int value, Node left, Node right) {
+    static abstract class Tree {
+        final Rational value;
+        Tree(Rational value) {
             this.value = value;
+        }
+    }
+
+    static class Node extends Tree {
+        final String operator;
+        final Tree left, right;
+
+        Node(int operator, Tree left, Tree right) {
+            super(OPS.get(operator).apply(left.value, right.value));
+            this.operator = OPSTR.get(operator);
             this.left = left;
             this.right = right;
-            if (left != null)
-                left.parent = this;
-            if (right != null)
-                right.parent = this;
-        }
-
-        public static Node of(int value, Node left, Node right) {
-            return new Node(value, left, right);
-        }
-
-        public static Node of(int value) {
-            return new Node(value, null, null);
-        }
-        
-        static final Map<Integer, Integer> PRECEDENCE = Map.of(
-            PLUS, 0, MINUS, 0, MULT, 1, DIV, 1);
-        static final Map<Integer, String> OP = Map.of(
-            PLUS, "+", MINUS, "-", MULT, "*", DIV, "/");
-
-        int precedence(int left, int right) {
-            return PRECEDENCE.get(left) - PRECEDENCE.get(right);
         }
 
         @Override
         public String toString() {
-            if (left == null)
-                return String.valueOf(value);
-            else
-                return "(%s%s%s)".formatted(left, OP.get(value), right);
-            // else if (parent != null && 
-            //     precedence(value, parent.value) < 0)
-            //     return "(%s%s%s)".formatted(left, OP.get(value), right);
-            // else
-            //     return "%s%s%s".formatted(left, OP.get(value), right);
+            return "(%s%s%s)".formatted(left, operator, right);
         }
     }
 
-    static Node tree(Cons<Integer> rpn) {
-        Deque<Node> stack = new ArrayDeque<>();
+    static class Leaf extends Tree {
+        Leaf(int value) {
+            super(Rational.of(value));
+        }
+
+        @Override
+        public String toString() {
+            return "" + value; 
+        }
+    }
+
+    static Tree tree(Cons<Integer> rpn) {
+        Deque<Tree> stack = new ArrayDeque<>();
         for (int e : rpn)
             if (e >= 0)
-                stack.push(Node.of(e));
+                stack.push(new Leaf(e));
             else {
-                Node right = stack.pop(), left = stack.pop();
-                stack.push(Node.of(e, left, right));
+                Tree right = stack.pop(), left = stack.pop();
+                stack.push(new Node(e, left, right));
             }
         return stack.pop();
     }
 
-    @Test
-    public void testTree() {
-        // String expr = "123+4+-56+*";
-        Cons<Integer> expr = Cons.of(1, 2, 3, -100, 4, -100, -99, 5, 6, -100, -98);
-        Node tree = tree(expr);
-        System.out.println(expr + " -> " + tree);
+    static String string(Cons<Integer> rpn) {
+        return rpn.stream()
+            .map(e -> OPSTR.containsKey(e) ? OPSTR.get(e) : ("" + e))
+            .collect(Collectors.joining(",", "[", "]"));
     }
 
-    static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
+    static void solve(int[] digits, int goal) {
+        solve(digits, goal, null);
+    }
 
-    static void komachiRPN(int[] digits, int goal) {
+    static void solve(int[] digits, int goal, List<Cons<Integer>> list) {
         new Object() {
-            int max = digits.length;
-            Rational rgoal = Rational.of(goal);
-
-            Rational eval(Cons<Integer> rpn) {
-                Deque<Rational> stack = new ArrayDeque<>();
-                for (int e : rpn.reverse()) {
-                    if (e >= 0)
-                        stack.push(Rational.of(e));
-                    else {
-                        Rational right = stack.pop(), left = stack.pop();
-                        switch (e) {
-                            case PLUS: stack.push(left.add(right)); break;
-                            case MINUS: stack.push(left.subtract(right)); break;
-                            case MULT: stack.push(left.multiply(right)); break;
-                            case DIV: stack.push(left.divide(right)); break;
-                        }
-                    }
-                }
-                return stack.pop();
-            }
-
-            int count = 0;
-            void answer(Cons<Integer> rpn) {
-                Node root = tree(rpn.reverse());
-                System.out.println(++count + ": " + root);
-            }
-
-            void solve(int i, int j, int k, int ts, int t, Cons<Integer> rpn) {
-                if (i >= max && k == j - 1 && ts == 0) {
-                    if (eval(rpn).equals(rgoal))
-                        answer(rpn);
+            Rational ratGoal = Rational.of(goal);
+            final int digitsSize = digits.length;
+            void solve(int i, int numberCount, int operatorCount, Cons<Integer> rpn) {
+                // digitsがすべてrpnに追加され、rpn上の演算子の数がrpn上の数値の数-1に等しい。
+                if (i >= digitsSize && operatorCount >= numberCount - 1) {
+                    Cons<Integer> rrpn = rpn.reverse();
+                    if (list != null)
+                        list.add(rrpn);
+                    Tree tree = tree(rrpn);
+                    String str = string(rrpn);
+                    if (tree.value.equals(ratGoal))
+                        System.out.println(tree + " " + str + " = " + ratGoal);
+                    else
+                        System.out.println(tree + " " + str);
                 } else {
-                    if (i < max) solve(i + 1, j, k, ts + 1, t * 10 + digits[i], rpn);
-                    if (ts > 0) solve(i, j + 1, k, 0, 0, rpn.cons(t));
-                    if (j - k >= 2) {
-                        solve(i, j, k + 1, 0, 0, rpn.cons(PLUS));
-                        solve(i, j, k + 1, 0, 0, rpn.cons(MINUS));
-                        solve(i, j, k + 1, 0, 0, rpn.cons(MULT));
-                        solve(i, j, k + 1, 0, 0, rpn.cons(DIV));
+                    for (int k = i + 1; k <= digits.length; ++k)
+                        solve(k, numberCount + 1, operatorCount,
+                            rpn.cons(IntStream.range(i, k)
+                                .map(j -> digits[j])
+                                .reduce(0, (a, b) -> 10 * a + b)));
+                    if (operatorCount < numberCount - 1) {  // 演算子をrpnに追加する。
+                        solve(i, numberCount, operatorCount + 1, rpn.cons(PLUS));
+                        solve(i, numberCount, operatorCount + 1, rpn.cons(MINUS));
+                        solve(i, numberCount, operatorCount + 1, rpn.cons(MULT));
+                        solve(i, numberCount, operatorCount + 1, rpn.cons(DIV));
                     }
                 }
-
             }
-        }.solve(0, 0, 0, 0, 0, Cons.nil());
+        }.solve(0, 0, 0, Cons.nil());
     }
 
     @Test
-    public void testKomachiRPN() {
-        int[] digits = {1,2,3,4,5,6,7,8,9};
-        komachiRPN(digits, 100);
+    public void testSolve() {
+        int[] digits = {1, 2};
+        List<Cons<Integer>> list = new ArrayList<>();
+        solve(digits, 3, list);
+        assertEquals(
+            List.of(Cons.of(1, 2, PLUS), Cons.of(1, 2, MINUS), Cons.of(1, 2, MULT), Cons.of(1, 2, DIV), Cons.of(12)),
+            list);
+        assertEquals(
+            List.of("(1+2)", "(1-2)", "(1*2)", "(1/2)", "12"),
+            list.stream().map(c -> tree(c).toString()).toList());
+        assertEquals(
+            List.of(Rational.of(3), Rational.of(-1), Rational.of(2), Rational.of(1, 2), Rational.of(12)),
+            list.stream().map(c -> tree(c).value).toList());
+    }
+
+    @Test
+    public void testKomachi() {
+        int[] digits = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        solve(digits, 100);
+    }
+
+    @Test
+    public void testTicket() {
+        solve(new int[] {9,9,9,9}, 10);
     }
 }

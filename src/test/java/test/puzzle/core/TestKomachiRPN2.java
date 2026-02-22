@@ -86,6 +86,8 @@ public class TestKomachiRPN2 {
                     Tree tree = tree(rrpn);
                     if (tree.value.equals(ratGoal))
                         System.out.println(tree + " = " + ratGoal);
+                    else
+                        System.out.println(tree);
                 } else {
                     if (i < digitsSize)                 // termにdigitsをひとつ追加する。
                         solve(i + 1, rpnTermSize, rpnOpSize, rpnDigitsSize, termDigitsSize + 1, term * 10 + digits[i], rpn);

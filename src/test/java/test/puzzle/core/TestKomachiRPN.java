@@ -16,6 +16,19 @@ import org.junit.Test;
 import puzzle.core.Cons;
 import puzzle.core.Rational;
 
+/**
+ * 小町算を解きます。
+ * 使用可能な演算子は+, -, *, /です。
+ * カッコを使用することができます。
+ * 解法は可能なすべての式をRPNで生成し、
+ * 条件を満たすものだけを抽出することによって行います。
+ * 生成されたRPNから木構造の式を生成して値を計算します。
+ * 【例】
+ * 数字の並び: 1, 2, 3, 4, 5
+ * 計算結果の値: 10
+ * 解:
+ * (((1+2)/3)+4)+5 = 1,2,+,3,/,4,+,5,+ = 10
+ */
 public class TestKomachiRPN {
 
     static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;

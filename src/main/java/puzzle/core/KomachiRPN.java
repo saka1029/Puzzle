@@ -126,12 +126,9 @@ public class KomachiRPN {
                         .reduce(0, (a, b) -> 10 * a + b);
                 solve(k, numberCount + 1, operatorCount, rpn.cons(number));
             }
-            if (operatorCount < numberCount - 1) {  // 演算子をrpnに追加する。
-                solve(i, numberCount, operatorCount + 1, rpn.cons(PLUS));
-                solve(i, numberCount, operatorCount + 1, rpn.cons(MINUS));
-                solve(i, numberCount, operatorCount + 1, rpn.cons(MULT));
-                solve(i, numberCount, operatorCount + 1, rpn.cons(DIV));
-            }
+            if (operatorCount < numberCount - 1)  // 演算子をrpnに追加する。
+                for (int j = PLUS; j <= DIV; ++j)
+                    solve(i, numberCount, operatorCount + 1, rpn.cons(j));
         }
     }
 }

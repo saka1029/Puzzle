@@ -120,12 +120,10 @@ public class KomachiRPN {
         if (i >= digitsSize && operatorCount >= numberCount - 1) {
             check(rpn);
         } else {
-            for (int k = i + 1; k <= digits.length; ++k) {  // 数値をrpnに追加する。
-                int number = IntStream.range(i, k)
-                        .map(j -> digits[j])
-                        .reduce(0, (a, b) -> 10 * a + b);
-                solve(k, numberCount + 1, operatorCount, rpn.cons(number));
-            }
+            for (int k = i + 1; k <= digits.length; ++k)   // 数値をrpnに追加する。
+                solve(k, numberCount + 1, operatorCount, rpn.cons(IntStream.range(i, k)
+                    .map(j -> digits[j])
+                    .reduce(0, (a, b) -> 10 * a +b)));
             if (operatorCount < numberCount - 1)  // 演算子をrpnに追加する。
                 for (int j = PLUS; j <= DIV; ++j)
                     solve(i, numberCount, operatorCount + 1, rpn.cons(j));

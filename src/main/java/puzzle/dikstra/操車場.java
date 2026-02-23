@@ -1,5 +1,9 @@
 package puzzle.dikstra;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class 操車場 {
 
     public enum TokenType {
@@ -15,7 +19,8 @@ public class 操車場 {
             this.leftAssoc = leftAssoc;
         }
 
-        public static final TokenType[] ALL = values();
+        public static final Map<String, TokenType> MAP = Stream.of(values())
+            .collect(Collectors.toMap(e -> e.string, e -> e));
 
         public final String string;
         public final int priority;

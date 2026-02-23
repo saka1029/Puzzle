@@ -8,6 +8,7 @@ public class Test操車場 {
     @Test
     public void testTokenType() {
         System.out.println(TokenType.MAP);
+        System.out.println(Character.isLetter('漢'));
     }
 
 }

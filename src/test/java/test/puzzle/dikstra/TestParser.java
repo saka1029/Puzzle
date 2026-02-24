@@ -22,6 +22,7 @@ public class TestParser {
     static final Token MINUS = new Token(TokenType.MINUS, "-");
     static final Token MULT = new Token(TokenType.MULT, "*");
     static final Token DIV = new Token(TokenType.DIV, "/");
+    static final Token POW = new Token(TokenType.POW, "^");
 
     @Test
     public void testParser() {
@@ -35,9 +36,29 @@ public class TestParser {
         assertEquals(List.of(N123, N456, PLUS), Parser.parse("(123+456)"));
     }
 
-    // @Test
-    // public void testWikipedia() {
-    //     Parser.parse("3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3");
-    // }
+    /**
+     * 操車場アルゴリズム
+     * 詳細な実施例
+     * https://ja.wikipedia.org/wiki/%E6%93%8D%E8%BB%8A%E5%A0%B4%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0#%E8%A9%B3%E7%B4%B0%E3%81%AA%E5%AE%9F%E6%96%BD%E4%BE%8B
+     */
+    @Test
+    public void testWikipedia() {
+        List<Token> expected = List.of(
+            new Token(TokenType.NUMBER, "3"),
+            new Token(TokenType.NUMBER, "4"),
+            new Token(TokenType.NUMBER, "2"),
+            MULT,
+            new Token(TokenType.NUMBER, "1"),
+            new Token(TokenType.NUMBER, "5"),
+            MINUS,
+            new Token(TokenType.NUMBER, "2"),
+            new Token(TokenType.NUMBER, "3"),
+            POW,
+            POW,
+            DIV,
+            PLUS
+        );
+        assertEquals(expected, Parser.parse("3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3"));
+    }
 
 }

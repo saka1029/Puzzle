@@ -231,11 +231,11 @@ public class Parser {
                     Token o1 = token;
                     while (!stack.isEmpty()) {
                         Token o2 = stack.peek();
-                        if (!o2.type.isOperator)
-                            break;
-                        if (o1.type.leftAssoc && o1.type.priority <= o2.type.priority
+                        if (o2.type.isOperator && o1.type.leftAssoc && o1.type.priority <= o2.type.priority
                             || o1.type.priority < o2.type.priority)
                             output.add(stack.pop());
+                        else
+                            break;
                     }
                     stack.push(o1);
                     getToken();

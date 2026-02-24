@@ -57,11 +57,64 @@ public class 操車場 {
         }
 
         int get() {
-            return index < input.length ? input[index++] : -1;
+            return ch = index < input.length ? input[index++] : -1;
+        }
+
+        static boolean isIdFirst(int ch) {
+            return Character.isLetter(ch) || ch == '_';
+        }
+
+        static boolean isIdRest(int ch) {
+            return isIdFirst(ch) || Character.isDigit(ch);
+        }
+
+        static boolean isOperator(int ch) {
+            return switch (ch) {
+                case '!', '#', '$', '%', '&', '-', '=', '^', '~', '|',
+                    '@', '+', ';', ':', '*', 
+                    '<', '>', '.', '?', '/' -> true;
+                default -> false;
+            };
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        void appendGet() {
+            sb.appendCodePoint(ch);
+            get();
         }
 
         void scan() {
-            get();
+            while (true) {
+                if (get() == -1)
+                    break;
+                while (Character.isWhitespace(ch))
+                    get();
+                sb.setLength(0);
+                if (ch == '(') {
+                    get();
+                    tokens.add(new Token(TokenType.LP, "("));
+                } else if (ch == ')') {
+                    get();
+                    tokens.add(new Token(TokenType.RP, ")"));
+                } else if (ch == ',') {
+                    get();
+                    tokens.add(new Token(TokenType.COMMA, ","));
+                } else if (isIdFirst(ch)) {
+                    appendGet();
+                    while (isIdRest(ch))
+                        appendGet();
+                    String s = sb.toString();
+                    TokenType t = TokenType.MAP.get(s);
+                    tokens.add(t != null ? new Token(t, s) : new Token(TokenType.ID, s));
+                } else if (isOperator(ch)) {
+                    while (isOperator(ch))
+                        appendGet();
+                    String s = sb.toString();
+                    TokenType t = TokenType.MAP.get(s);
+                    tokens.add(t != null ? new Token(t, s) : new Token(TokenType.ID, s));
+                } 
+            }
         }
 
         public static List<Token> scan(String input) {

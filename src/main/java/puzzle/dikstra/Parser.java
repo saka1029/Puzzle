@@ -256,6 +256,7 @@ public class Parser {
     }
 
     public static List<Token> parse(String input) {
+        System.out.println("*** " + input);
         Parser parser = new Parser(input);
         parser.get();
         return parser.parse();

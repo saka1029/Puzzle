@@ -173,20 +173,24 @@ public class Parser {
         Deque<Token> stack = new ArrayDeque<>();
         getToken();
         L: while (true) {
-            System.out.println(token);
+            System.out.print("token:" + token);
+            System.out.print(" stack:" + stack);
+            System.out.println(" output:" + output);
             switch (token.type) {
                 case EOF:
                     break L;
                 case NUMBER:
-                    output.add(token); getToken();
+                    output.add(token);
+                    getToken();
                     break;
                 case ID:
                     Token id = token;
-                    if (getToken().type == TokenType.LP) {
-                        stack.push(id);     // push ID
-                        stack.push(token);  // push '('
+                    if (getToken().type == TokenType.LP) {  // 関数のとき "ID("
+                        stack.push(id);                     // push ID
+                        stack.push(token);                  // push '('
                         getToken();
-                    }
+                    } else                                  // 変数のとき
+                        output.add(id);
                     break;
                 case COMMA:
                     getToken();     // skip ','
@@ -230,15 +234,15 @@ public class Parser {
                     getToken();
                     break;
             }
-            while (!stack.isEmpty()) {
-                Token t = stack.peek();
-                if (t.type == TokenType.LP || t.type == TokenType.RP) 
-                    throw new RuntimeException("'(' and ')' unmatch");
-                else if (t.type.isOperator)
-                    output.add(stack.pop());
-                else
-                    break;
-            }
+        }
+        while (!stack.isEmpty()) {
+            Token t = stack.peek();
+            if (t.type == TokenType.LP || t.type == TokenType.RP) 
+                throw new RuntimeException("'(' and ')' unmatch");
+            else if (t.type.isOperator)
+                output.add(stack.pop());
+            else
+                break;
         }
         return output;
     }

@@ -54,10 +54,18 @@ public class Parser {
         public static Token COMMA = new Token(TokenType.COMMA, ",");
         public final TokenType type;
         public final String string;
+
         public Token(TokenType type, String string){
             this.type = type;
             this.string = string;
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof Token t
+                && t.type.equals(type) && t.string.equals(string);
+        }
+
         @Override
         public String toString() {
             return type + ":" + string;
@@ -173,9 +181,7 @@ public class Parser {
         Deque<Token> stack = new ArrayDeque<>();
         getToken();
         L: while (true) {
-            System.out.print("token:" + token);
-            System.out.print(" stack:" + stack);
-            System.out.println(" output:" + output);
+            System.out.println("token:" + token + " stack:" + stack + " output:" + output);
             switch (token.type) {
                 case EOF:
                     break L;
@@ -244,6 +250,7 @@ public class Parser {
             else
                 break;
         }
+        System.out.println("LAST token:" + token + " stack:" + stack + " output:" + output);
         return output;
     }
 

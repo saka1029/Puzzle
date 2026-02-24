@@ -100,6 +100,10 @@ public class 操車場 {
                 } else if (ch == ',') {
                     get();
                     tokens.add(new Token(TokenType.COMMA, ","));
+                } else if (Character.isDigit(ch)) {
+                    while (Character.isDigit(ch))
+                        appendGet();
+                    tokens.add(new Token(TokenType.NUMBER, sb.toString()));
                 } else if (isIdFirst(ch)) {
                     appendGet();
                     while (isIdRest(ch))
@@ -112,7 +116,9 @@ public class 操車場 {
                         appendGet();
                     String s = sb.toString();
                     TokenType t = TokenType.MAP.get(s);
-                    tokens.add(t != null ? new Token(t, s) : new Token(TokenType.ID, s));
+                    if (t == null)
+                        throw new RuntimeException("Unknown operator '%s'".formatted(s));
+                    tokens.add(new Token(t, s));
                 } 
             }
         }

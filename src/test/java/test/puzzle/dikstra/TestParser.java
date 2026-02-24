@@ -14,7 +14,7 @@ public class TestParser {
 
     @Test
     public void testScanner() {
-        Parser.parse("346 + ( 変数 - 2  , 3 / 2 )");
+        Parser.parse("346+ (変数34 - 2, 3/2)");
     }
 
 }

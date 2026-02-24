@@ -1,14 +1,20 @@
 package test.puzzle.dikstra;
 
 import org.junit.Test;
-import static puzzle.dikstra.操車場.*;
+import puzzle.dikstra.Parser;
+import static puzzle.dikstra.Parser.*;
 
-public class Test操車場 {
+public class TestParser {
 
     @Test
     public void testTokenType() {
         System.out.println(TokenType.MAP);
         System.out.println(Character.isLetter('漢'));
+    }
+
+    @Test
+    public void testScanner() {
+        Parser.parse("346 + ( 変数 - 2)");
     }
 
 }

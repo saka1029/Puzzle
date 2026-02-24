@@ -7,12 +7,12 @@ import java.util.stream.Stream;
 public class Parser {
 
     public enum TokenType {
-        EOF("EOF", -1, true),
-        NUMBER("NUMBER", -1, true),
-        ID("ID", -1, true),
-        LP("(", -1, true),
-        RP(")", -1, true),
-        COMMA(",", -1, true),
+        EOF("EOF"),
+        NUMBER("NUMBER"),
+        ID("ID"),
+        LP("("),
+        RP(")"),
+        COMMA(","),
         POW("^", 4, false),
         MULT("*", 3, true),
         DIV("/", 3, true),
@@ -23,6 +23,14 @@ public class Parser {
             this.string = string;
             this.priority = priority;
             this.leftAssoc = leftAssoc;
+            this.isOperator = true;
+        }
+
+        TokenType(String string) {
+            this.string = string;
+            this.priority = -1;
+            this.leftAssoc = true;
+            this.isOperator = false;
         }
 
         public static final Map<String, TokenType> MAP = Stream.of(values())
@@ -32,6 +40,7 @@ public class Parser {
         public final String string;
         public final int priority;
         public final boolean leftAssoc;
+        public final boolean isOperator;
     }
 
     public static class Token {
@@ -95,23 +104,23 @@ public class Parser {
         while (Character.isWhitespace(ch))
             get();
         int start = index - 1;
-        return token = switch (ch) {
-            case -1 -> Token.EOF;
-            case '(' -> getReturn(Token.LP);
-            case ')' -> getReturn(Token.RP);
-            case ',' -> getReturn(Token.COMMA);
-            default -> {
+        switch (ch) {
+            case -1: return token = Token.EOF;
+            case '(': get(); return token = Token.LP;
+            case ')': get(); return token = Token.RP;
+            case ',': get(); return token = Token.COMMA;
+            default:
                 if (Character.isDigit(ch)) {
                     while (Character.isDigit(ch))
                         get();
-                    yield new Token(TokenType.NUMBER, new String(input, start, index - start - 1));
+                    return token = new Token(TokenType.NUMBER, new String(input, start, index - start - 1));
                 } else if (isIdFirst(ch)) {
                     get();
                     while (isIdRest(ch))
                         get();
                     String s = new String(input, start, index - start - 1);
                     TokenType t = TokenType.MAP.get(s);
-                    yield t != null ? new Token(t, s) : new Token(TokenType.ID, s);
+                    return token = t != null ? new Token(t, s) : new Token(TokenType.ID, s);
                 } else if (isOperator(ch)) {
                     while (isOperator(ch))
                         get();
@@ -119,14 +128,42 @@ public class Parser {
                     TokenType t = TokenType.MAP.get(s);
                     if (t == null)
                         throw new RuntimeException("Unknown operator '%s'".formatted(s));
-                    yield new Token(t, s);
+                    return token = new Token(t, s);
                 } else 
                     throw new RuntimeException("Unknown character '%c'".formatted(ch));
-
-            }
-        };
+        }
     }
 
+    /**
+     * <pre>
+     *     読み込むべきトークンがある間、以下を繰り返す（ここで示すアルゴリズムには、中置記法の演算子の他、
+     *     atan2(1, 2) といったような（すなわち、前置で括弧と引数セパレータによる引数リストが引き続いている）
+     *     「関数」の扱いも含まれている）。
+     *        トークンを1つ読み込む。
+     *        トークンが数値の場合、それを出力キューに追加する。
+     *        トークンが関数の場合、それをスタックにプッシュする。
+     *        トークンが関数の引数セパレータ（カンマなど）の場合
+     *            スタックのトップにあるトークンが左括弧となるまで、スタックから演算子をポップして
+     *            出力キューに追加する動作を繰り返す。左括弧が出てこない場合、引数セパレータの位置がおかしいか、
+     *            左右の括弧が不一致となっている（エラー）。
+     *        トークンが演算子 o1 の場合
+     *            スタックのトップに演算子トークン o2 があり、o1 が左結合性（英語版）で、かつ優先順位が o2 と
+     *            等しいか低い場合、あるいは、o1 の優先順位が o2 より低い場合、以下を繰り返す。
+     *                o2 をスタックからポップし、出力キューに追加する。
+     *            o1 をスタックにプッシュする。
+     *        トークンが左括弧の場合、スタックにプッシュする。
+     *        トークンが右括弧の場合
+     *            スタックのトップにあるトークンが左括弧になるまで、スタックからポップした演算子を
+     *            出力キューに追加する動作を繰り返す。
+     *            左括弧をスタックからポップするが、出力には追加せずに捨てる。
+     *            スタックのトップにあるトークンが関数トークンなら、それをポップして出力キューに追加する。
+     *            左括弧がスタック上に見つからなかった場合、左右の括弧の不一致がある（エラー）。
+     *    読み込むべきトークンがない場合
+     *        スタック上に演算子トークンがある間、以下を繰り返す。
+     *            スタックのトップにある演算子トークンが括弧なら、括弧の不一致がある（エラー）。
+     *            演算子をスタックからポップして出力キューに追加する。
+     *    終了
+     */
     void parse() {
         while (true) {
             getToken();

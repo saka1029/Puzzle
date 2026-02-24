@@ -23,6 +23,9 @@ public class TestParser {
     static final Token MULT = new Token(TokenType.MULT, "*");
     static final Token DIV = new Token(TokenType.DIV, "/");
     static final Token POW = new Token(TokenType.POW, "^");
+    static final Token LP = Token.LP;
+    static final Token RP = Token.RP;
+    static final Token COMMA = Token.COMMA;
 
     @Test
     public void testParser() {
@@ -34,6 +37,12 @@ public class TestParser {
     @Test
     public void testParen() {
         assertEquals(List.of(N123, N456, PLUS), Parser.parse("(123+456)"));
+    }
+
+    @Test
+    public void testFuncall() {
+        Token F = new Token(TokenType.ID, "F");
+        assertEquals(List.of(N123, N456, PLUS, N456, F), Parser.parse("F(123+456,456)"));
     }
 
     /**

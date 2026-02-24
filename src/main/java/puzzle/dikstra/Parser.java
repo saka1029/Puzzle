@@ -215,7 +215,7 @@ public class Parser {
                         output.add(stack.pop());
                     break;
                 default:
-                    if (!token.type.isOperator)t
+                    if (!token.type.isOperator)
                         throw new RuntimeException("Unknown token %s".formatted(token));
                     Token o1 = token;
                     while (!stack.isEmpty()) {
@@ -227,6 +227,7 @@ public class Parser {
                             output.add(stack.pop());
                     }
                     stack.push(o1);
+                    getToken();
                     break;
             }
             while (!stack.isEmpty()) {
@@ -242,9 +243,9 @@ public class Parser {
         return output;
     }
 
-    public static void parse(String input) {
+    public static List<Token> parse(String input) {
         Parser parser = new Parser(input);
         parser.get();
-        parser.parse();
+        return parser.parse();
     }
 }

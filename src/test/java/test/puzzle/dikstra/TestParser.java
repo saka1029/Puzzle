@@ -4,6 +4,8 @@ import org.junit.Test;
 import puzzle.dikstra.Parser;
 import static puzzle.dikstra.Parser.*;
 
+import java.util.List;
+
 public class TestParser {
 
     @Test
@@ -14,7 +16,8 @@ public class TestParser {
 
     @Test
     public void testScanner() {
-        Parser.parse("346+ (変数34 - 2, 3/2)");
+        List<Token> tokens = Parser.parse("346 + (変数34 - 2*9- 3/2)");
+        System.out.println(tokens);
     }
 
 }

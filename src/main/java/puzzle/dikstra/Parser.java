@@ -215,13 +215,14 @@ public class Parser {
                 case RP:
                     getToken();
                     while (!stack.isEmpty()) {
-                        if (stack.pop().type == TokenType.LP)
+                        if (stack.peek().type == TokenType.LP)
                             break;
-                        output.add(token);
+                        output.add(stack.pop());
                     }
                     if (stack.isEmpty())
                         throw new RuntimeException("Missing '('");
-                    if (stack.peek().type == TokenType.ID)
+                    stack.pop();    // '('を捨てる
+                    if (!stack.isEmpty() && stack.peek().type == TokenType.ID)
                         output.add(stack.pop());
                     break;
                 default:

@@ -215,7 +215,7 @@ public class Parser {
                         output.add(stack.pop());
                     break;
                 default:
-                    if (!token.type.isOperator)
+                    if (!token.type.isOperator)t
                         throw new RuntimeException("Unknown token %s".formatted(token));
                     Token o1 = token;
                     while (!stack.isEmpty()) {
@@ -227,6 +227,15 @@ public class Parser {
                             output.add(stack.pop());
                     }
                     stack.push(o1);
+                    break;
+            }
+            while (!stack.isEmpty()) {
+                Token t = stack.peek();
+                if (t.type == TokenType.LP || t.type == TokenType.RP) 
+                    throw new RuntimeException("'(' and ')' unmatch");
+                else if (t.type.isOperator)
+                    output.add(stack.pop());
+                else
                     break;
             }
         }

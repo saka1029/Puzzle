@@ -35,4 +35,9 @@ public class TestParser {
         assertEquals(List.of(N123, N456, PLUS), Parser.parse("(123+456)"));
     }
 
+    // @Test
+    // public void testWikipedia() {
+    //     Parser.parse("3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3");
+    // }
+
 }

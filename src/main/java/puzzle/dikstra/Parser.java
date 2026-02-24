@@ -1,5 +1,9 @@
 package puzzle.dikstra;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -164,13 +168,69 @@ public class Parser {
      *            演算子をスタックからポップして出力キューに追加する。
      *    終了
      */
-    void parse() {
-        while (true) {
-            getToken();
+    List<Token> parse() {
+        List<Token> output = new ArrayList<>();
+        Deque<Token> stack = new ArrayDeque<>();
+        getToken();
+        L: while (true) {
             System.out.println(token);
-            if (token.type == TokenType.EOF)
-                break;;
+            switch (token.type) {
+                case EOF:
+                    break L;
+                case NUMBER:
+                    output.add(token); getToken();
+                    break;
+                case ID:
+                    Token id = token;
+                    if (getToken().type == TokenType.LP) {
+                        stack.push(id);     // push ID
+                        stack.push(token);  // push '('
+                        getToken();
+                    }
+                    break;
+                case COMMA:
+                    getToken();     // skip ','
+                    while (!stack.isEmpty()) {
+                        if (stack.peek().type == TokenType.LP)
+                            break;
+                        output.add(stack.pop());
+                    }
+                    if (stack.isEmpty())
+                        throw new RuntimeException("Missing '('");
+                    break;
+                case LP:
+                    stack.push(token);
+                    getToken();
+                    break;
+                case RP:
+                    getToken();
+                    while (!stack.isEmpty()) {
+                        if (stack.pop().type == TokenType.LP)
+                            break;
+                        output.add(token);
+                    }
+                    if (stack.isEmpty())
+                        throw new RuntimeException("Missing '('");
+                    if (stack.peek().type == TokenType.ID)
+                        output.add(stack.pop());
+                    break;
+                default:
+                    if (!token.type.isOperator)
+                        throw new RuntimeException("Unknown token %s".formatted(token));
+                    Token o1 = token;
+                    while (!stack.isEmpty()) {
+                        Token o2 = stack.peek();
+                        if (!o2.type.isOperator)
+                            break;
+                        if (o1.type.leftAssoc && o1.type.priority <= o2.type.priority
+                            || o1.type.priority < o2.type.priority)
+                            output.add(stack.pop());
+                    }
+                    stack.push(o1);
+                    break;
+            }
         }
+        return output;
     }
 
     public static void parse(String input) {

@@ -3,8 +3,11 @@ package test.puzzle.dikstra;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
+
+import puzzle.dikstra.Parser2;
 
 import static puzzle.dikstra.Parser2.*;
 
@@ -16,8 +19,9 @@ public class TestParser2 {
 
     @Test
     public void testParser() {
-        assertEquals(List.of(t(Type.NUMBER, "123"), t(Type.NUMBER, "456"), t(Type.OPERATOR, "+")), parse("123+456"));
-        assertEquals(List.of(t(Type.NUMBER, "123"), t(Type.NUMBER, "456"), t(Type.OPERATOR, "+")), parse("(123+456)"));
+        Parser2 parser = new Parser2();
+        assertEquals(List.of(t(Type.NUMBER, "123"), t(Type.NUMBER, "456"), t(Type.OPERATOR, "+")), parser.parse("123+456"));
+        assertEquals(List.of(t(Type.NUMBER, "123"), t(Type.NUMBER, "456"), t(Type.OPERATOR, "+")), parser.parse("(123+456)"));
     }
 
     /**
@@ -42,6 +46,34 @@ public class TestParser2 {
             new Token(Type.OPERATOR, "/"),
             new Token(Type.OPERATOR, "+")
         );
-        assertEquals(expected, parse("3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3"));
+        assertEquals(expected, new Parser2().parse("3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3"));
+    }
+
+    @Test
+    public void testParser2Map() {
+        Map<String, Operator> operators = Map.of(
+            "plus", new Operator(3, true),
+            "minus", new Operator(3, true),
+            "mult", new Operator(5, true),
+            "div", new Operator(5, true),
+            "pow", new Operator(7, false));
+        Parser2 parser = new Parser2(operators);
+        List<Token> expected = List.of(
+            new Token(Type.NUMBER, "3"),
+            new Token(Type.NUMBER, "4"),
+            new Token(Type.NUMBER, "2"),
+            new Token(Type.OPERATOR, "mult"),
+            new Token(Type.NUMBER, "1"),
+            new Token(Type.NUMBER, "5"),
+            new Token(Type.OPERATOR, "minus"),
+            new Token(Type.NUMBER, "2"),
+            new Token(Type.NUMBER, "3"),
+            new Token(Type.OPERATOR, "pow"),
+            new Token(Type.OPERATOR, "pow"),
+            new Token(Type.OPERATOR, "div"),
+            new Token(Type.OPERATOR, "plus")
+        );
+        assertEquals(expected, parser.parse("3 plus 4 mult 2 div ( 1 minus 5 ) pow 2 pow 3"));
+
     }
 }

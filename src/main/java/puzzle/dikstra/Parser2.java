@@ -19,9 +19,19 @@ public class Parser2 {
             "/", new Operator(5, true),
             "^", new Operator(7, false));
 
-    static final int[][] OPNAMES = OPERATORS.keySet().stream()
+    final Map<String, Operator> operators;
+    final int[][] operatorNames;
+    
+    public Parser2(Map<String, Operator> operators) {
+        this.operators = operators;
+        this.operatorNames = operators.keySet().stream()
             .map(s -> s.codePoints().toArray())
             .toArray(int[][]::new);
+    }
+
+    public Parser2() {
+        this(OPERATORS);
+    }
 
     static boolean isDigit(int ch) {
         return Character.isDigit(ch);
@@ -61,7 +71,9 @@ public class Parser2 {
     final List<Token> output = new ArrayList<>();
     final Deque<Token> stack = new ArrayDeque<>();
 
-    List<Token> solve(String input) {
+    public List<Token> parse(String input) {
+        output.clear();
+        stack.clear();
         codePoints = input.codePoints().toArray();
         index = 0;
         get();
@@ -97,37 +109,38 @@ public class Parser2 {
                     get();
                 String number = new String(codePoints, start, index - start - 1);
                 output.add(new Token(Type.NUMBER, number));
-            } else if (isIdFirst(ch)) {
-                get();
-                while (isIdRest(ch))
-                    get();
-                String id = new String(codePoints, start, index - start - 1);
-                output.add(new Token(Type.ID, id));
             } else {
                 String op = null;
-                for (int[] name : OPNAMES) {
+                for (int[] name : operatorNames) {
                     if (eat(name)) {
                         op = new String(name, 0, name.length);
                         break;
                     }
                 }
-                if (op == null)
-                    throw new RuntimeException("Unknown char '%c'".formatted(ch));
-                // operator
-                Token o1 = new Token(Type.OPERATOR, op);
-                Operator op1 = OPERATORS.get(op);
-                while (!stack.isEmpty()) {
-                    Token o2 = stack.peek();
-                    if (o2.type != Type.OPERATOR)
-                        break;
-                    Operator op2 = OPERATORS.get(o2.value);
-                    if (op1.leftAssoc && op1.priority <= op2.priority
-                            || op1.priority < op2.priority)
-                        output.add(stack.pop());
-                    else
-                        break;
+                if (op == null) {
+                    if (isIdFirst(ch))
+                        get();
+                    while (isIdRest(ch))
+                        get();
+                    String id = new String(codePoints, start, index - start - 1);
+                    output.add(new Token(Type.ID, id));
+                } else {
+                    // operator
+                    Token o1 = new Token(Type.OPERATOR, op);
+                    Operator op1 = operators.get(op);
+                    while (!stack.isEmpty()) {
+                        Token o2 = stack.peek();
+                        if (o2.type != Type.OPERATOR)
+                            break;
+                        Operator op2 = operators.get(o2.value);
+                        if (op1.leftAssoc && op1.priority <= op2.priority
+                                || op1.priority < op2.priority)
+                            output.add(stack.pop());
+                        else
+                            break;
+                    }
+                    stack.push(o1);
                 }
-                stack.push(o1);
             }
         }
         while (!stack.isEmpty()) {
@@ -140,10 +153,5 @@ public class Parser2 {
                 break;
         }
         return output;
-    }
-
-    public static List<Token> parse(String input) {
-        Parser2 parser = new Parser2();
-        return parser.solve(input);
     }
 }

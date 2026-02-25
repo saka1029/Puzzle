@@ -28,6 +28,7 @@ public class TestParser {
      * 操車場アルゴリズム
      * 詳細な実施例
      * https://ja.wikipedia.org/wiki/%E6%93%8D%E8%BB%8A%E5%A0%B4%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0#%E8%A9%B3%E7%B4%B0%E3%81%AA%E5%AE%9F%E6%96%BD%E4%BE%8B
+     * デフォルトの演算子定義を使用する場合
      */
     @Test
     public void testWikipedia() {
@@ -49,6 +50,9 @@ public class TestParser {
         assertEquals(expected, new Parser().parse("3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3"));
     }
 
+    /**
+     * 演算子定義を外部から与える場合
+     */
     @Test
     public void testParser2Map() {
         Map<String, Operator> operators = Map.of(

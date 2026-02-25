@@ -164,6 +164,6 @@ public class Parser {
             else
                 break;
         }
-        return output;
+        return new ArrayList<>(output);
     }
 }

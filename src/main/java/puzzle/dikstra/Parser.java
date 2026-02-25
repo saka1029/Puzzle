@@ -122,21 +122,15 @@ public class Parser {
                 String number = new String(codePoints, start, index - start - 1);
                 output.add(new Token(Type.NUMBER, number));
             } else {
+                // IDとoperatorの処理。ただしoperatorから探す。
                 String op = null;
-                for (int[] name : operatorNames) {
+                for (int[] name : operatorNames) {      // operatorを探す。
                     if (eat(name)) {
                         op = new String(name, 0, name.length);
                         break;
                     }
                 }
-                if (op == null) {
-                    if (isIdFirst(ch))
-                        get();
-                    while (isIdRest(ch))
-                        get();
-                    String id = new String(codePoints, start, index - start - 1);
-                    output.add(new Token(Type.ID, id));
-                } else {
+                if (op != null) {   // operatorが見つかった。
                     // operator
                     Token o1 = new Token(Type.OPERATOR, op);
                     Operator op1 = operators.get(op);
@@ -152,7 +146,14 @@ public class Parser {
                             break;
                     }
                     stack.push(o1);
-                }
+                } else if (isIdFirst(ch)) { // IDが見つかった。
+                    get();
+                    while (isIdRest(ch))
+                        get();
+                    String id = new String(codePoints, start, index - start - 1);
+                    output.add(new Token(Type.ID, id));
+                } else
+                    throw new RuntimeException("Unknown char '%c'".formatted(ch));
             }
         }
         while (!stack.isEmpty()) {

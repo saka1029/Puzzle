@@ -24,37 +24,63 @@ import java.util.stream.IntStream;
 public class KomachiRPN {
 
     public static final int PLUS = -100, MINUS = -99, MULT = -98, DIV = -97;
-    static final Map<Integer, String> OPSTR = Map.of(PLUS, "+", MINUS, "-", MULT, "*", DIV, "/");
-    static final Map<Integer, BinaryOperator<Rational>> OPS = Map.of(
-        PLUS, Rational::add, MINUS, Rational::subtract, MULT, Rational::multiply, DIV, Rational::divide);
+
+    record Operator(String name, BinaryOperator<Rational> function, int preceedance) {}
+    static final Map<Integer, Operator> OPERATORS = Map.of(
+        PLUS, new Operator("+", Rational::add, 2),
+        MINUS, new Operator("-", Rational::subtract, 2),
+        MULT, new Operator("*", Rational::multiply, 4),
+        DIV, new Operator("/", Rational::divide, 4));
 
     public static abstract class Tree {
         public final Rational value;
         Tree(Rational value) {
             this.value = value;
         }
+        /**
+         * @return 演算子の優先順位を返す。
+         */
+        abstract int prec();
     }
 
     static class Node extends Tree {
-        final String operator;
+        final int operator;
         final Tree left, right;
 
         Node(int operator, Tree left, Tree right) {
-            super(OPS.get(operator).apply(left.value, right.value));
-            this.operator = OPSTR.get(operator);
+            super(OPERATORS.get(operator).function.apply(left.value, right.value));
+            this.operator = operator;
             this.left = left;
             this.right = right;
         }
 
         @Override
+        int prec() {
+            return OPERATORS.get(operator).preceedance;
+        }
+
+        /**
+         * カッコの出力をなるべく抑止する。
+         */
+        @Override
         public String toString() {
-            return "(%s%s%s)".formatted(left, operator, right);
+            String ls = left.toString(), rs = right.toString();
+            if (left.prec() < prec())
+                ls = "(" + ls + ")";
+            if (right.prec() <= prec())
+                rs = "(" + rs + ")";
+            return "%s%s%s".formatted(ls, OPERATORS.get(operator).name, rs);
         }
     }
 
     static class Leaf extends Tree {
         Leaf(int value) {
             super(Rational.of(value));
+        }
+
+        @Override
+        int prec() {
+            return 99999999;
         }
 
         @Override
@@ -77,7 +103,7 @@ public class KomachiRPN {
 
     static String string(Cons<Integer> rpn) {
         return rpn.stream()
-            .map(e -> OPSTR.containsKey(e) ? OPSTR.get(e) : ("" + e))
+            .map(e -> OPERATORS.containsKey(e) ? OPERATORS.get(e).name : ("" + e))
             .collect(Collectors.joining(","));
     }
 
@@ -106,7 +132,7 @@ public class KomachiRPN {
         String str = string(rrpn);
         if (tree.value.equals(ratGoal))
             System.out.println(++count + ": "
-                + tree.toString().replaceFirst("^\\((.*)\\)$", "$1")
+                + tree.toString()
                 + " = " + str + " = " + ratGoal);
     }
 

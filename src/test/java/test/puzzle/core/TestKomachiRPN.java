@@ -27,7 +27,7 @@ public class TestKomachiRPN {
                 Cons.of(12)),
             list);
         assertEquals(
-            List.of("(1+2)", "(1-2)", "(1*2)", "(1/2)", "12"),
+            List.of("1+2", "1-2", "1*2", "1/2", "12"),
             list.stream().map(c -> KomachiRPN.tree(c).toString()).toList());
         assertEquals(
             List.of(Rational.of(3), Rational.of(-1), Rational.of(2), Rational.of(1, 2), Rational.of(12)),

@@ -111,5 +111,6 @@ public class TestRPNtoInfix {
     public void testRPNtoInfix() {
         String[] rnp = "3 4 2 * 1 5 - 2 3 ^ ^ / +".split("\\s+");
         System.out.println(RPNtoInfix(rnp));
+        System.out.println(RPNtoInfix("12,3,-,4,5,-,-".split(",")));
     }
 }

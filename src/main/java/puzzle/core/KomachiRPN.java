@@ -22,6 +22,8 @@ import java.util.stream.IntStream;
  * 計算結果の値: 10
  * 解:
  * (1+2)/3+4+5 = 1,2,+,3,/,4,+,5,+ = 10
+ * カッコが最適でない例
+ * 12-(3+(4-5)) = 12,3,4,5,-,+,- = 10
  */
 public class KomachiRPN {
 

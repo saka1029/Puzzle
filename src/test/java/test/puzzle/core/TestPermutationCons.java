@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import puzzle.core.Cons;
 
-public class TestPermutation2 {
+public class TestPermutationCons {
 
     static <T> void permutation(Cons<T> list) {
         permutation(list, Cons.nil());

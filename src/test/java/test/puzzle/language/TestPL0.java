@@ -467,38 +467,54 @@ public class TestPL0 {
 
     @Test
     public void testCompile() {
-        String source = "const ZERO = 0, ONE = 1, TWO = 2, THREE = 3;\r\n"
-            + "var x, y, z, ok;\r\n"
-            + "\r\n"
-            + "procedure addXandY;\r\n"
-            + " var x, y;\r\n"
-            + "begin"
-            + "    z := x + y\r\n"
-            + "end;\r\n"
-            + "begin\r\n"
-            + "  ok := 0;\r\n"
-            + "  x := ONE;\r\n"
-            + "  y := TWO;\r\n"
-            + "  call addXandY;\r\n"
-            + "  if z = THREE then\r\n"
-            + "      ok := -1\r\n"
-            + "end.\r\n";
+        String source = """
+            const
+                ZERO = 0,
+                ONE = 1,
+                TWO = 2,
+                THREE = 3;
+            var
+                x,
+                y,
+                z,
+                ok;
+            procedure addXandY;
+                var
+                    x,
+                    y;
+            begin
+                z := x + y
+            end;
+            begin
+              ok := 0;
+              x := ONE;
+              y := TWO;
+              call addXandY;
+              if z = THREE then
+                  ok := -1
+            end.
+            """;
         List<Instruction> codes = compile(source);
         interpret(codes);
     }
 
     @Test
     public void testWhile() {
-        String source = "const N = 10;\r\n"
-            + "var i, s;\r\n"
-            + "begin\r\n"
-            + "  s := 0;\r\n"
-            + "  i := 1;\r\n"
-            + "  while i < N do begin\r\n"
-            + "    s := s + i;"
-            + "    i := i + 1\r\n"
-            + "  end"
-            + "end.";
+        String source = """
+            const
+                N = 10;
+            var
+                i,
+                s;
+            begin
+                s := 0;
+                i := 1;
+                while i < N do begin
+                    s := s + i;
+                    i := i + 1
+                end
+            end.
+            """;
         List<Instruction> codes = compile(source);
         interpret(codes);
     }

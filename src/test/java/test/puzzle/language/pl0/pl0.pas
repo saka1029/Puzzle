@@ -76,13 +76,13 @@ procedure getsym;
   
 begin {getsym}
    while ch  = ' ' do getch;
-   if ch in ['a'..'z'] then
+   if ch in ['a'..'z', 'A'..'Z'] then
    begin {identifier or reserved word} k := 0;
       repeat if k < al then
          begin k := k+1; a[k] := ch
          end;
          getch;
-      until not(ch in ['a'..'z','0'..'9']);
+      until not(ch in ['a'..'z','A'..'Z','0'..'9']);
       if k >= kk then kk := k else
          repeat a[kk] := ' '; kk := kk-1
          until kk = k;

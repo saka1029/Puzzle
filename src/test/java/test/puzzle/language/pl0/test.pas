@@ -1,14 +1,14 @@
-const zero = 0, one = 1, two = 2, three = 3;
+const ZERO = 0, ONE = 1, TWO = 2, THREE = 3;
 var x, y, z, ok;
-procedure addxandy;
+procedure addXandY;
 begin
     z := x + y
 end;
 begin
-    ok := 0;
-    x := one;
-    y := two;
-    call addxandy;
-    if z = three then
+    ok := ZERO;
+    x := ONE;
+    y := TWO;
+    call addXandY;
+    if z = THREE then
         ok := -1
 end.

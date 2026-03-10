@@ -1,6 +1,6 @@
-    0 const zero = 0, one = 1, two = 2, three = 3;
+    0 const ZERO = 0, ONE = 1, TWO = 2, THREE = 3;
     1 var x, y, z, ok;
-    1 procedure addxandy;
+    1 procedure addXandY;
     1     var x, y;
     2 begin
     3     z := x + y
@@ -14,11 +14,11 @@
     6  sto  1    5
     7  opr  1    0
     8 begin
-    9     ok := 0;
-   11     x := one;
-   13     y := two;
-   15     call addxandy;
-   16     if z = three then
+    9     ok := ZERO;
+   11     x := ONE;
+   13     y := TWO;
+   15     call addXandY;
+   16     if z = THREE then
    19         ok := -1
    21 end.
     0  jmp  1    8

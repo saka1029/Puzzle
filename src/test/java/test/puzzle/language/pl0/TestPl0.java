@@ -38,7 +38,7 @@ import puzzle.language.pl0.Pl0;
  * factor     = ident | number | '(' expression ')'
  * </pre>
  */
-public class TestPL0 {
+public class TestPl0 {
 
     @Test
     public void testCompile() {

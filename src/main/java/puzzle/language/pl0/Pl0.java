@@ -374,7 +374,14 @@ public class Pl0 {
         }.parse();
     }
 
-    public static void interpret(List<Instruction> codes) {
+    /**
+     * コード列を実行します。
+     * @param codes 実行するコード列を指定します。
+     * @return 代入した値を時系列で返します。
+     *          ex) a := 2; b := a + 3; なら [2, 5] を返します。
+     */
+    public static List<Integer> interpret(List<Instruction> codes) {
+        List<Integer> chanedValues = new ArrayList<>();
         new Object() {
             int[] stack = new int[500];
             int sp, pc, bp;
@@ -440,7 +447,7 @@ public class Pl0 {
                             }
                             break;
                         case lod: stack[sp++] = stack[base(i.l) + i.a]; break;
-                        case sto: System.out.println(stack[base(i.l) + i.a] = stack[--sp]); break;
+                        case sto: chanedValues.add(stack[base(i.l) + i.a] = stack[--sp]); break;
                         case cal:
                             stack[sp] = base(i.l);
                             stack[sp + 1] = bp;
@@ -457,5 +464,6 @@ public class Pl0 {
                 System.out.println(" end pl/0");
             }
         }.run();
+        return chanedValues;
     }
 }

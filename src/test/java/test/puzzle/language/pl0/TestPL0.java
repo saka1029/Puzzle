@@ -1,5 +1,7 @@
 package test.puzzle.language.pl0;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,20 +43,9 @@ public class TestPL0 {
     @Test
     public void testCompile() {
         String source = """
-            const
-                ZERO = 0,
-                ONE = 1,
-                TWO = 2,
-                THREE = 3;
-            var
-                x,
-                y,
-                z,
-                ok;
+            const ZERO = 0, ONE = 1, TWO = 2, THREE = 3;
+            var x, y, z, ok;
             procedure addXandY;
-                var
-                    x,
-                    y;
             begin
                 z := x + y
             end;
@@ -68,7 +59,29 @@ public class TestPL0 {
             end.
             """;
         List<Pl0.Instruction> codes = Pl0.compile(source);
-        Pl0.interpret(codes);
+        assertEquals(List.of(0, 1, 2, 3, -1), Pl0.interpret(codes));
+    }
+
+    @Test
+    public void testCompile2() {
+        String source = """
+            const ZERO = 0, ONE = 1, TWO = 2, THREE = 3;
+            var x, y, z, ok;
+            procedure addXandY;
+                var x, y; begin
+                z := x + y
+            end;
+            begin
+              ok := 0;
+              x := ONE;
+              y := TWO;
+              call addXandY;
+              if z = THREE then
+                  ok := -1
+            end.
+            """;
+        List<Pl0.Instruction> codes = Pl0.compile(source);
+        assertEquals(List.of(0, 1, 2, 0), Pl0.interpret(codes));
     }
 
     @Test
@@ -89,7 +102,8 @@ public class TestPL0 {
             end.
             """;
         List<Pl0.Instruction> codes = Pl0.compile(source);
-        Pl0.interpret(codes);
+        /* variable name     s  i  s  i  s  i  s  i   s  i   s  i   s  i   s  i   s  i   s   i */
+        assertEquals(List.of(0, 1, 1, 2, 3, 3, 6, 4, 10, 5, 15, 6, 21, 7, 28, 8, 36, 9, 45, 10), Pl0.interpret(codes));
     }
 
     @Test

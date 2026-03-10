@@ -32,7 +32,7 @@ import org.junit.Test;
  *               | 'if' condition 'then' statement
  *               | 'while' condition 'do' statement ]
  * condition  = 'odd' expression
- *               | expression ( '==' | '#' | '<' | '<=' | '>' | '>=' ) expression
+ *               | expression ( '=' | '#' | '<' | '<=' | '>' | '>=' ) expression
  * expression = [ '+' | '-' ] term { ( '+' | '-' ) term }
  * term       = factor { ( '*' | '/' ) factor }
  * factor     = ident | number | '(' expression ')'

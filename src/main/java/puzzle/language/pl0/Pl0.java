@@ -1,13 +1,10 @@
-package test.puzzle.language;
+package puzzle.language.pl0;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import org.junit.Test;
 
 /**
  * PL/0 – Pascal for small machines
@@ -38,7 +35,7 @@ import org.junit.Test;
  * factor     = ident | number | '(' expression ')'
  * </pre>
  */
-public class TestPL0 {
+public class Pl0 {
 
     enum InstType {
         lit, opr, lod, sto, cal, inc, jmp, jpc
@@ -48,7 +45,7 @@ public class TestPL0 {
         constant, variable, proc
     }
 
-    static class Instruction {
+    public static class Instruction {
         final InstType fct;
         final int l;
         int a;
@@ -306,13 +303,8 @@ public class TestPL0 {
                             if (s == null)
                                 throw error("symbol '%s' is not defined", name);
                             switch (s.type) {
-                            case proc:
-                                throw error("symbol '%s' is procedure", name);
-                            case constant:
-                                throw error("symbol '%s' is constant", name);
-                            case variable:
-                                codes.add(new Instruction(InstType.sto, lev - s.level, s.adr));
-                                break;
+                                case proc: case constant: throw error("symbol '%s' is %s", name, s.type);
+                                case variable: codes.add(new Instruction(InstType.sto, lev - s.level, s.adr)); break;
                             }
                         } else
                             throw error("unknown statement");
@@ -371,8 +363,10 @@ public class TestPL0 {
 
             List<Instruction> parse() {
                 program();
+                // print symbols for debug
                 for (Symbol e : symbols)
                     System.out.println(e);
+                // print codes for debug
                 for (int i = 0, max = codes.size(); i < max; ++i)
                     System.out.println(i + ":" + codes.get(i));
                 return codes;
@@ -463,69 +457,5 @@ public class TestPL0 {
                 System.out.println(" end pl/0");
             }
         }.run();
-    }
-
-    @Test
-    public void testCompile() {
-        String source = """
-            const
-                ZERO = 0,
-                ONE = 1,
-                TWO = 2,
-                THREE = 3;
-            var
-                x,
-                y,
-                z,
-                ok;
-            procedure addXandY;
-                var
-                    x,
-                    y;
-            begin
-                z := x + y
-            end;
-            begin
-              ok := 0;
-              x := ONE;
-              y := TWO;
-              call addXandY;
-              if z = THREE then
-                  ok := -1
-            end.
-            """;
-        List<Instruction> codes = compile(source);
-        interpret(codes);
-    }
-
-    @Test
-    public void testWhile() {
-        String source = """
-            const
-                N = 10;
-            var
-                i,
-                s;
-            begin
-                s := 0;
-                i := 1;
-                while i < N do begin
-                    s := s + i;
-                    i := i + 1
-                end
-            end.
-            """;
-        List<Instruction> codes = compile(source);
-        interpret(codes);
-    }
-
-    @Test
-    public void testStack() {
-        int[] stack = new int[3];
-        int sp = 0;
-        stack[sp++] = 2;
-        stack[sp++] = 3;
-        stack[--sp - 1] = stack[sp - 1] + stack[sp];
-        System.out.println("sp=" + sp + " stack=" + Arrays.toString(stack));
     }
 }

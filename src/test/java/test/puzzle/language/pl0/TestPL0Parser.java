@@ -1,4 +1,4 @@
-package test.puzzle.language;
+package test.puzzle.language.pl0;
 
 import java.util.Arrays;
 import java.util.List;

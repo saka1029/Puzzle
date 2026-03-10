@@ -32,7 +32,7 @@ import org.junit.Test;
  *               | 'if' condition 'then' statement
  *               | 'while' condition 'do' statement ]
  * condition  = 'odd' expression
- *               | expression ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) expression
+ *               | expression ( '==' | '#' | '<' | '<=' | '>' | '>=' ) expression
  * expression = [ '+' | '-' ] term { ( '+' | '-' ) term }
  * term       = factor { ( '*' | '/' ) factor }
  * factor     = ident | number | '(' expression ')'
@@ -242,10 +242,10 @@ public class TestPL0 {
                             codes.add(new Instruction(InstType.opr, 0, 6));
                         } else {
                             expression();
-                            if (match("!=", "<=", ">=", "=", "<", ">")) {
+                            if (match("#", "<=", ">=", "=", "<", ">")) {
                                 int adr = switch (token) {
                                 case "=" -> 8;
-                                case "!=" -> 9;
+                                case "#" -> 9;
                                 case "<" -> 10;
                                 case ">=" -> 11;
                                 case ">" -> 12;
@@ -409,6 +409,10 @@ public class TestPL0 {
                 return sb.toString();
             }
 
+            int ord(boolean b) {
+                return b ? 1 : 0;
+            }
+
             void run() {
                 System.out.println(" start pl/0");
                 sp = 0;
@@ -419,77 +423,40 @@ public class TestPL0 {
                     System.out.println(print());
                     Instruction i = codes.get(pc++);
                     switch (i.fct) {
-                    case lit:
-                        stack[sp++] = i.a;
-                        break;
-                    case opr:
-                        switch (i.a) {
-                        case 0:
-                            sp = bp - 1;
-                            pc = stack[sp + 3];
-                            bp = stack[sp + 2];
+                        case lit: stack[sp++] = i.a; break;
+                        case opr:
+                            switch (i.a) {
+                                case 0 /* return */:
+                                    sp = bp - 1;
+                                    pc = stack[sp + 3];
+                                    bp = stack[sp + 2];
+                                    break;
+                                case 1 /* negate */: stack[sp - 1] = -stack[sp - 1]; break;
+                                case 2 /* + */: stack[--sp - 1] = stack[sp - 1] + stack[sp]; break;
+                                case 3 /* - */: stack[--sp - 1] = stack[sp - 1] - stack[sp]; break;
+                                case 4 /* * */: stack[--sp - 1] = stack[sp - 1] * stack[sp]; break;
+                                case 5 /* / */: stack[--sp - 1] = stack[sp - 1] / stack[sp]; break;
+                                case 6 /* odd */: stack[sp - 1] &= 1; break;
+                                case 8 /* = */: stack[--sp - 1] = ord(stack[sp - 1] == stack[sp]); break;
+                                case 9 /* # */: stack[--sp - 1] = ord(stack[sp - 1] != stack[sp]); break;
+                                case 10 /* < */: stack[--sp - 1] = ord(stack[sp - 1] < stack[sp]); break;
+                                case 11 /* >= */: stack[--sp - 1] = ord(stack[sp - 1] >= stack[sp]); break;
+                                case 12 /* > */: stack[--sp - 1] = ord(stack[sp - 1] > stack[sp]); break;
+                                case 13 /* <= */: stack[--sp - 1] = ord(stack[sp - 1] <= stack[sp]); break;
+                            }
                             break;
-                        case 1:
-                            stack[sp - 1] = -stack[sp - 1];
-                            break;
-                        case 2:
-                            stack[--sp - 1] = stack[sp - 1] + stack[sp];
-                            break;
-                        case 3:
-                            stack[--sp - 1] = stack[sp - 1] - stack[sp];
-                            break;
-                        case 4:
-                            stack[--sp - 1] = stack[sp - 1] * stack[sp];
-                            break;
-                        case 5:
-                            stack[--sp - 1] = stack[sp - 1] / stack[sp];
-                            break;
-                        case 6:
-                            stack[sp - 1] &= 1;
-                            break;
-                        case 8:
-                            stack[--sp - 1] = stack[sp - 1] == stack[sp] ? 1 : 0;
-                            break;
-                        case 9:
-                            stack[--sp - 1] = stack[sp - 1] != stack[sp] ? 1 : 0;
-                            break;
-                        case 10:
-                            stack[--sp - 1] = stack[sp - 1] < stack[sp] ? 1 : 0;
-                            break;
-                        case 11:
-                            stack[--sp - 1] = stack[sp - 1] >= stack[sp] ? 1 : 0;
-                            break;
-                        case 12:
-                            stack[--sp - 1] = stack[sp - 1] > stack[sp] ? 1 : 0;
-                            break;
-                        case 13:
-                            stack[--sp - 1] = stack[sp - 1] <= stack[sp] ? 1 : 0;
-                            break;
-                        }
-                        break;
-                    case lod:
-                        stack[sp++] = stack[base(i.l) + i.a];
-                        break;
-                    case sto:
-                        System.out.println(stack[base(i.l) + i.a] = stack[--sp]);
-                        break;
-                    case cal:
-                        stack[sp] = base(i.l);
-                        stack[sp + 1] = bp;
-                        stack[sp + 2] = pc;
-                        bp = sp;
-                        pc = i.a;
-                        break;
-                    case inc:
-                        sp += i.a;
-                        break;
-                    case jmp:
-                        pc = i.a;
-                        break;
-                    case jpc:
-                        if (stack[--sp] == 0)
+                        case lod: stack[sp++] = stack[base(i.l) + i.a]; break;
+                        case sto: System.out.println(stack[base(i.l) + i.a] = stack[--sp]); break;
+                        case cal:
+                            stack[sp] = base(i.l);
+                            stack[sp + 1] = bp;
+                            stack[sp + 2] = pc;
+                            bp = sp;
                             pc = i.a;
-                        break;
+                            break;
+                        case inc: sp += i.a; break;
+                        case jmp: pc = i.a; break;
+                        case jpc: if (stack[--sp] == 0) pc = i.a; break;
                     }
 
                 } while (pc > 0);
@@ -504,7 +471,7 @@ public class TestPL0 {
             + "var x, y, z, ok;\r\n"
             + "\r\n"
             + "procedure addXandY;\r\n"
-            // + " var x, y;\r\n"
+            + " var x, y;\r\n"
             + "begin"
             + "    z := x + y\r\n"
             + "end;\r\n"

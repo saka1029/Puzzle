@@ -1,0 +1,8 @@
+#!/bin/bash
+
+DIR=src/test/java/test/puzzle/language/pl0
+pushd $DIR
+fpc -Miso pl0.pas
+./pl0 < test.pas > test.out
+./pl0 < test2.pas > test2.out
+popd

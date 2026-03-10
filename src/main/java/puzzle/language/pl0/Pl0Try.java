@@ -35,10 +35,10 @@ import java.util.regex.Pattern;
  * factor     = ident | number | '(' expression ')'
  * </pre>
  */
-public class Pl0 {
+public class Pl0Try {
 
     enum InstType {
-        lit, opr, lod, sto, cal, inc, jmp, jpc
+        lit, opr, lod, sto, cal, inc, jmp, jpc, read, write
     }
 
     enum SymbolType {
@@ -59,7 +59,7 @@ public class Pl0 {
         static final String[] OPR = {
             "return", "negate", "+", "-", "*", "/",
             "odd", "?",
-            "=", "!=", "<", ">=", ">", "<=",
+            "=", "#", "<", ">=", ">", "<=",
         };
 
         @Override
@@ -191,14 +191,14 @@ public class Pl0 {
                             if (s == null)
                                 throw error("symbol '%s' is not defined", name);
                             switch (s.type) {
-                            case proc:
-                                throw error("symbol '%s' is procedure", name);
-                            case constant:
-                                codes.add(new Instruction(InstType.lit, 0, s.adr));
-                                break;
-                            case variable:
-                                codes.add(new Instruction(InstType.lod, lev - s.level, s.adr));
-                                break;
+                                case proc:
+                                    throw error("symbol '%s' is procedure", name);
+                                case constant:
+                                    codes.add(new Instruction(InstType.lit, 0, s.adr));
+                                    break;
+                                case variable:
+                                    codes.add(new Instruction(InstType.lod, lev - s.level, s.adr));
+                                    break;
                             }
                         } else if (isNumber(ch())) {
                             int value = number();
@@ -258,22 +258,35 @@ public class Pl0 {
                     }
 
                     void statement() {
-                        if (match("call")) {
+                        if (match("?")) {
                             String name = ident();
                             Symbol s = find(name);
                             if (s == null)
                                 throw error("symbol '%s' is not defined", name);
                             switch (s.type) {
-                            case proc:
-                                codes.add(new Instruction(InstType.cal, s.level, s.adr));
-                                break;
-                            case constant:
-                                throw error("symbol '%s' is constant", name);
-                            case variable:
-                                throw error("symbol '%s' is variable", name);
+                                case proc:
+                                case constant:
+                                    throw error("symbol '%s' is %s", name, s.type);
+                                case variable:
+                                    codes.add(new Instruction(InstType.read, s.level, s.adr));
+                                    break;
                             }
-                            // } else if (match("!")) {
-                            // expression();
+                        } else if (match("!")) {
+                            expression();
+                            codes.add(new Instruction(InstType.write, 0, 0));
+                        } else if (match("call")) {
+                            String name = ident();
+                            Symbol s = find(name);
+                            if (s == null)
+                                throw error("symbol '%s' is not defined", name);
+                            switch (s.type) {
+                                case proc:
+                                    codes.add(new Instruction(InstType.cal, s.level, s.adr));
+                                    break;
+                                case constant:
+                                case variable:
+                                    throw error("symbol '%s' is %s", name, s.type);
+                            }
                         } else if (match("begin")) {
                             statement();
                             while (match(";"))
@@ -342,7 +355,7 @@ public class Pl0 {
                             expect(";");
                         }
                         symbol.adr = codes.size(); // プロシジャーの先頭アドレス
-                        codes.add(new Instruction(InstType.inc, 0, dx)); // inc命令の生成
+                        codes.add(new Instruction(InstType.inc, 0, dx)); // int命令の生成
                         statement();
                         codes.add(new Instruction(InstType.opr, 0, 0)); // return命令の生成
                     }
@@ -380,9 +393,10 @@ public class Pl0 {
      * @return 代入した値を時系列で返します。
      *          ex) a := 2; b := a + 3; なら [2, 5] を返します。
      */
-    public static List<Integer> interpret(List<Instruction> codes) {
-        List<Integer> chanedValues = new ArrayList<>();
+    public static List<Integer> interpret(List<Instruction> codes, int... inputs) {
+        List<Integer> outputs = new ArrayList<>();
         new Object() {
+            int ii = 0;
             int[] stack = new int[500];
             int sp, pc, bp;
 
@@ -447,7 +461,7 @@ public class Pl0 {
                             }
                             break;
                         case lod: stack[sp++] = stack[base(i.l) + i.a]; break;
-                        case sto: chanedValues.add(stack[base(i.l) + i.a] = stack[--sp]); break;
+                        case sto: stack[base(i.l) + i.a] = stack[--sp]; break;
                         case cal:
                             stack[sp] = base(i.l);
                             stack[sp + 1] = bp;
@@ -458,6 +472,8 @@ public class Pl0 {
                         case inc: sp += i.a; break;
                         case jmp: pc = i.a; break;
                         case jpc: if (stack[--sp] == 0) pc = i.a; break;
+                        case read: stack[base(i.l) + i.a] = inputs[ii++]; break;
+                        case write: outputs.add(stack[--sp]); break;
                     }
 
                 } while (pc > 0);
@@ -465,6 +481,6 @@ public class Pl0 {
                 System.out.println(" end pl/0");
             }
         }.run();
-        return chanedValues;
+        return outputs;
     }
 }

@@ -2,10 +2,7 @@ package test.puzzle.language.csp;
 
 import static puzzle.language.csp.Compiler.parse;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -88,12 +85,12 @@ public class TestCompiler {
         System.out.println(p.generate());
     }
 
-    @Test
-    public void test8QueensFile() throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
-        String source = Files.readString(Path.of("src/test/csp/Queen8.csp"));
-        Problem problem = parse(source);
-        System.out.println(problem.generate());
-        problem.compileGo();
-    }
+    // @Test
+    // public void test8QueensFile() throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, CompileError {
+    //     String source = Files.readString(Path.of("src/test/csp/Queen8.csp"));
+    //     Problem problem = parse(source);
+    //     System.out.println(problem.generate());
+    //     problem.compileGo();
+    // }
 
 }

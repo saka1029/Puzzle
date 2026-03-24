@@ -1,4 +1,4 @@
-problem Queen8
+problem Queen8;
 
 import static java.lang.Math.abs;
 

@@ -155,13 +155,30 @@ public class TestFilominoDecoder {
 
     @Test
     public void testMatrixDecodeAll() throws IOException {
-        Path dir = Paths.get("filomino");
+        Path dir = Paths.get("fillomino");
         Files.createDirectories(dir);
         Document doc = Jsoup.connect(INDEX_URL).get();
         Elements links = doc.select("#MyTable a");
         for (Element e : links) {
             System.out.println(e.text() + " " + e.attr("href"));
             matrixWriter(matrixUrlDecode(e.attr("href")), dir.resolve(e.text() + ".png"));
+        }
+    }
+
+    static final String INDEX_URL2 = "https://puzzle-laboratory.hatenadiary.jp/entry/2022/08/05/161101";
+
+    @Test
+    public void testMatrixDecodeAll2() throws IOException {
+        Path dir = Paths.get("fillomino2");
+        Files.createDirectories(dir);
+        Document doc = Jsoup.connect(INDEX_URL2).get();
+        Elements links = doc.select("a");
+        for (Element e : links) {
+            String url = e.attr("href");
+            if (url.contains("fillomino")) {
+                System.out.println(e.text() + " " + url);
+                matrixWriter(matrixUrlDecode(url), dir.resolve(e.text() + ".png"));
+            }
         }
     }
 

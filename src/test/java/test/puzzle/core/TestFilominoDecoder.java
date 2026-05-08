@@ -14,6 +14,10 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.Test;
 
 import puzzle.graphics.ImageWriter;
@@ -40,8 +44,10 @@ public class TestFilominoDecoder {
             char c = data.charAt(i);
             switch (c) {
                 case '1': case '2': case '3': case '4':
-                case '5': case '6': case '7': case '8': case '9':
-                    array[j++] = c - '0';
+                case '5': case '6': case '7': case '8':
+                case '9': case 'a': case 'b': case 'c':
+                case 'd': case 'e': case 'f':
+                    array[j++] = Character.digit(c, 16);
                     break;
                 case 'g': case 'h': case 'i': case 'j':
                 case 'k': case 'l': case 'm': case 'n':
@@ -133,16 +139,30 @@ public class TestFilominoDecoder {
         }
     }
 
-    @Test
+    // @Test
     public void testMatrixWriter() throws IOException {
         int[][] matrix = {{0, 1, 22}, {3, 4, 5}};
         matrixWriter(matrix, Paths.get("testMatrixWriter.png"));
     }
 
-    @Test
+    // @Test
     public void testDecodeMatrixWriter() throws IOException {
         int[][] matrix = matrixUrlDecode(URL_22x17);
         matrixWriter(matrix, Paths.get("22x17.png"));
+    }
+
+    static final String INDEX_URL = "https://puzzle-laboratory.hatenadiary.jp/entry/2021/11/30/011446";
+
+    @Test
+    public void testMatrixDecodeAll() throws IOException {
+        Path dir = Paths.get("filomino");
+        Files.createDirectories(dir);
+        Document doc = Jsoup.connect(INDEX_URL).get();
+        Elements links = doc.select("#MyTable a");
+        for (Element e : links) {
+            System.out.println(e.text() + " " + e.attr("href"));
+            matrixWriter(matrixUrlDecode(e.attr("href")), dir.resolve(e.text() + ".png"));
+        }
     }
 
 }

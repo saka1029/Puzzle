@@ -1,10 +1,22 @@
 package test.puzzle.core;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.geom.Rectangle2D;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
+
+import puzzle.graphics.ImageWriter;
 
 /**
  * 以下のページで使われているフィルオミノ問題のURL表現をデコードする。
@@ -80,6 +92,49 @@ public class TestFilominoDecoder {
             System.out.println(Arrays.toString(row));
     }
 
-    
+    static void matrixWriter(int[][] matrix, Path file) throws IOException {
+        int cellSize = 40;
+        int margin = 5;
+        int rows = matrix.length, cols = matrix[0].length;
+        int height = rows * cellSize + 2 * margin, width = cols * cellSize + 2 * margin;
+        try (OutputStream os = Files.newOutputStream(file);
+            ImageWriter iw = new ImageWriter(os, width, height);) {
+            iw.graphics().setColor(Color.WHITE);
+            iw.graphics().fillRect(0, 0, width, height);
+            iw.graphics().setColor(Color.BLACK);
+            iw.graphics().setStroke(new BasicStroke(3));
+            iw.graphics().drawRect(margin, margin, cols * cellSize, rows * cellSize);
+            iw.graphics().setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1, new float[]{2}, 0));
+            for (int x = 0; x < cols; ++x) {
+                int x0 = x * cellSize + margin;
+                iw.graphics().drawLine(x0, margin, x0, rows * cellSize + margin);
+            }
+            for (int y = 0; y < rows; ++y) {
+                int y0 = y * cellSize + margin;
+                iw.graphics().drawLine(margin, y0, cols * cellSize + margin, y0);
+            }
+            iw.graphics().setFont(new Font("Helvetica", Font.PLAIN, 25));
+            FontMetrics fm = iw.graphics().getFontMetrics();
+            for (int r = 0; r < rows; ++r) {
+                int y = r * cellSize + margin + cellSize - 2;
+                for (int c = 0; c < cols; ++c) {
+                    int number = matrix[r][c];
+                    if (number == 0)
+                        continue;
+                    int x = c * cellSize + margin;
+                    String numberStr = Integer.toString(number);
+                    Rectangle2D rect = fm.getStringBounds(numberStr, iw.graphics());
+                    System.out.println(numberStr + " : " + rect);
+                    iw.graphics().drawString(numberStr, x, y);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testMatrixWriter() throws IOException {
+        int[][] matrix = {{0, 1, 22}, {3, 4, 5}};
+        matrixWriter(matrix, Paths.get("testMatrixWriter.png"));
+    }
 
 }

@@ -15,7 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
-import org.w3c.dom.css.Rect;
 
 import puzzle.graphics.ImageWriter;
 
@@ -34,7 +33,7 @@ import puzzle.graphics.ImageWriter;
  */
 public class TestFilominoDecoder {
 
-    static int[][] decode(int rows, int cols, String data) {
+    static int[][] matrixDecode(int rows, int cols, String data) {
         int[] array = new int[rows * cols];
         int j = 0;
         for (int i = 0, length = data.length(); i < length;  ++i) {
@@ -70,25 +69,25 @@ public class TestFilominoDecoder {
 
     static final Pattern FILOMINO_URL = Pattern.compile("/(\\d+)/(\\d+)/(\\S+)$");
 
-    static int[][] decode(String url) {
+    static int[][] matrixUrlDecode(String url) {
         Matcher m = FILOMINO_URL.matcher(url);
         if (m.find())
-            return decode(
+            return matrixDecode(
                 Integer.parseInt(m.group(2)),
                 Integer.parseInt(m.group(1)),
                 m.group(3));
         else
             throw new RuntimeException("Illgal format '%s'".formatted(url));
     }
-    static String url = "http://pzv.jp/p.html?fillomino/22/17/i5h5h6h6k5i123i66g6g4h665i4"
+    static String URL_22x17 = "http://pzv.jp/p.html?fillomino/22/17/i5h5h6h6k5i123i66g6g4h665i4"
         + "5h4h2l55j-11g-113k6g2h1g1h4g14g-11g33g22g1g31g455g4g55i14h1h42h-"
         + "11i55g1h-11g4g5g32g43g442g3k1g4g1g1h33g4421812g1g32i55p82i51g3g3"
         + "71g455g12h1g5g5g3k4g252g38g88g1g2g1h5g76i2h35h3h21i55g2g65-10g44"
         + "g4g54g63g4g52g2h6g1h1m2-10g4j41l1h6h3j714h-10g2g56i463i2k4h5h4h1i";
 
-    @Test
+    // @Test
     public void testDecode() {
-        int[][] matrix = decode(url);
+        int[][] matrix = matrixUrlDecode(URL_22x17);
         for (int[] row : matrix)
             System.out.println(Arrays.toString(row));
     }
@@ -105,7 +104,7 @@ public class TestFilominoDecoder {
             iw.graphics().setColor(Color.BLACK);
             iw.graphics().setStroke(new BasicStroke(3));
             iw.graphics().drawRect(margin, margin, cols * cellSize, rows * cellSize);
-            iw.graphics().setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1, new float[]{2}, 0));
+            iw.graphics().setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1, new float[]{2, 6}, 0));
             for (int x = 0; x < cols; ++x) {
                 int x0 = x * cellSize + margin;
                 iw.graphics().drawLine(x0, margin, x0, rows * cellSize + margin);
@@ -127,7 +126,7 @@ public class TestFilominoDecoder {
                     String numberStr = Integer.toString(number);
                     Rectangle2D rect = fm.getStringBounds(numberStr, iw.graphics());
                     int x = c * cellSize + margin + (cellSize - (int)rect.getWidth()) / 2;
-                    System.out.println(numberStr + " : " + rect);
+                    // System.out.println(numberStr + " : " + rect);
                     iw.graphics().drawString(numberStr, x, y);
                 }
             }
@@ -142,7 +141,7 @@ public class TestFilominoDecoder {
 
     @Test
     public void testDecodeMatrixWriter() throws IOException {
-        int[][] matrix = decode(url);
+        int[][] matrix = matrixUrlDecode(URL_22x17);
         matrixWriter(matrix, Paths.get("22x17.png"));
     }
 

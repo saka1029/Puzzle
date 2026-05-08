@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
+import org.w3c.dom.css.Rect;
 
 import puzzle.graphics.ImageWriter;
 
@@ -115,15 +116,17 @@ public class TestFilominoDecoder {
             }
             iw.graphics().setFont(new Font("Helvetica", Font.PLAIN, 25));
             FontMetrics fm = iw.graphics().getFontMetrics();
+            Rectangle2D rect0 = fm.getStringBounds("0", iw.graphics());
+            int fontHeight = (int)rect0.getHeight();
             for (int r = 0; r < rows; ++r) {
-                int y = r * cellSize + margin + cellSize - 2;
+                int y = r * cellSize + margin + fontHeight + (cellSize - fontHeight) / 2;
                 for (int c = 0; c < cols; ++c) {
                     int number = matrix[r][c];
                     if (number == 0)
                         continue;
-                    int x = c * cellSize + margin;
                     String numberStr = Integer.toString(number);
                     Rectangle2D rect = fm.getStringBounds(numberStr, iw.graphics());
+                    int x = c * cellSize + margin + (cellSize - (int)rect.getWidth()) / 2;
                     System.out.println(numberStr + " : " + rect);
                     iw.graphics().drawString(numberStr, x, y);
                 }

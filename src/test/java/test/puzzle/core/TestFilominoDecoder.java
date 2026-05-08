@@ -18,7 +18,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.junit.Test;
 
 import puzzle.graphics.ImageWriter;
 
@@ -152,34 +151,27 @@ public class TestFilominoDecoder {
     }
 
     static final String INDEX_URL = "https://puzzle-laboratory.hatenadiary.jp/entry/2021/11/30/011446";
-
-    @Test
-    public void testMatrixDecodeAll() throws IOException {
-        Path dir = Paths.get("fillomino");
-        Files.createDirectories(dir);
-        Document doc = Jsoup.connect(INDEX_URL).get();
-        Elements links = doc.select("#MyTable a");
-        for (Element e : links) {
-            System.out.println(e.text() + " " + e.attr("href"));
-            matrixWriter(matrixUrlDecode(e.attr("href")), dir.resolve(e.text() + ".png"));
-        }
-    }
-
     static final String INDEX_URL2 = "https://puzzle-laboratory.hatenadiary.jp/entry/2022/08/05/161101";
 
-    @Test
-    public void testMatrixDecodeAll2() throws IOException {
-        Path dir = Paths.get("fillomino2");
-        Files.createDirectories(dir);
-        Document doc = Jsoup.connect(INDEX_URL2).get();
+    static void matrixDecodePage(String url, String dir) throws IOException {
+        Path path = Paths.get(dir);
+        Files.createDirectories(path);
+        Document doc = Jsoup.connect(INDEX_URL).get();
         Elements links = doc.select("a");
         for (Element e : links) {
-            String url = e.attr("href");
-            if (url.contains("fillomino")) {
-                System.out.println(e.text() + " " + url);
-                matrixWriter(matrixUrlDecode(url), dir.resolve(e.text() + ".png"));
+            String href = e.attr("href");
+            if (href.contains("fillomino")) {
+                System.out.println(e.text() + " " + href);
+                matrixWriter(matrixUrlDecode(href), path.resolve(e.text() + ".png"));
             }
         }
+        
+    }
+
+    // @Test
+    public void testMatrixDecodePage() throws IOException {
+        matrixDecodePage(INDEX_URL, "fillomino");
+        matrixDecodePage(INDEX_URL2, "fillomino2");
     }
 
 }

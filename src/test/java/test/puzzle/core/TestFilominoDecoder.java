@@ -80,14 +80,14 @@ public class TestFilominoDecoder {
         else
             throw new RuntimeException("Illgal format '%s'".formatted(url));
     }
-
-    @Test
-    public void testDecode() {
-        String url = "http://pzv.jp/p.html?fillomino/22/17/i5h5h6h6k5i123i66g6g4h665i4"
+    static String url = "http://pzv.jp/p.html?fillomino/22/17/i5h5h6h6k5i123i66g6g4h665i4"
         + "5h4h2l55j-11g-113k6g2h1g1h4g14g-11g33g22g1g31g455g4g55i14h1h42h-"
         + "11i55g1h-11g4g5g32g43g442g3k1g4g1g1h33g4421812g1g32i55p82i51g3g3"
         + "71g455g12h1g5g5g3k4g252g38g88g1g2g1h5g76i2h35h3h21i55g2g65-10g44"
         + "g4g54g63g4g52g2h6g1h1m2-10g4j41l1h6h3j714h-10g2g56i463i2k4h5h4h1i";
+
+    @Test
+    public void testDecode() {
         int[][] matrix = decode(url);
         for (int[] row : matrix)
             System.out.println(Arrays.toString(row));
@@ -138,6 +138,12 @@ public class TestFilominoDecoder {
     public void testMatrixWriter() throws IOException {
         int[][] matrix = {{0, 1, 22}, {3, 4, 5}};
         matrixWriter(matrix, Paths.get("testMatrixWriter.png"));
+    }
+
+    @Test
+    public void testDecodeMatrixWriter() throws IOException {
+        int[][] matrix = decode(url);
+        matrixWriter(matrix, Paths.get("22x17.png"));
     }
 
 }

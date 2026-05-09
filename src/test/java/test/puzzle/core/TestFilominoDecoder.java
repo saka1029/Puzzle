@@ -1,5 +1,9 @@
 package test.puzzle.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -7,17 +11,24 @@ import java.awt.FontMetrics;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.junit.Test;
 
 import puzzle.graphics.ImageWriter;
 
@@ -172,6 +183,54 @@ public class TestFilominoDecoder {
     public void testMatrixDecodePage() throws IOException {
         matrixDecodePage(INDEX_URL, "fillomino");
         matrixDecodePage(INDEX_URL2, "fillomino2");
+    }
+
+    static int[] baseChanger(int[] in, int inBase, int outBase) {
+        BigInteger bigInBase = BigInteger.valueOf(inBase);
+        BigInteger bigOutBase = BigInteger.valueOf(outBase);
+        BigInteger number = IntStream.of(in)
+            .mapToObj(i -> BigInteger.valueOf(i))
+            .reduce(BigInteger.ZERO, (n, d) -> n.multiply(bigInBase).add(d));
+        List<Integer> out = new LinkedList<>();
+        while (number.compareTo(BigInteger.ZERO) > 0) {
+            BigInteger[] d = number.divideAndRemainder(bigOutBase);
+            number = d[0];
+            out.addFirst(d[1].intValue());
+        }
+        return out.stream().mapToInt(i -> i).toArray();
+    }
+
+    @Test
+    public void testBaseChanger() {
+        // (12345)10 = (3039)16
+        int[] in = {1, 2, 3, 4, 5};
+        assertArrayEquals(new int[] {1, 2, 3, 4, 5}, baseChanger(in, 10, 10));
+        assertArrayEquals(new int[] {3, 0, 3, 9}, baseChanger(in, 10, 16));
+    }
+
+    static Map<Character, Integer> unmap(String map) {
+        return IntStream.range(0, map.length())
+            .mapToObj(i -> i)
+            .collect(Collectors.toMap(i -> map.charAt(i), i -> i));
+    }
+
+    static int[] encode(String s, Map<Character, Integer> map) {
+        return s.chars().map(i -> map.get((char)i)).toArray();
+    }
+
+    static String decode(int[] s, String map) {
+        StringBuilder sb = new StringBuilder();
+        IntStream.of(s).map(i -> map.charAt(i)).forEach(i -> sb.appendCodePoint(i));
+        return sb.toString();
+    }
+
+    @Test
+    public void testMapEncode() {
+        String map = "abc";
+        var unmap = unmap(map);
+        assertEquals(Map.of('a', 0, 'b', 1, 'c', 2), unmap);
+        assertArrayEquals(new int[] {2, 1, 0}, encode("cba", unmap));
+        assertEquals("cba", decode(encode("cba", unmap), "abc"));
     }
 
 }

@@ -2,7 +2,6 @@ package test.puzzle.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -50,30 +49,56 @@ public class TestFilominoDecoder {
     static int[][] matrixDecode(int rows, int cols, String data) {
         int[] array = new int[rows * cols];
         int j = 0;
-        for (int i = 0, length = data.length(); i < length;  ++i) {
+        for (int i = 0, length = data.length(); i < length; ++i) {
             char c = data.charAt(i);
             switch (c) {
-                case '1': case '2': case '3': case '4':
-                case '5': case '6': case '7': case '8':
-                case '9': case 'a': case 'b': case 'c':
-                case 'd': case 'e': case 'f':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                case 'a':
+                case 'b':
+                case 'c':
+                case 'd':
+                case 'e':
+                case 'f':
                     array[j++] = Character.digit(c, 16);
                     break;
-                case 'g': case 'h': case 'i': case 'j':
-                case 'k': case 'l': case 'm': case 'n':
-                case 'o': case 'p': case 'q': case 'r':
-                case 's': case 't': case 'u': case 'v':
-                case 'w': case 'x': case 'y': case 'z':
+                case 'g':
+                case 'h':
+                case 'i':
+                case 'j':
+                case 'k':
+                case 'l':
+                case 'm':
+                case 'n':
+                case 'o':
+                case 'p':
+                case 'q':
+                case 'r':
+                case 's':
+                case 't':
+                case 'u':
+                case 'v':
+                case 'w':
+                case 'x':
+                case 'y':
+                case 'z':
                     for (int r = c - 'f'; r > 0; --r)
                         array[j++] = 0;
                     break;
                 case '-':
                     array[j++] = Character.digit(data.charAt(++i), 16) * 16
-                        + Character.digit(data.charAt(++i), 16);
+                            + Character.digit(data.charAt(++i), 16);
                     break;
                 default:
                     throw new RuntimeException(
-                        "Unknown char '%c' at %d".formatted(c, i));
+                            "Unknown char '%c' at %d".formatted(c, i));
             }
 
         }
@@ -89,17 +114,18 @@ public class TestFilominoDecoder {
         Matcher m = FILOMINO_URL.matcher(url);
         if (m.find())
             return matrixDecode(
-                Integer.parseInt(m.group(2)),
-                Integer.parseInt(m.group(1)),
-                m.group(3));
+                    Integer.parseInt(m.group(2)),
+                    Integer.parseInt(m.group(1)),
+                    m.group(3));
         else
             throw new RuntimeException("Illgal format '%s'".formatted(url));
     }
+
     static String URL_22x17 = "http://pzv.jp/p.html?fillomino/22/17/i5h5h6h6k5i123i66g6g4h665i4"
-        + "5h4h2l55j-11g-113k6g2h1g1h4g14g-11g33g22g1g31g455g4g55i14h1h42h-"
-        + "11i55g1h-11g4g5g32g43g442g3k1g4g1g1h33g4421812g1g32i55p82i51g3g3"
-        + "71g455g12h1g5g5g3k4g252g38g88g1g2g1h5g76i2h35h3h21i55g2g65-10g44"
-        + "g4g54g63g4g52g2h6g1h1m2-10g4j41l1h6h3j714h-10g2g56i463i2k4h5h4h1i";
+            + "5h4h2l55j-11g-113k6g2h1g1h4g14g-11g33g22g1g31g455g4g55i14h1h42h-"
+            + "11i55g1h-11g4g5g32g43g442g3k1g4g1g1h33g4421812g1g32i55p82i51g3g3"
+            + "71g455g12h1g5g5g3k4g252g38g88g1g2g1h5g76i2h35h3h21i55g2g65-10g44"
+            + "g4g54g63g4g52g2h6g1h1m2-10g4j41l1h6h3j714h-10g2g56i463i2k4h5h4h1i";
 
     // @Test
     public void testDecode() {
@@ -114,13 +140,14 @@ public class TestFilominoDecoder {
         int rows = matrix.length, cols = matrix[0].length;
         int height = rows * cellSize + 2 * margin, width = cols * cellSize + 2 * margin;
         try (OutputStream os = Files.newOutputStream(file);
-            ImageWriter iw = new ImageWriter(os, width, height);) {
+                ImageWriter iw = new ImageWriter(os, width, height);) {
             iw.graphics().setColor(Color.WHITE);
             iw.graphics().fillRect(0, 0, width, height);
             iw.graphics().setColor(Color.BLACK);
             iw.graphics().setStroke(new BasicStroke(3));
             iw.graphics().drawRect(margin, margin, cols * cellSize, rows * cellSize);
-            iw.graphics().setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1, new float[]{2, 6}, 0));
+            iw.graphics().setStroke(
+                    new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1, new float[] { 2, 6 }, 0));
             for (int x = 0; x < cols; ++x) {
                 int x0 = x * cellSize + margin;
                 iw.graphics().drawLine(x0, margin, x0, rows * cellSize + margin);
@@ -132,7 +159,7 @@ public class TestFilominoDecoder {
             iw.graphics().setFont(new Font("Helvetica", Font.PLAIN, 25));
             FontMetrics fm = iw.graphics().getFontMetrics();
             Rectangle2D rect0 = fm.getStringBounds("0", iw.graphics());
-            int fontHeight = (int)rect0.getHeight();
+            int fontHeight = (int) rect0.getHeight();
             for (int r = 0; r < rows; ++r) {
                 int y = r * cellSize + margin + fontHeight + (cellSize - fontHeight) / 2;
                 for (int c = 0; c < cols; ++c) {
@@ -141,7 +168,7 @@ public class TestFilominoDecoder {
                         continue;
                     String numberStr = Integer.toString(number);
                     Rectangle2D rect = fm.getStringBounds(numberStr, iw.graphics());
-                    int x = c * cellSize + margin + (cellSize - (int)rect.getWidth()) / 2;
+                    int x = c * cellSize + margin + (cellSize - (int) rect.getWidth()) / 2;
                     // System.out.println(numberStr + " : " + rect);
                     iw.graphics().drawString(numberStr, x, y);
                 }
@@ -151,7 +178,7 @@ public class TestFilominoDecoder {
 
     // @Test
     public void testMatrixWriter() throws IOException {
-        int[][] matrix = {{0, 1, 22}, {3, 4, 5}};
+        int[][] matrix = { { 0, 1, 22 }, { 3, 4, 5 } };
         matrixWriter(matrix, Paths.get("testMatrixWriter.png"));
     }
 
@@ -176,7 +203,7 @@ public class TestFilominoDecoder {
                 matrixWriter(matrixUrlDecode(href), path.resolve(e.text() + ".png"));
             }
         }
-        
+
     }
 
     // @Test
@@ -185,12 +212,12 @@ public class TestFilominoDecoder {
         matrixDecodePage(INDEX_URL2, "fillomino2");
     }
 
-    static int[] baseChanger(int[] in, int inBase, int outBase) {
+    static int[] changeBase(int[] in, int inBase, int outBase) {
         BigInteger bigInBase = BigInteger.valueOf(inBase);
         BigInteger bigOutBase = BigInteger.valueOf(outBase);
         BigInteger number = IntStream.of(in)
-            .mapToObj(i -> BigInteger.valueOf(i))
-            .reduce(BigInteger.ZERO, (n, d) -> n.multiply(bigInBase).add(d));
+                .mapToObj(i -> BigInteger.valueOf(i))
+                .reduce(BigInteger.ZERO, (n, d) -> n.multiply(bigInBase).add(d));
         List<Integer> out = new LinkedList<>();
         while (number.compareTo(BigInteger.ZERO) > 0) {
             BigInteger[] d = number.divideAndRemainder(bigOutBase);
@@ -201,21 +228,21 @@ public class TestFilominoDecoder {
     }
 
     @Test
-    public void testBaseChanger() {
+    public void testChangeBase() {
         // (12345)10 = (3039)16
-        int[] in = {1, 2, 3, 4, 5};
-        assertArrayEquals(new int[] {1, 2, 3, 4, 5}, baseChanger(in, 10, 10));
-        assertArrayEquals(new int[] {3, 0, 3, 9}, baseChanger(in, 10, 16));
+        int[] in = { 1, 2, 3, 4, 5 };
+        assertArrayEquals(new int[] { 1, 2, 3, 4, 5 }, changeBase(in, 10, 10));
+        assertArrayEquals(new int[] { 3, 0, 3, 9 }, changeBase(in, 10, 16));
     }
 
     static Map<Character, Integer> unmap(String map) {
         return IntStream.range(0, map.length())
-            .mapToObj(i -> i)
-            .collect(Collectors.toMap(i -> map.charAt(i), i -> i));
+                .mapToObj(i -> i)
+                .collect(Collectors.toMap(i -> map.charAt(i), i -> i));
     }
 
     static int[] encode(String s, Map<Character, Integer> map) {
-        return s.chars().map(i -> map.get((char)i)).toArray();
+        return s.chars().map(i -> map.get((char) i)).toArray();
     }
 
     static String decode(int[] s, String map) {
@@ -229,8 +256,57 @@ public class TestFilominoDecoder {
         String map = "abc";
         var unmap = unmap(map);
         assertEquals(Map.of('a', 0, 'b', 1, 'c', 2), unmap);
-        assertArrayEquals(new int[] {2, 1, 0}, encode("cba", unmap));
+        assertArrayEquals(new int[] { 2, 1, 0 }, encode("cba", unmap));
         assertEquals("cba", decode(encode("cba", unmap), "abc"));
     }
 
+    static int[][] NIKOLI = {
+        { 0, 2, 0, 4, 0, 2, 0 },
+        { 1, 0, 2, 0, 6, 0, 6 },
+        { 3, 0, 0, 3, 0, 0, 3 },
+        { 0, 0, 0, 5, 0, 0, 0 },
+        { 3, 0, 0, 2, 0, 0, 3 },
+        { 3, 0, 2, 0, 4, 0, 2 },
+        { 0, 3, 0, 3, 0, 1, 0 },
+    };
+
+    static String fillominoString(int[][] matrix) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(matrix.length).append(",").append(matrix[0].length);
+        for (int[] row : matrix)
+            for (int cell : row)
+                sb.append(",").append(cell == 0 ? "" : ("" + cell));
+        return sb.toString();
+    }
+
+    @Test
+    public void testFillominoString() {
+        assertEquals(
+            "7,7,,2,,4,,2,,1,,2,,6,,6,3,,,3,,,3,,,,5,,,,3,,,2,,,3,3,,2,,4,,2,,3,,3,,1,",
+            fillominoString(NIKOLI));
+    }
+
+    static final String IN_MAP = "0123456789,";
+    static final Map<Character, Integer> IN_UNMAP = unmap(IN_MAP);
+    static final String OUT_MAP = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-";
+    static final Map<Character, Integer> OUT_UNMAP = unmap(OUT_MAP);
+
+    @Test
+    public void testFillominoStringEncode() {
+        assertEquals(11, IN_MAP.length());
+        assertEquals(64, OUT_MAP.length());
+        String string = fillominoString(NIKOLI);
+        System.out.println(string);
+        assertEquals("7,7,,2,,4,,2,,1,,2,,6,,6,3,,,3,,,3,,,,5,,,,3,,,2,,,3,3,,2,,4,,2,,3,,3,,1,", string);
+        int[] ints = encode(string, IN_UNMAP);
+        int[] baseChange = changeBase(ints, IN_MAP.length(), OUT_MAP.length());
+        String encode = decode(baseChange, OUT_MAP);
+        System.out.println(encode);
+        int[] encodeInts = encode(encode, OUT_UNMAP);
+        int[] encodeBaseChange = changeBase(encodeInts, OUT_MAP.length(), IN_MAP.length());
+        String encodeEncode = decode(encodeBaseChange, IN_MAP);
+        assertArrayEquals(baseChange, encodeInts);
+        assertArrayEquals(ints, encodeBaseChange);
+        assertEquals(string, encodeEncode);
+    }
 }

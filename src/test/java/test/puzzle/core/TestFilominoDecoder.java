@@ -311,6 +311,11 @@ public class TestFilominoDecoder {
     @Test
     public void testFillominoEncode() {
         assertEquals("7a7b2b4b2b1b2b6b6a3c3c3d5d3c2c3a3b2b4b2b3b3b1", fillominoEncode(NIKOLI));
+        int[][] m = {
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0,0,0,0,0,2},
+        };
+        assertEquals("2a14a1za2", fillominoEncode(m));
     }
 
     static final Pattern FILLOMINO_DECODE_PATTERN = Pattern.compile("[a-z]");
@@ -333,6 +338,11 @@ public class TestFilominoDecoder {
     @Test
     public void testFillominoDecode() {
         assertArrayEquals(NIKOLI, fillominoDecode("7a7b2b4b2b1b2b6b6a3c3c3d5d3c2c3a3b2b4b2b3b3b1"));
+        int[][] m = {
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0,0,0,0,0,2},
+        };
+        assertArrayEquals(m, fillominoDecode("2a14a1za2"));
     }
 
     static final String IN_MAP = "0123456789,";

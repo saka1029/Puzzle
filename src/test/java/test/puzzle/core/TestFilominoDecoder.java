@@ -286,6 +286,28 @@ public class TestFilominoDecoder {
             fillominoString(NIKOLI));
     }
 
+    static String fillominoShortString(int[][] matrix) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(matrix.length).append("a").append(matrix[0].length);
+        int commas = 0;
+        for (int[] row : matrix)
+            for (int cell : row)
+                if (cell == 0)
+                    ++commas;
+                else {
+                    sb.append((char)('a' + commas)).append(cell);
+                    commas = 0;
+                }
+        return sb.toString();
+    }
+
+    @Test
+    public void testFillominoShortString() {
+        assertEquals(
+            "7a7b2b4b2b1b2b6b6a3c3c3d5d3c2c3a3b2b4b2b3b3b1",
+            fillominoShortString(NIKOLI));
+    }
+
     static final String IN_MAP = "0123456789,";
     static final Map<Character, Integer> IN_UNMAP = unmap(IN_MAP);
     static final String OUT_MAP = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-";

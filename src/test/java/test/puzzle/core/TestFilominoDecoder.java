@@ -295,16 +295,16 @@ public class TestFilominoDecoder {
     static String fillominoEncode(int[][] matrix) {
         StringBuilder sb = new StringBuilder();
         sb.append(matrix.length).append("a").append(matrix[0].length);
-        int commas = 0;
+        int zeros = 0;
         for (int[] row : matrix)
             for (int cell : row)
                 if (cell == 0)
-                    ++commas;
+                    ++zeros;
                 else {
-                    sb.append(fillominoEncodeBlanks(commas + 1)).append(cell);
-                    commas = 0;
+                    sb.append(fillominoEncodeBlanks(zeros + 1)).append(cell);
+                    zeros = 0;
                 }
-        sb.append(fillominoEncodeBlanks(commas));
+        sb.append(fillominoEncodeBlanks(zeros));
         return sb.toString();
     }
 

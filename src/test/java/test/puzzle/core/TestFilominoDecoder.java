@@ -22,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -286,26 +287,52 @@ public class TestFilominoDecoder {
             fillominoString(NIKOLI));
     }
 
-    static String fillominoShortString(int[][] matrix) {
+    static String fillominoBlanks(int n) {
+        return "z".repeat(n / 26) + (char)('a' + n % 26 - 1);
+    }
+
+    static String fillominoEncode(int[][] matrix) {
         StringBuilder sb = new StringBuilder();
         sb.append(matrix.length).append("a").append(matrix[0].length);
-        int commas = 0;
+        int commas = 1;
         for (int[] row : matrix)
             for (int cell : row)
                 if (cell == 0)
                     ++commas;
                 else {
-                    sb.append((char)('a' + commas)).append(cell);
-                    commas = 0;
+                    String spaces = "z".repeat(commas / 26)
+                        + (char)('a' + commas % 26 - 1);
+                    sb.append(spaces).append(cell);
+                    commas = 1;
                 }
         return sb.toString();
     }
 
     @Test
-    public void testFillominoShortString() {
-        assertEquals(
-            "7a7b2b4b2b1b2b6b6a3c3c3d5d3c2c3a3b2b4b2b3b3b1",
-            fillominoShortString(NIKOLI));
+    public void testFillominoEncode() {
+        assertEquals("7a7b2b4b2b1b2b6b6a3c3c3d5d3c2c3a3b2b4b2b3b3b1", fillominoEncode(NIKOLI));
+    }
+
+    static final Pattern FILLOMINO_DECODE_PATTERN = Pattern.compile("[a-z]");
+
+    static int[][] fillominoDecode(String s) {
+        String csv = FILLOMINO_DECODE_PATTERN.matcher(s).replaceAll(
+            m -> ",".repeat(m.group().charAt(0) - 'a' + 1));
+        int[] numbers = Stream.of(csv.split(","))
+            .mapToInt(x -> x.isEmpty() ? 0 : Integer.parseInt(x))
+            .toArray();
+        int len = numbers.length;
+        int rows = numbers[0], cols = numbers[1];
+        int[][] matrix = new int[rows][cols];
+        for (int i = 2, r = 0; r < rows; ++r)
+            for (int c = 0; i < len && c < cols; ++c, ++i)
+                matrix[r][c] = numbers[i];
+        return matrix;
+    }
+
+    @Test
+    public void testFillominoDecode() {
+        assertArrayEquals(NIKOLI, fillominoDecode("7a7b2b4b2b1b2b6b6a3c3c3d5d3c2c3a3b2b4b2b3b3b1"));
     }
 
     static final String IN_MAP = "0123456789,";

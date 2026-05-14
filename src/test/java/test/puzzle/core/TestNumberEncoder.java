@@ -3,6 +3,7 @@ package test.puzzle.core;
 import static org.junit.Assert.assertEquals;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import org.junit.Test;
 
@@ -32,4 +33,10 @@ public class TestNumberEncoder {
         assertEquals(csv, b11.encode(b64.decode(enc)));
     }
 
+    @Test
+    public void testZeroWidthSplit() {
+        String s = "123AB(45)C6";
+        String[] splitted = s.split("(?<=\\(\\d+\\)|[A-Z]+)");
+        System.out.println(Arrays.toString(splitted));
+    }
 }

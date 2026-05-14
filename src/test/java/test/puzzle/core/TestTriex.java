@@ -45,7 +45,7 @@ public class TestTriex {
         System.out.println(t);
     }
     
-    @Test
+    // @Test
     public void testEmoji() throws IOException, URISyntaxException {
         URL url = new URI("https://ja.wikipedia.org/wiki/Unicode%E3%81%AEEmoji%E3%81%AE%E4%B8%80%E8%A6%A7").toURL();
         Document doc = Jsoup.parse(url, 5000);

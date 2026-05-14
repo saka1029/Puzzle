@@ -9,32 +9,32 @@ import java.util.stream.IntStream;
 
 public class NumberEncoder {
 
-    public final String dec;
-    public final int[] decode;
+    public final String enc;
+    public final int[] encode;
     public final BigInteger base;
-    public final Map<Integer, Integer> encode;
+    public final Map<Integer, Integer> decode;
 
-    NumberEncoder(String decode) {
-        this.dec = decode;
-        this.decode = decode.codePoints().toArray();
-        this.base = BigInteger.valueOf(this.decode.length);
-        this.encode = IntStream.range(0, this.decode.length)
+    NumberEncoder(String encode) {
+        this.enc = encode;
+        this.encode = encode.codePoints().toArray();
+        this.base = BigInteger.valueOf(this.encode.length);
+        this.decode = IntStream.range(0, this.encode.length)
             .mapToObj(i -> i)
-            .collect(Collectors.toMap(i -> this.decode[i], i -> i));
+            .collect(Collectors.toMap(i -> this.encode[i], i -> i));
     }
 
-    public static NumberEncoder of(String decode) {
-        return new NumberEncoder(decode);
+    public static NumberEncoder of(String encode) {
+        return new NumberEncoder(encode);
     }
 
-    public BigInteger encode(String s) {
+    public BigInteger decode(String s) {
         return s.codePoints()
-            .map(encode::get)
+            .map(decode::get)
             .mapToObj(BigInteger::valueOf)
             .reduce(BigInteger.ZERO, (a, b) -> a.multiply(base).add(b));
     }
 
-    public String decode(BigInteger n) {
+    public String encode(BigInteger n) {
         List<Integer> list = new LinkedList<>();
         while (n.compareTo(BigInteger.ZERO) > 0) {
             BigInteger[] d = n.divideAndRemainder(base);
@@ -43,13 +43,13 @@ public class NumberEncoder {
         }
         StringBuilder result = new StringBuilder();
         for (int i : list)
-            result.appendCodePoint(decode[i]);
+            result.appendCodePoint(encode[i]);
         return result.toString();
     }
 
     @Override
     public String toString() {
-        return "NumberEncoder(base=%d,decode=%s)".formatted(base, dec);
+        return "NumberEncoder(base=%d,encode=%s)".formatted(base, enc);
     }
 
 }

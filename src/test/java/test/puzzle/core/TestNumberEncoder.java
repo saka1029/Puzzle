@@ -22,6 +22,7 @@ public class TestNumberEncoder {
     public void testBase64() {
         NumberEncoder b64 = NumberEncoder.of(
             "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-");
+        assertEquals(64, b64.base.intValue());
         assertEquals("19Bwbi", b64.decode(BigInteger.valueOf(1234567890)));
         assertEquals(BigInteger.valueOf(1234567890), b64.encode("19Bwbi"));
         NumberEncoder b11 = NumberEncoder.of("0123456789,");

@@ -34,19 +34,18 @@ public class TestMatrix {
         }
 
         int index(int... index) {
-            return IntStream.range(0, dimensions.length)
-                .map(i -> index[i] * encode[i])
-                .sum();
-        }
-
-        void checkIndex(int... index) {
             if (index.length != dimensions.length)
                 throw new IndexOutOfBoundsException(
                     "'index' length must be %d but %d".formatted(dimensions.length, index.length));
-            for (int i = 0, len = dimensions.length; i < len; ++i)
+            int result = 0;
+            for (int i = 0, len = dimensions.length; i < len; ++i) {
                 if (index[i] < 0 || index[i] > dimensions[i])
                     throw new IndexOutOfBoundsException(
                         "index must be in range 0..<%d but %d".formatted(dimensions[i], index[i]));
+                result += index[i] * encode[i];
+            }
+
+            return result;
         }
 
         public T get(int... index) {
@@ -54,7 +53,6 @@ public class TestMatrix {
         }
 
         public void set(T value, int... index) {
-            checkIndex(index);
             array[index(index)] = value;
         }
     }

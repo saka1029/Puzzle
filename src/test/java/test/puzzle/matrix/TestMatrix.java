@@ -33,6 +33,10 @@ public class TestMatrix {
             }
         }
 
+        public int size() {
+            return array.length;
+        }
+
         int index(int... index) {
             if (index.length != dimensions.length)
                 throw new IndexOutOfBoundsException(
@@ -55,6 +59,14 @@ public class TestMatrix {
         public void set(T value, int... index) {
             array[index(index)] = value;
         }
+
+        public int[] decodeIndex(int i) {
+            int len = dimensions.length;
+            int[] result = new int[len];
+            for (int j = 0; j < len; ++j)
+                result[j] = i / encode[j] % dimensions[j];
+            return result;
+        }
     }
 
     @Test
@@ -72,5 +84,8 @@ public class TestMatrix {
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 4; ++k)
                     System.out.printf(" %s", m.get(i, j, k));
+        System.out.printf("%n");
+        for (int i = 0, size = m.size(); i < size; ++i)
+            System.out.printf("%d : %s%n", i, Arrays.toString(m.decodeIndex(i)));
     }
 }

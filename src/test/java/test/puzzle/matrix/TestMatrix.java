@@ -10,7 +10,6 @@ public class TestMatrix {
 
     public static class Matrix<T> {
         public final int[] dimensions;
-        public final int size;
         public final T[] array;
 
         @SuppressWarnings("unchecked")
@@ -21,8 +20,8 @@ public class TestMatrix {
                 throw new RuntimeException("T is Object class");
             System.out.println(componentType);
             this.dimensions = dimensions;
-            this.size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
-            this.array = (T[])Array.newInstance(componentType, this.size);
+            int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
+            this.array = (T[])Array.newInstance(componentType, size);
         }
     }
 

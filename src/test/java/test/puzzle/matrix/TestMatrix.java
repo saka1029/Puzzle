@@ -27,11 +27,9 @@ public class TestMatrix {
             this.dimensions = dimensions;
             int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
             this.array = (T[])Array.newInstance(componentType, size);
-            int i = dimensions.length;
-            this.weight = new int[i];
-            weight[--i] = 1;
-            int prev = weight[i];
-            for ( ; i >= 0; --i) {
+            int len = dimensions.length;
+            this.weight = new int[len];
+            for (int i = len - 1, prev = 1; i >= 0; --i) {
                 weight[i] = prev;
                 prev *= dimensions[i];
             }

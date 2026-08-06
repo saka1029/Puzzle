@@ -67,6 +67,9 @@ public class TestMatrix {
         }
 
         public int[] decodeIndex(int i) {
+            if (i < 0 || i >= array.length)
+                throw new IndexOutOfBoundsException(
+                    "'index' must be in range 0..<%d".formatted(array.length));
             int len = dimensions.length;
             int[] result = new int[len];
             for (int j = 0; j < len; ++j)

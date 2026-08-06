@@ -35,6 +35,10 @@ public class TestMatrix {
             }
         }
 
+        // public static <T> Matrix<T> of(int... index) {
+        //     return new Matrix<T>(index);
+        // }
+
         public int size() {
             return array.length;
         }
@@ -73,7 +77,8 @@ public class TestMatrix {
 
     @Test
     public void testMatrix() {
-        Matrix<Double> m = new Matrix<>(new int[]{2, 3, 4});
+        // var m = Matrix.<Double>of(2, 3, 4);
+        var m = new Matrix<Double>(new int[]{2, 3, 4});
         double v = 0;
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)

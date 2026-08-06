@@ -8,6 +8,10 @@ import org.junit.Test;
 
 public class TestMatrix {
 
+    /**
+     * 型Tの多次元配列
+     * @param <T> 要素の型
+     */
     public static class Matrix<T> {
         public final int[] dimensions;
         public final int[] encode;

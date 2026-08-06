@@ -22,7 +22,7 @@ public class TestMatrix {
             System.out.println(values.getClass());
             Class<T> componentType = (Class<T>)values.getClass().componentType();
             if (componentType == Object.class)
-                throw new RuntimeException("T is Object class");
+                throw new RuntimeException("Specify the element type");
             System.out.println(componentType);
             this.dimensions = dimensions;
             int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);

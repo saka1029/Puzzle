@@ -14,7 +14,7 @@ public class TestMatrix {
      */
     public static class Matrix<T> {
         public final int[] dimensions;
-        public final int[] encode;
+        public final int[] weight;
         public final T[] array;
 
         @SuppressWarnings("unchecked")
@@ -28,11 +28,11 @@ public class TestMatrix {
             int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
             this.array = (T[])Array.newInstance(componentType, size);
             int i = dimensions.length;
-            this.encode = new int[i];
-            encode[--i] = 1;
-            int prev = encode[i];
+            this.weight = new int[i];
+            weight[--i] = 1;
+            int prev = weight[i];
             for ( ; i >= 0; --i) {
-                encode[i] = prev;
+                weight[i] = prev;
                 prev *= dimensions[i];
             }
         }
@@ -50,7 +50,7 @@ public class TestMatrix {
                 if (index[i] < 0 || index[i] > dimensions[i])
                     throw new IndexOutOfBoundsException(
                         "index must be in range 0..<%d but %d".formatted(dimensions[i], index[i]));
-                result += index[i] * encode[i];
+                result += index[i] * weight[i];
             }
 
             return result;
@@ -68,7 +68,7 @@ public class TestMatrix {
             int len = dimensions.length;
             int[] result = new int[len];
             for (int j = 0; j < len; ++j)
-                result[j] = i / encode[j] % dimensions[j];
+                result[j] = i / weight[j] % dimensions[j];
             return result;
         }
     }
@@ -83,7 +83,7 @@ public class TestMatrix {
                     m.set(v++, i, j, k);
         System.out.println("dimensions=" + Arrays.toString(m.dimensions));
         System.out.println("array=" + Arrays.toString(m.array));
-        System.out.println("encode=" + Arrays.toString(m.encode));
+        System.out.println("encode=" + Arrays.toString(m.weight));
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 4; ++k)

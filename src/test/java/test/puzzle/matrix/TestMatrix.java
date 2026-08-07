@@ -37,6 +37,17 @@ public class TestMatrix {
             }
             return result;
         }
+
+        public static int[] decodeIndex(int size, int[] dimensions, int[] weight, int index) {
+            if (index < 0 || index >= size)
+                throw new IndexOutOfBoundsException(
+                    "'index' must be in range 0..<%d".formatted(size));
+            int len = dimensions.length;
+            int[] result = new int[len];
+            for (int i = 0; i < len; ++i)
+                result[i] = index / weight[i] % dimensions[i];
+            return result;
+        }
     }
 
     /**
@@ -49,11 +60,7 @@ public class TestMatrix {
         public final T[] array;
 
         @SuppressWarnings("unchecked")
-        MatrixArray(int[] dimensions, T... values) {
-            System.out.println(values.getClass());
-            Class<T> componentType = (Class<T>)values.getClass().componentType();
-            if (componentType == Object.class)
-                throw new RuntimeException("Specify the element type");
+        MatrixArray(Class<T> componentType, int... dimensions) {
             System.out.println(componentType);
             this.dimensions = dimensions;
             int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
@@ -61,9 +68,9 @@ public class TestMatrix {
             this.weight = Matrix.weight(dimensions);
         }
 
-        // public static <T> Matrix<T> of(int... index) {
-        //     return new Matrix<T>(index);
-        // }
+        public static <T> MatrixArray<T> of(Class<T> componentType, int... index) {
+            return new MatrixArray<>(componentType, index);
+        }
 
         @Override
         public int size() {
@@ -83,36 +90,28 @@ public class TestMatrix {
             array[Matrix.index(dimensions, weight, index)] = value;
         }
 
-        public int[] decodeIndex(int i) {
-            if (i < 0 || i >= array.length)
-                throw new IndexOutOfBoundsException(
-                    "'index' must be in range 0..<%d".formatted(array.length));
-            int len = dimensions.length;
-            int[] result = new int[len];
-            for (int j = 0; j < len; ++j)
-                result[j] = i / weight[j] % dimensions[j];
-            return result;
-        }
     }
 
     @Test
     public void testMatrix() {
-        // var m = Matrix.<Double>of(2, 3, 4);
-        var m = new MatrixArray<Double>(new int[]{2, 3, 4});
+        Matrix<Double> m = MatrixArray.of(Double.class, 2, 3, 4);
+        int size = m.size();
+        int[] dimensions = m.dimensions();
+        int[] weight = Matrix.weight(dimensions);
         double v = 0;
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 4; ++k)
                     m.set(v++, i, j, k);
-        System.out.println("dimensions=" + Arrays.toString(m.dimensions));
-        System.out.println("array=" + Arrays.toString(m.array));
-        System.out.println("encode=" + Arrays.toString(m.weight));
+        System.out.println("dimensions=" + Arrays.toString(dimensions));
+        System.out.println("encode=" + Arrays.toString(weight));
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 4; ++k)
                     System.out.printf(" %s", m.get(i, j, k));
         System.out.printf("%n");
-        for (int i = 0, size = m.size(); i < size; ++i)
-            System.out.printf("%d : %s%n", i, Arrays.toString(m.decodeIndex(i)));
+        for (int i = 0; i < size; ++i)
+            System.out.printf("%d : %s%n", i, Arrays.toString(
+                Matrix.decodeIndex(m.size(), dimensions, weight, i)));
     }
 }

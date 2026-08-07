@@ -58,9 +58,9 @@ public class TestMatrix {
             int[] index = new int[max];
             StringBuilder sb = new StringBuilder("[");
             new Object() {
-                void str(boolean first, int i) {
+                void str(boolean notFirst, int i) {
                     if (i >= max) {
-                        if (first)
+                        if (notFirst)
                             sb.append(", ");
                         sb.append(get(index));
                     } else

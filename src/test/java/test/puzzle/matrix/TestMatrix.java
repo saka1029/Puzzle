@@ -43,7 +43,8 @@ public class TestMatrix {
             return MatrixSlice.of(this, slice);
         }
 
-        public static int[] decodeIndex(int size, int[] dimensions, int[] weight, int index) {
+        public int[] decodeIndex(int index) {
+            int size = size();
             if (index < 0 || index >= size)
                 throw new IndexOutOfBoundsException(
                     "'index' must be in range 0..<%d".formatted(size));
@@ -180,6 +181,7 @@ public class TestMatrix {
         Matrix<Double> m = MatrixArray.of(Double.class, 2, 3, 4);
         int[] dimensions = m.dimensions();
         int[] weight = m.weight();
+        int size = m.size();
         double v = 0;
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
@@ -193,9 +195,9 @@ public class TestMatrix {
                     System.out.printf(" %s", m.get(i, j, k));
         System.out.printf("%n");
         System.out.println("m=" + m);
-        // for (int i = 0; i < size; ++i)
-        //     System.out.printf("%d : %s%n", i, Arrays.toString(
-        //         Matrix.decodeIndex(m.size(), dimensions, weight, i)));
+        for (int i = 0; i < size; ++i)
+            System.out.printf("%d : %s%n", i, Arrays.toString(
+                m.decodeIndex(i)));
     }
 
     @Test

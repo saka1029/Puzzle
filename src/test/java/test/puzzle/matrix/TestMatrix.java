@@ -1,5 +1,7 @@
 package test.puzzle.matrix;
 
+import static org.junit.Assert.assertEquals;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -13,6 +15,7 @@ public class TestMatrix {
         int[] dimensions();
         T get(int... index);
         void set(T value, int... index);
+        Matrix<T> slice(int... index);
 
         public static int[] weight(int... dimensions) {
             int len = dimensions.length;
@@ -90,6 +93,71 @@ public class TestMatrix {
             array[Matrix.index(dimensions, weight, index)] = value;
         }
 
+        @Override
+        public Matrix<T> slice(int... slice) {
+            return MatrixSlice.of(this, slice);
+        }
+
+    }
+
+    public static class MatrixSlice<T> implements Matrix<T> {
+        final Matrix<T> origin;
+        final int[] orgDimension;
+        final int[] dimension;
+        final int[] slice;
+        final int size;
+
+        MatrixSlice(Matrix<T> origin, int... slice) {
+            int length = slice.length;
+            this.orgDimension = origin.dimensions();
+            if (length != orgDimension.length)
+                throw new IllegalArgumentException("slice");
+            int negativeCount = (int)IntStream.of(slice).filter(i -> i < 0).count();
+            this.dimension = new int[negativeCount];
+            for (int i = 0, j = 0; i < length; ++i)
+                if (slice[i] < 0)
+                    this.dimension[j++] = this.orgDimension[i];
+            this.origin = origin;
+            this.slice = slice;
+            this.size = IntStream.of(this.dimension).reduce(1, (a, b) -> a * b);
+        }
+
+        public static <T> MatrixSlice<T> of(Matrix<T> origin, int... slice) {
+            return new MatrixSlice<>(origin, slice);
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public int[] dimensions() {
+            return Arrays.copyOf(dimension, dimension.length);
+        }
+
+        int[] index(int... index) {
+            int length = orgDimension.length;
+            int[] result = new int[length];
+            for (int i = 0, j = 0; i < length; ++i)
+                result[i] = slice[i] >= 0 ? slice[i] : index[j++];
+            return result;
+        }
+
+        @Override
+        public T get(int... index) {
+            return origin.get(index(index));
+        }
+
+        @Override
+        public void set(T value, int... index) {
+            origin.set(value, index(index));
+        }
+
+        @Override
+        public Matrix<T> slice(int... slice) {
+            return MatrixSlice.of(this, slice);
+        }
     }
 
     @Test
@@ -113,5 +181,45 @@ public class TestMatrix {
         for (int i = 0; i < size; ++i)
             System.out.printf("%d : %s%n", i, Arrays.toString(
                 Matrix.decodeIndex(m.size(), dimensions, weight, i)));
+    }
+
+    @Test
+    public void testMatrixSlice() {
+        var m = MatrixArray.of(Integer.class, 2, 3, 4);
+        int v = 0;
+        for (int i = 0; i < 2; ++i)
+            for (int j = 0; j < 3; ++j)
+                for (int k = 0; k < 4; ++k)
+                    m.set(v++, i, j, k);
+        var s00 = m.slice(0, 0, -1);
+        assertEquals(4, s00.size());
+        assertEquals(0, (int)s00.get(0));
+        assertEquals(1, (int)s00.get(1));
+        assertEquals(2, (int)s00.get(2));
+        assertEquals(3, (int)s00.get(3));
+        var s01 = m.slice(0, 1, -1);
+        assertEquals(4, s01.size());
+        assertEquals(4, (int)s01.get(0));
+        assertEquals(5, (int)s01.get(1));
+        assertEquals(6, (int)s01.get(2));
+        assertEquals(7, (int)s01.get(3));
+        var s10 = m.slice(-1, 0, 0);
+        assertEquals(2, s10.size());
+        assertEquals(0, (int)s10.get(0));
+        assertEquals(12, (int)s10.get(1));
+        var s34 = m.slice(0, -1, -1);
+        assertEquals(12, s34.size());
+        assertEquals(0, (int)s34.get(0, 0));
+        assertEquals(1, (int)s34.get(0, 1));
+        assertEquals(2, (int)s34.get(0, 2));
+        assertEquals(3, (int)s34.get(0, 3));
+        assertEquals(4, (int)s34.get(1, 0));
+        assertEquals(5, (int)s34.get(1, 1));
+        assertEquals(6, (int)s34.get(1, 2));
+        assertEquals(7, (int)s34.get(1, 3));
+        assertEquals(8, (int)s34.get(2, 0));
+        assertEquals(9, (int)s34.get(2, 1));
+        assertEquals(10, (int)s34.get(2, 2));
+        assertEquals(11, (int)s34.get(2, 3));
     }
 }

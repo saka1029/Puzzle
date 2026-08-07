@@ -8,42 +8,23 @@ import org.junit.Test;
 
 public class TestMatrix {
 
-    /**
-     * 型Tの多次元配列
-     * @param <T> 要素の型
-     */
-    public static class Matrix<T> {
-        public final int[] dimensions;
-        public final int[] weight;
-        public final T[] array;
+    interface Matrix<T> {
+        int size();
+        T get(int... index);
+        void set(T value, int... index);
+        int[] dimensions();
 
-        @SuppressWarnings("unchecked")
-        Matrix(int[] dimensions, T... values) {
-            System.out.println(values.getClass());
-            Class<T> componentType = (Class<T>)values.getClass().componentType();
-            if (componentType == Object.class)
-                throw new RuntimeException("Specify the element type");
-            System.out.println(componentType);
-            this.dimensions = dimensions;
-            int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
-            this.array = (T[])Array.newInstance(componentType, size);
+        public static int[] weight(int... dimensions) {
             int len = dimensions.length;
-            this.weight = new int[len];
+            int[] weight = new int[len];
             for (int i = len - 1, prev = 1; i >= 0; --i) {
                 weight[i] = prev;
                 prev *= dimensions[i];
             }
+            return weight;
         }
 
-        // public static <T> Matrix<T> of(int... index) {
-        //     return new Matrix<T>(index);
-        // }
-
-        public int size() {
-            return array.length;
-        }
-
-        int index(int... index) {
+        public static int index(int[] dimensions, int[] weight, int... index) {
             if (index.length != dimensions.length)
                 throw new IndexOutOfBoundsException(
                     "'index' length must be %d but %d".formatted(dimensions.length, index.length));
@@ -54,16 +35,52 @@ public class TestMatrix {
                         "index must be in range 0..<%d but %d".formatted(dimensions[i], index[i]));
                 result += index[i] * weight[i];
             }
-
             return result;
+        }
+    }
+
+    /**
+     * 型Tの多次元配列
+     * @param <T> 要素の型
+     */
+    public static class MatrixArray<T> implements Matrix<T> {
+        public final int[] dimensions;
+        public final int[] weight;
+        public final T[] array;
+
+        @SuppressWarnings("unchecked")
+        MatrixArray(int[] dimensions, T... values) {
+            System.out.println(values.getClass());
+            Class<T> componentType = (Class<T>)values.getClass().componentType();
+            if (componentType == Object.class)
+                throw new RuntimeException("Specify the element type");
+            System.out.println(componentType);
+            this.dimensions = dimensions;
+            int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
+            this.array = (T[])Array.newInstance(componentType, size);
+            this.weight = Matrix.weight(dimensions);
+        }
+
+        // public static <T> Matrix<T> of(int... index) {
+        //     return new Matrix<T>(index);
+        // }
+
+        @Override
+        public int size() {
+            return array.length;
+        }
+
+        @Override
+        public int[] dimensions() {
+            return Arrays.copyOf(dimensions, dimensions.length);
         }
 
         public T get(int... index) {
-             return array[index(index)];
+             return array[Matrix.index(dimensions, weight, index)];
         }
 
         public void set(T value, int... index) {
-            array[index(index)] = value;
+            array[Matrix.index(dimensions, weight, index)] = value;
         }
 
         public int[] decodeIndex(int i) {
@@ -81,7 +98,7 @@ public class TestMatrix {
     @Test
     public void testMatrix() {
         // var m = Matrix.<Double>of(2, 3, 4);
-        var m = new Matrix<Double>(new int[]{2, 3, 4});
+        var m = new MatrixArray<Double>(new int[]{2, 3, 4});
         double v = 0;
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)

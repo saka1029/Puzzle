@@ -10,12 +10,12 @@ import org.junit.Test;
 
 public class TestMatrix {
 
-    interface Matrix<T> {
-        int size();
-        int[] dimensions();
-        T get(int... index);
-        void set(T value, int... index);
-        Matrix<T> slice(int... index);
+    public static abstract class Matrix<T> {
+        public abstract int size();
+        public abstract int[] dimensions();
+        public abstract T get(int... index);
+        public abstract void set(T value, int... index);
+        public abstract Matrix<T> slice(int... index);
 
         public static int[] weight(int... dimensions) {
             int len = dimensions.length;
@@ -52,7 +52,8 @@ public class TestMatrix {
             return result;
         }
 
-        default String string() {
+        @Override
+        public String toString() {
             int[] dimensions = dimensions();
             int max = dimensions.length;
             int[] index = new int[max];
@@ -85,7 +86,7 @@ public class TestMatrix {
      * 型Tの多次元配列
      * @param <T> 要素の型
      */
-    public static class MatrixArray<T> implements Matrix<T> {
+    public static class MatrixArray<T> extends Matrix<T> {
         public final int[] dimensions;
         public final int[] weight;
         public final T[] array;
@@ -128,7 +129,7 @@ public class TestMatrix {
 
     }
 
-    public static class MatrixSlice<T> implements Matrix<T> {
+    public static class MatrixSlice<T> extends Matrix<T> {
         final Matrix<T> origin;
         final int[] orgDimension;
         final int[] dimension;
@@ -191,7 +192,6 @@ public class TestMatrix {
     @Test
     public void testMatrix() {
         Matrix<Double> m = MatrixArray.of(Double.class, 2, 3, 4);
-        int size = m.size();
         int[] dimensions = m.dimensions();
         int[] weight = Matrix.weight(dimensions);
         double v = 0;
@@ -206,7 +206,7 @@ public class TestMatrix {
                 for (int k = 0; k < 4; ++k)
                     System.out.printf(" %s", m.get(i, j, k));
         System.out.printf("%n");
-        System.out.println(m.string());
+        System.out.println(m);
         // for (int i = 0; i < size; ++i)
         //     System.out.printf("%d : %s%n", i, Arrays.toString(
         //         Matrix.decodeIndex(m.size(), dimensions, weight, i)));
@@ -219,6 +219,10 @@ public class TestMatrix {
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
                 m.set(v++, i, j);
+        System.out.println(m);
+        var m0 = m.slice(-1, 0);
+        System.out.println(m0);
+        System.out.println(Arrays.toString(m0.dimensions()));
     }
 
     @Test

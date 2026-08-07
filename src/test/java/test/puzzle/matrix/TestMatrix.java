@@ -1,16 +1,20 @@
 package test.puzzle.matrix;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 
 public class TestMatrix {
 
-    public static abstract class Matrix<T> {
+    public static abstract class Matrix<T> implements Iterable<T> {
         final int[] dimensions;
         final int[] weight;
 
@@ -41,6 +45,37 @@ public class TestMatrix {
 
         public Matrix<T> slice(int... slice) {
             return MatrixSlice.of(this, slice);
+        }
+
+        public T at(int index) {
+            return get(decodeIndex(index));
+        }
+
+        public void put(T value, int index) {
+            set(value, decodeIndex(index));
+        }
+
+        @Override
+        public Iterator<T> iterator() {
+            return new Iterator<>() {
+                int size = size();
+                int i = 0;
+
+                @Override
+                public boolean hasNext() {
+                    return i < size;
+                }
+
+                @Override
+                public T next() {
+                    T result = at(i++);
+                    return result;
+                }
+            };
+        }
+
+        public Stream<T> stream() {
+            return StreamSupport.stream(spliterator(), false);
         }
 
         public int[] decodeIndex(int index) {
@@ -201,6 +236,18 @@ public class TestMatrix {
     }
 
     @Test
+    public void testStream() {
+        Matrix<Integer> m = MatrixArray.of(Integer.class, 2, 3, 4);
+        int v = 0;
+        for (int i = 0; i < 2; ++i)
+            for (int j = 0; j < 3; ++j)
+                for (int k = 0; k < 4; ++k)
+                    m.set(v++, i, j, k);
+        int[] array = IntStream.range(0, m.size()).toArray();
+        assertArrayEquals(array, m.stream().mapToInt(Integer::intValue).toArray());
+    }
+
+    @Test
     public void testMatrixSlice2d() {
         var m = MatrixArray.of(Integer.class, 2, 3);
         int v = 0;
@@ -223,57 +270,21 @@ public class TestMatrix {
                     m.set(v++, i, j, k);
         var s00 = m.slice(0, 0, -1);
         assertEquals(4, s00.size());
-        assertEquals(0, (int)s00.get(0));
-        assertEquals(1, (int)s00.get(1));
-        assertEquals(2, (int)s00.get(2));
-        assertEquals(3, (int)s00.get(3));
+        assertArrayEquals(new int[]{0, 1, 2, 3}, s00.stream().mapToInt(Integer::intValue).toArray());
         var s01 = m.slice(0, 1, -1);
         assertEquals(4, s01.size());
-        assertEquals(4, (int)s01.get(0));
-        assertEquals(5, (int)s01.get(1));
-        assertEquals(6, (int)s01.get(2));
-        assertEquals(7, (int)s01.get(3));
+        assertArrayEquals(new int[]{4, 5, 6, 7}, s01.stream().mapToInt(Integer::intValue).toArray());
         var s10 = m.slice(-1, 0, 0);
         assertEquals(2, s10.size());
-        assertEquals(0, (int)s10.get(0));
-        assertEquals(12, (int)s10.get(1));
+        assertArrayEquals(new int[]{0, 12}, s10.stream().mapToInt(Integer::intValue).toArray());
         var s0 = m.slice(0, -1, -1);
         assertEquals(12, s0.size());
-        assertEquals(0, (int)s0.get(0, 0));
-        assertEquals(1, (int)s0.get(0, 1));
-        assertEquals(2, (int)s0.get(0, 2));
-        assertEquals(3, (int)s0.get(0, 3));
-        assertEquals(4, (int)s0.get(1, 0));
-        assertEquals(5, (int)s0.get(1, 1));
-        assertEquals(6, (int)s0.get(1, 2));
-        assertEquals(7, (int)s0.get(1, 3));
-        assertEquals(8, (int)s0.get(2, 0));
-        assertEquals(9, (int)s0.get(2, 1));
-        assertEquals(10, (int)s0.get(2, 2));
-        assertEquals(11, (int)s0.get(2, 3));
+        assertArrayEquals(new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, s0.stream().mapToInt(Integer::intValue).toArray());
         var s1 = m.slice(1, -1, -1);
         assertEquals(12, s1.size());
-        assertEquals(12, (int)s1.get(0, 0));
-        assertEquals(13, (int)s1.get(0, 1));
-        assertEquals(14, (int)s1.get(0, 2));
-        assertEquals(15, (int)s1.get(0, 3));
-        assertEquals(16, (int)s1.get(1, 0));
-        assertEquals(17, (int)s1.get(1, 1));
-        assertEquals(18, (int)s1.get(1, 2));
-        assertEquals(19, (int)s1.get(1, 3));
-        assertEquals(20, (int)s1.get(2, 0));
-        assertEquals(21, (int)s1.get(2, 1));
-        assertEquals(22, (int)s1.get(2, 2));
-        assertEquals(23, (int)s1.get(2, 3));
+        assertArrayEquals(new int[]{12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23}, s1.stream().mapToInt(Integer::intValue).toArray());
         var s2 = m.slice(-1, 0, -1);
         assertEquals(8, s2.size());
-        assertEquals(0, (int)s2.get(0, 0));
-        assertEquals(1, (int)s2.get(0, 1));
-        assertEquals(2, (int)s2.get(0, 2));
-        assertEquals(3, (int)s2.get(0, 3));
-        assertEquals(12, (int)s2.get(1, 0));
-        assertEquals(13, (int)s2.get(1, 1));
-        assertEquals(14, (int)s2.get(1, 2));
-        assertEquals(15, (int)s2.get(1, 3));
+        assertArrayEquals(new int[]{0, 1, 2, 3, 12, 13, 14, 15}, s2.stream().mapToInt(Integer::intValue).toArray());
     }
 }

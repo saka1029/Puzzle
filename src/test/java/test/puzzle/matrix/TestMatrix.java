@@ -51,6 +51,34 @@ public class TestMatrix {
                 result[i] = index / weight[i] % dimensions[i];
             return result;
         }
+
+        default String string() {
+            int[] dimensions = dimensions();
+            int max = dimensions.length;
+            int[] index = new int[max];
+            StringBuilder sb = new StringBuilder("[");
+            new Object() {
+                void str(boolean first, int i) {
+                    if (i >= max) {
+                        if (first)
+                            sb.append(", ");
+                        sb.append(get(index));
+                    } else
+                        for (int j = 0; j < dimensions[i]; ++j) {
+                            if (i < max - 1) {
+                                if (j > 0)
+                                    sb.append(", ");
+                                sb.append("[");
+                            }
+                            index[i] = j;
+                            str(j > 0, i + 1);
+                            if (i < max - 1)
+                                sb.append("]");
+                        }
+                }
+            }.str(false, 0);
+            return sb.append("]").toString();
+        }
     }
 
     /**
@@ -178,13 +206,23 @@ public class TestMatrix {
                 for (int k = 0; k < 4; ++k)
                     System.out.printf(" %s", m.get(i, j, k));
         System.out.printf("%n");
-        for (int i = 0; i < size; ++i)
-            System.out.printf("%d : %s%n", i, Arrays.toString(
-                Matrix.decodeIndex(m.size(), dimensions, weight, i)));
+        System.out.println(m.string());
+        // for (int i = 0; i < size; ++i)
+        //     System.out.printf("%d : %s%n", i, Arrays.toString(
+        //         Matrix.decodeIndex(m.size(), dimensions, weight, i)));
     }
 
     @Test
-    public void testMatrixSlice() {
+    public void testMatrixSlice2d() {
+        var m = MatrixArray.of(Integer.class, 2, 3);
+        int v = 0;
+        for (int i = 0; i < 2; ++i)
+            for (int j = 0; j < 3; ++j)
+                m.set(v++, i, j);
+    }
+
+    @Test
+    public void testMatrixSlice3d() {
         var m = MatrixArray.of(Integer.class, 2, 3, 4);
         int v = 0;
         for (int i = 0; i < 2; ++i)
@@ -235,5 +273,15 @@ public class TestMatrix {
         assertEquals(21, (int)s1.get(2, 1));
         assertEquals(22, (int)s1.get(2, 2));
         assertEquals(23, (int)s1.get(2, 3));
+        var s2 = m.slice(-1, 0, -1);
+        assertEquals(8, s2.size());
+        assertEquals(0, (int)s2.get(0, 0));
+        assertEquals(1, (int)s2.get(0, 1));
+        assertEquals(2, (int)s2.get(0, 2));
+        assertEquals(3, (int)s2.get(0, 3));
+        assertEquals(12, (int)s2.get(1, 0));
+        assertEquals(13, (int)s2.get(1, 1));
+        assertEquals(14, (int)s2.get(1, 2));
+        assertEquals(15, (int)s2.get(1, 3));
     }
 }

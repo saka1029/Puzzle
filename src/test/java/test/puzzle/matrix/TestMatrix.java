@@ -11,34 +11,36 @@ import org.junit.Test;
 public class TestMatrix {
 
     public static abstract class Matrix<T> {
-        public abstract int size();
-        public abstract int[] dimensions();
-        public abstract T get(int... index);
-        public abstract void set(T value, int... index);
-        public abstract Matrix<T> slice(int... index);
+        final int[] dimensions;
+        final int[] weight;
 
-        public static int[] weight(int... dimensions) {
-            int len = dimensions.length;
-            int[] weight = new int[len];
-            for (int i = len - 1, prev = 1; i >= 0; --i) {
-                weight[i] = prev;
+        Matrix(int... dimensions) {
+            this.dimensions = dimensions.clone();
+            int length = dimensions.length;
+            this.weight = new int[length];
+            for (int i = length - 1, prev = 1; i >= 0; --i) {
+                this.weight[i] = prev;
                 prev *= dimensions[i];
             }
-            return weight;
         }
 
-        public static int index(int[] dimensions, int[] weight, int... index) {
-            if (index.length != dimensions.length)
-                throw new IndexOutOfBoundsException(
-                    "'index' length must be %d but %d".formatted(dimensions.length, index.length));
-            int result = 0;
-            for (int i = 0, len = dimensions.length; i < len; ++i) {
-                if (index[i] < 0 || index[i] > dimensions[i])
-                    throw new IndexOutOfBoundsException(
-                        "index must be in range 0..<%d but %d".formatted(dimensions[i], index[i]));
-                result += index[i] * weight[i];
-            }
-            return result;
+        public int[] dimensions() {
+            return dimensions.clone();
+        }
+
+        public int[] weight() {
+            return weight.clone();
+        }
+
+        public int size() {
+            return IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
+        }
+
+        public abstract T get(int... index);
+        public abstract void set(T value, int... index);
+
+        public Matrix<T> slice(int... slice) {
+            return MatrixSlice.of(this, slice);
         }
 
         public static int[] decodeIndex(int size, int[] dimensions, int[] weight, int index) {
@@ -54,7 +56,6 @@ public class TestMatrix {
 
         @Override
         public String toString() {
-            int[] dimensions = dimensions();
             int max = dimensions.length;
             int[] index = new int[max];
             StringBuilder sb = new StringBuilder("[");
@@ -87,86 +88,76 @@ public class TestMatrix {
      * @param <T> 要素の型
      */
     public static class MatrixArray<T> extends Matrix<T> {
-        public final int[] dimensions;
-        public final int[] weight;
         public final T[] array;
 
         @SuppressWarnings("unchecked")
         MatrixArray(Class<T> componentType, int... dimensions) {
+            super(dimensions);
             System.out.println(componentType);
-            this.dimensions = dimensions;
             int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
             this.array = (T[])Array.newInstance(componentType, size);
-            this.weight = Matrix.weight(dimensions);
         }
 
         public static <T> MatrixArray<T> of(Class<T> componentType, int... index) {
             return new MatrixArray<>(componentType, index);
         }
 
-        @Override
-        public int size() {
-            return array.length;
+        int index(int... index) {
+            int length = dimensions.length;
+            if (index.length != length)
+                throw new IndexOutOfBoundsException(
+                    "'index' length must be %d but %d".formatted(dimensions.length, index.length));
+            int result = 0;
+            for (int i = 0; i < length; ++i) {
+                if (index[i] < 0 || index[i] > dimensions[i])
+                    throw new IndexOutOfBoundsException(
+                        "index must be in range 0..<%d but %d".formatted(dimensions[i], index[i]));
+                result += index[i] * weight[i];
+            }
+            return result;
         }
 
-        @Override
-        public int[] dimensions() {
-            return Arrays.copyOf(dimensions, dimensions.length);
-        }
 
         public T get(int... index) {
-             return array[Matrix.index(dimensions, weight, index)];
+             return array[index(index)];
         }
 
         public void set(T value, int... index) {
-            array[Matrix.index(dimensions, weight, index)] = value;
+            array[index(index)] = value;
         }
-
-        @Override
-        public Matrix<T> slice(int... slice) {
-            return MatrixSlice.of(this, slice);
-        }
-
     }
 
     public static class MatrixSlice<T> extends Matrix<T> {
         final Matrix<T> origin;
-        final int[] orgDimension;
-        final int[] dimension;
+        final int[] orgDimensions;
         final int[] slice;
-        final int size;
 
-        MatrixSlice(Matrix<T> origin, int... slice) {
+        static int[] dimensions(int[] orgDimensions, int[] slice) {
             int length = slice.length;
-            this.orgDimension = origin.dimensions();
-            if (length != orgDimension.length)
-                throw new IllegalArgumentException("slice");
             int negativeCount = (int)IntStream.of(slice).filter(i -> i < 0).count();
-            this.dimension = new int[negativeCount];
+            int[] dimensions = new int[negativeCount];
             for (int i = 0, j = 0; i < length; ++i)
                 if (slice[i] < 0)
-                    this.dimension[j++] = this.orgDimension[i];
+                    dimensions[j++] = orgDimensions[i];
+            return dimensions;
+        }
+
+        MatrixSlice(Matrix<T> origin, int... slice) {
+            super(dimensions(origin.dimensions(), slice));
+            int length = slice.length;
+            this.orgDimensions = origin.dimensions();
+            if (length != orgDimensions.length)
+                throw new IllegalArgumentException("slice");
             this.origin = origin;
             this.slice = slice;
-            this.size = IntStream.of(this.dimension).reduce(1, (a, b) -> a * b);
         }
 
         public static <T> MatrixSlice<T> of(Matrix<T> origin, int... slice) {
             return new MatrixSlice<>(origin, slice);
         }
 
-        @Override
-        public int size() {
-            return size;
-        }
-
-        @Override
-        public int[] dimensions() {
-            return Arrays.copyOf(dimension, dimension.length);
-        }
-
-        int[] index(int... index) {
-            int length = orgDimension.length;
+        int[] orgIndex(int... index) {
+            int length = orgDimensions.length;
             int[] result = new int[length];
             for (int i = 0, j = 0; i < length; ++i)
                 result[i] = slice[i] >= 0 ? slice[i] : index[j++];
@@ -175,17 +166,12 @@ public class TestMatrix {
 
         @Override
         public T get(int... index) {
-            return origin.get(index(index));
+            return origin.get(orgIndex(index));
         }
 
         @Override
         public void set(T value, int... index) {
-            origin.set(value, index(index));
-        }
-
-        @Override
-        public Matrix<T> slice(int... slice) {
-            return MatrixSlice.of(this, slice);
+            origin.set(value, orgIndex(index));
         }
     }
 
@@ -193,7 +179,7 @@ public class TestMatrix {
     public void testMatrix() {
         Matrix<Double> m = MatrixArray.of(Double.class, 2, 3, 4);
         int[] dimensions = m.dimensions();
-        int[] weight = Matrix.weight(dimensions);
+        int[] weight = m.weight();
         double v = 0;
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
@@ -206,7 +192,7 @@ public class TestMatrix {
                 for (int k = 0; k < 4; ++k)
                     System.out.printf(" %s", m.get(i, j, k));
         System.out.printf("%n");
-        System.out.println(m);
+        System.out.println("m=" + m);
         // for (int i = 0; i < size; ++i)
         //     System.out.printf("%d : %s%n", i, Arrays.toString(
         //         Matrix.decodeIndex(m.size(), dimensions, weight, i)));

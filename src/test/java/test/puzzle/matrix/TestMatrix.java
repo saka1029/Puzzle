@@ -10,9 +10,9 @@ public class TestMatrix {
 
     interface Matrix<T> {
         int size();
+        int[] dimensions();
         T get(int... index);
         void set(T value, int... index);
-        int[] dimensions();
 
         public static int[] weight(int... dimensions) {
             int len = dimensions.length;

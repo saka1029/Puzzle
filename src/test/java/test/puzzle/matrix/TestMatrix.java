@@ -88,29 +88,25 @@ public class TestMatrix {
 
         @Override
         public String toString() {
-            int max = dimensions.length;
-            int[] index = new int[max];
+            int last = dimensions.length - 1;
+            int[] indexes = new int[last + 1];
             StringBuilder sb = new StringBuilder("[");
             new Object() {
-                void str(boolean notFirst, int i) {
-                    if (i >= max) {
-                        if (notFirst)
+                void string(int i) {
+                    for (int j = 0, max = dimensions[i]; j < max; ++j) {
+                        indexes[i] = j;
+                        if (j > 0)
                             sb.append(", ");
-                        sb.append(get(index));
-                    } else
-                        for (int j = 0; j < dimensions[i]; ++j) {
-                            if (i < max - 1) {
-                                if (j > 0)
-                                    sb.append(", ");
-                                sb.append("[");
-                            }
-                            index[i] = j;
-                            str(j > 0, i + 1);
-                            if (i < max - 1)
-                                sb.append("]");
+                        if (i >= last)
+                            sb.append(get(indexes));
+                        else {
+                            sb.append("[");
+                            string(i + 1);
+                            sb.append("]");
                         }
+                    }
                 }
-            }.str(false, 0);
+            }.string(0);
             return sb.append("]").toString();
         }
     }
@@ -189,6 +185,18 @@ public class TestMatrix {
         public void set(T value, int... index) {
             origin.set(value, orgIndex(index));
         }
+    }
+
+    @Test
+    public void testToString() {
+        int[] dimensions = {2, 3, 4};
+        Matrix<Integer> m = MatrixArray.of(Integer.class, dimensions);
+        int v = 0;
+        for (int i = 0; i < 2; ++i)
+            for (int j = 0; j < 3; ++j)
+                for (int k = 0; k < 4; ++k)
+                    m.set(v++, i, j, k);
+        System.out.println(m);
     }
 
     @Test

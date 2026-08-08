@@ -16,24 +16,32 @@ public class TestMatrix {
 
     public static abstract class Matrix<T> implements Iterable<T> {
         final int[] dimensions;
-        final int[] weight;
 
         Matrix(int... dimensions) {
             this.dimensions = dimensions.clone();
-            int length = dimensions.length;
-            this.weight = new int[length];
-            for (int i = length - 1, prev = 1; i >= 0; --i) {
-                this.weight[i] = prev;
-                prev *= dimensions[i];
-            }
         }
+
+        int arrayIndex(int... index) {
+            int length = dimensions.length;
+            int result = 0;
+            for (int i = 0; i < length; ++i)
+                result = result * dimensions[i] + index[i];
+            return result;
+        }
+
+        int[] matrixIndex(int index) {
+            int length = dimensions.length;
+            int[] result = new int[length];
+            for (int i = length - 1; i >= 0; --i) {
+                result[i] = index % dimensions[i];
+                index /= dimensions[i];
+            }
+            return result;
+        }
+
 
         public int[] dimensions() {
             return dimensions.clone();
-        }
-
-        public int[] weight() {
-            return weight.clone();
         }
 
         public int size() {
@@ -48,11 +56,11 @@ public class TestMatrix {
         }
 
         public T at(int index) {
-            return get(decodeIndex(index));
+            return get(matrixIndex(index));
         }
 
         public void put(T value, int index) {
-            set(value, decodeIndex(index));
+            set(value, matrixIndex(index));
         }
 
         @Override
@@ -76,18 +84,6 @@ public class TestMatrix {
 
         public Stream<T> stream() {
             return StreamSupport.stream(spliterator(), false);
-        }
-
-        public int[] decodeIndex(int index) {
-            int size = size();
-            if (index < 0 || index >= size)
-                throw new IndexOutOfBoundsException(
-                    "'index' must be in range 0..<%d".formatted(size));
-            int len = dimensions.length;
-            int[] result = new int[len];
-            for (int i = 0; i < len; ++i)
-                result[i] = index / weight[i] % dimensions[i];
-            return result;
         }
 
         @Override
@@ -138,28 +134,12 @@ public class TestMatrix {
             return new MatrixArray<>(componentType, index);
         }
 
-        int index(int... index) {
-            int length = dimensions.length;
-            if (index.length != length)
-                throw new IndexOutOfBoundsException(
-                    "'index' length must be %d but %d".formatted(dimensions.length, index.length));
-            int result = 0;
-            for (int i = 0; i < length; ++i) {
-                if (index[i] < 0 || index[i] > dimensions[i])
-                    throw new IndexOutOfBoundsException(
-                        "index must be in range 0..<%d but %d".formatted(dimensions[i], index[i]));
-                result += index[i] * weight[i];
-            }
-            return result;
-        }
-
-
         public T get(int... index) {
-             return array[index(index)];
+             return array[arrayIndex(index)];
         }
 
         public void set(T value, int... index) {
-            array[index(index)] = value;
+            array[arrayIndex(index)] = value;
         }
     }
 
@@ -215,7 +195,6 @@ public class TestMatrix {
     public void testMatrix() {
         Matrix<Double> m = MatrixArray.of(Double.class, 2, 3, 4);
         int[] dimensions = m.dimensions();
-        int[] weight = m.weight();
         int size = m.size();
         double v = 0;
         for (int i = 0; i < 2; ++i)
@@ -223,7 +202,6 @@ public class TestMatrix {
                 for (int k = 0; k < 4; ++k)
                     m.set(v++, i, j, k);
         System.out.println("dimensions=" + Arrays.toString(dimensions));
-        System.out.println("encode=" + Arrays.toString(weight));
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 4; ++k)
@@ -232,7 +210,7 @@ public class TestMatrix {
         System.out.println("m=" + m);
         for (int i = 0; i < size; ++i)
             System.out.printf("%d : %s%n", i, Arrays.toString(
-                m.decodeIndex(i)));
+                m.matrixIndex(i)));
     }
 
     @Test
@@ -286,5 +264,36 @@ public class TestMatrix {
         var s2 = m.slice(-1, 0, -1);
         assertEquals(8, s2.size());
         assertArrayEquals(new int[]{0, 1, 2, 3, 12, 13, 14, 15}, s2.stream().mapToInt(Integer::intValue).toArray());
+    }
+
+    static int arrayIndex(int[] dimensions, int... index) {
+        int length = dimensions.length;
+        int result = 0;
+        for (int i = 0; i < length; ++i)
+            result = result * dimensions[i] + index[i];
+        return result;
+    }
+
+    static int[] matrixIndex(int[] dimensions, int index) {
+        int length = dimensions.length;
+        int[] result = new int[length];
+        for (int i = length - 1; i >= 0; --i) {
+            result[i] = index % dimensions[i];
+            index /= dimensions[i];
+        }
+        return result;
+    }
+
+    @Test
+    public void testIndex() {
+        int[] dimensions = {2, 3, 3};
+        for (int i = 0; i < dimensions[0]; ++i)
+            for (int j = 0; j < dimensions[1]; ++j)
+                for (int k = 0; k < dimensions[2]; ++k)
+                    System.out.printf("(%d, %d, %d) = %d%n", i, j, k, arrayIndex(dimensions, i, j, k));
+        int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
+        for (int i = 0; i < size; ++i)
+            System.out.printf("%d = %s%n", i, Arrays.toString(matrixIndex(dimensions, i)));
+
     }
 }

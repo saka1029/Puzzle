@@ -269,7 +269,6 @@ public class TestMemoise {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static <V> MemoizedFunction<V> memoizeFunction(Class<? super V> returnType, Method method)
             throws IllegalAccessException {
         final Map<ArgList, V> memoizedCalls = new HashMap<>();

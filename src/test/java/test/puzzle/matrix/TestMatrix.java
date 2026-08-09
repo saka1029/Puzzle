@@ -2,6 +2,7 @@ package test.puzzle.matrix;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -14,6 +15,21 @@ import puzzle.matrix.MatrixArray;
 public class TestMatrix {
 
     @Test
+    public void testSize() {
+        int[] dimensions = {2, 3, 4};
+        Matrix<Integer> m = MatrixArray.of(Integer.class, dimensions);
+        assertEquals(2 * 3 * 4, m.size());
+    }
+
+    @Test
+    public void testDimensions() {
+        int[] dimensions = {2, 3, 4};
+        Matrix<Integer> m = MatrixArray.of(Integer.class, dimensions);
+        assertNotEquals(dimensions, m.dimensions());
+        assertArrayEquals(dimensions, m.dimensions());
+    }
+
+    @Test
     public void testToString() {
         int[] dimensions = {2, 3, 4};
         Matrix<Integer> m = MatrixArray.of(Integer.class, dimensions);
@@ -22,25 +38,23 @@ public class TestMatrix {
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 4; ++k)
                     m.set(v++, i, j, k);
-        assertEquals("", m.toString());
+        assertEquals("[[[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]], [[12, 13, 14, 15], [16, 17, 18, 19], [20, 21, 22, 23]]]", m.toString());
     }
 
     @Test
-    public void testMatrix() {
-        Matrix<Double> m = MatrixArray.of(Double.class, 2, 3, 4);
-        int[] dimensions = m.dimensions();
-        double v = 0;
+    public void testSetGet() {
+        int[] dimensions = {2, 3, 4};
+        Matrix<Integer> m = MatrixArray.of(Integer.class, dimensions);
+        int v = 0;
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 4; ++k)
                     m.set(v++, i, j, k);
-        System.out.println("dimensions=" + Arrays.toString(dimensions));
+        v = 0;
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 4; ++k)
-                    System.out.printf(" %s", m.get(i, j, k));
-        System.out.printf("%n");
-        System.out.println("m=" + m);
+                    assertEquals(v++, (int)m.get(i, j, k));
     }
 
     @Test
@@ -56,16 +70,26 @@ public class TestMatrix {
     }
 
     @Test
-    public void testMatrixSlice2d() {
-        var m = MatrixArray.of(Integer.class, 2, 3);
+    public void testSlice() {
+        int[] dimensions = {2, 3};
+        var m = MatrixArray.of(Integer.class, dimensions);
         int v = 0;
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
                 m.set(v++, i, j);
         System.out.println(m);
         var m0 = m.slice(-1, 0);
-        System.out.println(m0);
-        System.out.println(Arrays.toString(m0.dimensions()));
+        assertEquals(2, m0.size());
+        assertArrayEquals(new int[]{2}, m0.dimensions());
+        assertEquals(0, (int)m0.get(0));
+        assertEquals(3, (int)m0.get(1));
+        assertArrayEquals(new int[]{0, 3}, m0.stream().mapToInt(Integer::intValue).toArray());
+        var m1 = m.slice(-1, 1);
+        assertEquals(2, m1.size());
+        assertArrayEquals(new int[]{2}, m1.dimensions());
+        assertEquals(1, (int)m1.get(0));
+        assertEquals(4, (int)m1.get(1));
+        assertArrayEquals(new int[]{1, 4}, m1.stream().mapToInt(Integer::intValue).toArray());
     }
 
     @Test

@@ -9,16 +9,23 @@ import java.util.stream.IntStream;
  */
 public class MatrixArray<T> extends Matrix<T> {
     public final T[] array;
+    public final Class<T> elementType;
 
     @SuppressWarnings("unchecked")
-    MatrixArray(Class<T> componentType, int... dimensions) {
+    MatrixArray(Class<T> elementType, int... dimensions) {
         super(dimensions);
+        this.elementType = elementType;
         int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
-        this.array = (T[])Array.newInstance(componentType, size);
+        this.array = (T[])Array.newInstance(elementType, size);
     }
 
     public static <T> MatrixArray<T> of(Class<T> componentType, int... indexes) {
         return new MatrixArray<>(componentType, indexes);
+    }
+
+    @Override
+    public Class<T> elementType() {
+        return elementType;
     }
 
     public T get(int... indexes) {
@@ -27,5 +34,13 @@ public class MatrixArray<T> extends Matrix<T> {
 
     public void set(T value, int... indexes) {
         array[arrayIndex(indexes)] = value;
+    }
+
+    @Override
+    protected Matrix<T> clone() throws CloneNotSupportedException {
+        var m = new MatrixArray<T>(elementType, dimensions);
+        for (int i = 0, size = size(); i < size; ++i)
+            m.put(at(i), i);
+        return m;
     }
 }

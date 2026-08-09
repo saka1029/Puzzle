@@ -5,7 +5,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public abstract class Matrix<T> implements Iterable<T> {
+public abstract class Matrix<T> implements Iterable<T>, Cloneable {
     final int[] dimensions;
 
     Matrix(int... dimensions) {
@@ -29,6 +29,8 @@ public abstract class Matrix<T> implements Iterable<T> {
         }
         return result;
     }
+
+    public abstract Class<T> elementType();
 
     /**
      * 次元を返します。

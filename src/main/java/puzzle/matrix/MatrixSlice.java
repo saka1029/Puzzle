@@ -31,6 +31,11 @@ public class MatrixSlice<T> extends Matrix<T> {
         return new MatrixSlice<>(origin, slice);
     }
 
+    @Override
+    public Class<T> elementType() {
+        return origin.elementType();
+    }
+
     int[] orgIndex(int... indexes) {
         int length = orgDimensions.length;
         int[] result = new int[length];
@@ -47,5 +52,13 @@ public class MatrixSlice<T> extends Matrix<T> {
     @Override
     public void set(T value, int... indexes) {
         origin.set(value, orgIndex(indexes));
+    }
+
+    @Override
+    protected Matrix<T> clone() throws CloneNotSupportedException {
+        var m = new MatrixArray<T>(origin.elementType(), dimensions);
+        for (int i = 0, size = size(); i < size; ++i)
+            m.put(at(i), i);
+        return m;
     }
 }

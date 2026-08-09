@@ -13,7 +13,6 @@ public class MatrixArray<T> extends Matrix<T> {
     @SuppressWarnings("unchecked")
     MatrixArray(Class<T> componentType, int... dimensions) {
         super(dimensions);
-        System.out.println(componentType);
         int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
         this.array = (T[])Array.newInstance(componentType, size);
     }

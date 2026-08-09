@@ -12,7 +12,7 @@ public abstract class Matrix<T> implements Iterable<T> {
         this.dimensions = dimensions.clone();
     }
 
-    int arrayIndex(int... indexes) {
+    public int arrayIndex(int... indexes) {
         int length = dimensions.length;
         int result = 0;
         for (int i = 0; i < length; ++i)
@@ -20,7 +20,7 @@ public abstract class Matrix<T> implements Iterable<T> {
         return result;
     }
 
-    int[] matrixIndex(int index) {
+    public int[] matrixIndex(int index) {
         int length = dimensions.length;
         int[] result = new int[length];
         for (int i = length - 1; i >= 0; --i) {

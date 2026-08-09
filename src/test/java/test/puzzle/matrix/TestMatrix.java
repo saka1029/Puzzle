@@ -77,7 +77,6 @@ public class TestMatrix {
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 3; ++j)
                 m.set(v++, i, j);
-        System.out.println(m);
         var m0 = m.slice(-1, 0);
         assertEquals(2, m0.size());
         assertArrayEquals(new int[]{2}, m0.dimensions());
@@ -120,34 +119,25 @@ public class TestMatrix {
         assertArrayEquals(new int[]{0, 1, 2, 3, 12, 13, 14, 15}, s2.stream().mapToInt(Integer::intValue).toArray());
     }
 
-    static int arrayIndex(int[] dimensions, int... index) {
-        int length = dimensions.length;
-        int result = 0;
-        for (int i = 0; i < length; ++i)
-            result = result * dimensions[i] + index[i];
-        return result;
-    }
-
-    static int[] matrixIndex(int[] dimensions, int index) {
-        int length = dimensions.length;
-        int[] result = new int[length];
-        for (int i = length - 1; i >= 0; --i) {
-            result[i] = index % dimensions[i];
-            index /= dimensions[i];
-        }
-        return result;
-    }
-
     @Test
-    public void testIndex() {
+    public void testArrayIndex() {
         int[] dimensions = {2, 3, 3};
+        var m = MatrixArray.of(Integer.class, dimensions);
+        int v = 0;
         for (int i = 0; i < dimensions[0]; ++i)
             for (int j = 0; j < dimensions[1]; ++j)
                 for (int k = 0; k < dimensions[2]; ++k)
-                    System.out.printf("(%d, %d, %d) = %d%n", i, j, k, arrayIndex(dimensions, i, j, k));
-        int size = IntStream.of(dimensions).reduce(1, (a, b) -> a * b);
-        for (int i = 0; i < size; ++i)
-            System.out.printf("%d = %s%n", i, Arrays.toString(matrixIndex(dimensions, i)));
+                    assertEquals(v++, m.arrayIndex(i, j, k));
+    }
 
+    @Test
+    public void testMatixIndex() {
+        int[] dimensions = {2, 3, 3};
+        var m = MatrixArray.of(Integer.class, dimensions);
+        int v = 0;
+        for (int i = 0; i < dimensions[0]; ++i)
+            for (int j = 0; j < dimensions[1]; ++j)
+                for (int k = 0; k < dimensions[2]; ++k)
+                    assertArrayEquals(new int[] {i, j, k}, m.matrixIndex(v++));
     }
 }

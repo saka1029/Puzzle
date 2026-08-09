@@ -105,8 +105,7 @@ public abstract class Matrix<T> implements Iterable<T> {
 
             @Override
             public T next() {
-                T result = at(i++);
-                return result;
+                return at(i++);
             }
         };
     }

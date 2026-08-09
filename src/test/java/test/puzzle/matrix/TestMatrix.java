@@ -139,4 +139,42 @@ public class TestMatrix {
                 for (int k = 0; k < dimensions[2]; ++k)
                     assertArrayEquals(new int[] {i, j, k}, m.matrixIndex(v++));
     }
+
+    @Test
+    public void testCloneMatrixArray() {
+        int[] dimensions = {2, 3};
+        var m = MatrixArray.of(Integer.class, dimensions);
+        for (int i = 0; i < dimensions[0]; ++i)
+            for (int j = 0; j < dimensions[1]; ++j)
+                m.set(i * 10 + j, i, j);
+        var c = m.clone();
+        assertEquals(c.size(), m.size());
+        assertArrayEquals(c.dimensions(), m.dimensions());
+        for (int i = 0; i < dimensions[0]; ++i)
+            for (int j = 0; j < dimensions[1]; ++j)
+                assertEquals(m.get(i, j), c.get(i, j));
+        c.put(99, 5);
+        assertEquals(99, (int)c.at(5));
+        assertEquals(12, (int)m.at(5));
+    }
+
+    @Test
+    public void testCloneMatrixSlice() {
+        int[] dimensions = {2, 3};
+        var m = MatrixArray.of(Integer.class, dimensions);
+        var s = m.slice(-1, -1);
+        for (int i = 0; i < dimensions[0]; ++i)
+            for (int j = 0; j < dimensions[1]; ++j)
+                s.set(i * 10 + j, i, j);
+        var c = s.clone();
+        assertEquals(MatrixArray.class, c.getClass());
+        assertEquals(c.size(), m.size());
+        assertArrayEquals(c.dimensions(), m.dimensions());
+        for (int i = 0; i < dimensions[0]; ++i)
+            for (int j = 0; j < dimensions[1]; ++j)
+                assertEquals(s.get(i, j), c.get(i, j));
+        c.put(99, 5);
+        assertEquals(99, (int)c.at(5));
+        assertEquals(12, (int)s.at(5));
+    }
 }

@@ -55,7 +55,7 @@ public class MatrixSlice<T> extends Matrix<T> {
     }
 
     @Override
-    protected Matrix<T> clone() throws CloneNotSupportedException {
+    public Matrix<T> clone() {
         var m = new MatrixArray<T>(origin.elementType(), dimensions);
         for (int i = 0, size = size(); i < size; ++i)
             m.put(at(i), i);

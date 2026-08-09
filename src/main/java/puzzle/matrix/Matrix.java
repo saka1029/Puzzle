@@ -31,6 +31,7 @@ public abstract class Matrix<T> implements Iterable<T>, Cloneable {
     }
 
     public abstract Class<T> elementType();
+    public abstract Matrix<T> clone();
 
     /**
      * 次元を返します。

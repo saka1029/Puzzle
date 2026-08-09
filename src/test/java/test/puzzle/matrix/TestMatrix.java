@@ -3,6 +3,7 @@ package test.puzzle.matrix;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 
 import java.util.stream.IntStream;
 
@@ -77,6 +78,7 @@ public class TestMatrix {
             for (int j = 0; j < 3; ++j)
                 m.set(v++, i, j);
         var m0 = m.slice(-1, 0);
+        assertEquals(Integer.class, m0.elementType());
         assertEquals(2, m0.size());
         assertArrayEquals(new int[]{2}, m0.dimensions());
         assertEquals(0, (int)m0.get(0));
@@ -88,6 +90,12 @@ public class TestMatrix {
         assertEquals(1, (int)m1.get(0));
         assertEquals(4, (int)m1.get(1));
         assertArrayEquals(new int[]{1, 4}, m1.stream().mapToInt(Integer::intValue).toArray());
+        try {
+            m.slice(-1);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("slice", e.getMessage());
+        }
     }
 
     @Test

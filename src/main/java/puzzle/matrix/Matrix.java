@@ -74,6 +74,16 @@ public abstract class Matrix<T> implements Iterable<T>, Cloneable {
         return MatrixSlice.of(this, slice);
     }
 
+    public Matrix<T> resize(int... dimensions) {
+        int size = size();
+        if (IntStream.of(dimensions).reduce(1, (a, b) -> a * b) != size)
+            throw new IllegalArgumentException("dimensions");
+        var m = new MatrixArray<>(elementType(), dimensions);
+        for (int i = 0; i < size; ++i)
+            m.put(at(i), i);
+        return m;
+    }
+
     /**
      * すべての要素を一次元配列として取得します。
      * @param index 位置を指定します。

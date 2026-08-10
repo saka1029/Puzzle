@@ -185,4 +185,24 @@ public class TestMatrix {
         assertEquals(99, (int)c.at(5));
         assertEquals(12, (int)s.at(5));
     }
+
+    @Test
+    public void testResize() {
+        var m = MatrixArray.of(Integer.class, 6);
+        for (int i = 0, size = m.size(); i < size; ++i)
+            m.put(i, i);
+        var r = m.resize(2, 3);
+        assertEquals(0, (int)r.get(0,0));
+        assertEquals(1, (int)r.get(0,1));
+        assertEquals(2, (int)r.get(0,2));
+        assertEquals(3, (int)r.get(1,0));
+        assertEquals(4, (int)r.get(1,1));
+        assertEquals(5, (int)r.get(1,2));
+        try {
+            m.resize(2, 2);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("dimensions", e.getMessage());
+        }
+    }
 }
